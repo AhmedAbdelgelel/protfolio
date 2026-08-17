@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ahmed Abdelgelel — Software Engineer</title>
+  <meta name="description" content="Backend Engineer & Co-Founder @ Penta Studio. Building calm, production-ready backend systems with Node.js, TypeScript and Go." />
+  <link rel="icon" type="image/png" href="assets/img/danny-phantom.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <canvas class="bg-space" id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="scan" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- ======================= NAV ======================= -->
+  <header class="nav" id="top">
+    <a class="nav__brand" href="#top">
+      <span class="nav__chip">root@ahmed</span><span class="nav__caret" aria-hidden="true"></span>
+    </a>
+    <nav class="nav__links" id="nav-links" aria-label="Primary">
+      <a href="#profile">profile</a>
+      <a href="#experience">experience</a>
+      <a href="#projects">projects</a>
+      <a href="#skills">skills</a>
+      <a href="#contact">contact</a>
+    </nav>
+    <div class="nav__right">
+      <span class="nav__path">~/portfolio</span>
+      <span class="status"><span class="status__dot"></span>online</span>
+      <button class="nav__toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================= HERO ======================= -->
+  <section class="hero" id="hero">
+    <div class="hero__content">
+      <div class="hero__terminal">
+        <div class="terminal__bar">
+          <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="terminal__title">ahmed@portfolio ~/resume</span>
+          <span class="terminal__hint">starfield v1.0</span>
+        </div>
+
+        <div class="terminal__body">
+          <p class="terminal__line"><span class="prompt">$</span> whoami</p>
+          <h1 class="hero__title"><span id="typed" data-text="Ahmed Abdelgelel — Software Engineer"></span><span class="caret" aria-hidden="true"></span></h1>
+
+          <p class="terminal__line"><span class="prompt">$</span> uptime</p>
+          <p class="terminal__out">up 2 years — software engineer · Cairo, EG</p>
+
+          <p class="terminal__line"><span class="prompt">$</span> <span class="cmd">./stack.sh</span></p>
+          <p class="terminal__out terminal__stack">node.js · typescript · go<span class="caret caret--dim" aria-hidden="true"></span></p>
+
+          <p class="terminal__line terminal__line--dim"><span class="prompt">$</span> cat bio.txt</p>
+          <p class="hero__sub">Backend engineer — Node.js, TypeScript &amp; Go. I build server-side systems end to end —
+            code that's simple to maintain, and ships.</p>
+
+          <div class="terminal__cmd">
+            <span class="prompt">$</span>
+            <input class="terminal__input" id="term-input" placeholder="type 'help' — try 'projects' or 'contact'"
+              autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal commands" />
+          </div>
+          <div class="terminal__output" id="term-output"></div>
+        </div>
+
+        <div class="terminal__cta">
+          <a class="btn btn--solid" href="#projects">see work</a>
+          <a class="btn btn--ghost" href="#contact">contact</a>
+        </div>
+
+        <div class="terminal__status">
+          <span><span class="tick">✓</span> boot in 0.42s</span>
+          <span><span class="tick">✓</span> starfield mapped</span>
+          <span class="terminal__status-state">READY <i class="dot-pulse" aria-hidden="true"></i></span>
+        </div>
+      </div>
+
+      <p class="hero__hint" aria-hidden="true">move the cursor — drift through the stars</p>
+    </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+      <span></span>
+    </div>
+  </section>
+
+  <main>
+
+    <!-- ======================= PROFILE ======================= -->
+    <section class="section locked" id="profile">
+      <div class="monogram reveal" aria-hidden="true">
+        <img src="assets/img/monogram.svg" alt="" width="96" height="96" />
+      </div>
+
+      <div class="section__label reveal">/profile</div>
+      <h2 class="section__title reveal">Backend engineer at the <em>intersection</em> of reliability and craft.</h2>
+
+      <div class="prose">
+        <p class="lead reveal">
+          Backend engineer with two years building and shipping server-side systems in <strong>Node.js</strong>, <strong>TypeScript</strong>, and <strong>Go</strong>.
+        </p>
+        <p class="reveal">
+          Day to day, I design and build the backend systems behind products — the data flows between
+          services and the background jobs that keep them running. I care about the boring things done well —
+          clear layering, readable code, and systems I can actually explain under load. Co-founder at
+          <strong>Penta Studio</strong>, where I take web and mobile products from concept to launch:
+          system design, API architecture, and the work of keeping it reliable in production.
+        </p>
+      </div>
+
+      <ul class="facts reveal">
+        <li><span>located_at</span>Cairo, Egypt</li>
+        <li><span>focus</span>Node.js · TypeScript · Go · Backend Systems</li>
+        <li><span>education</span>BSc Computer Science — Mansoura University</li>
+        <li><span>availability</span>Open to collaborations</li>
+      </ul>
+    </section>
+
+    <!-- ======================= EXPERIENCE ======================= -->
+    <section class="section locked" id="experience">
+      <div class="section__head reveal">
+        <div class="section__label">/experience</div>
+        <h2 class="section__title">Work, <em>to date</em></h2>
+      </div>
+
+      <div class="timeline">
+        <article class="job reveal">
+          <div class="job__row">
+            <div>
+              <h3 class="job__role">Co-Founder &amp; Software Engineer</h3>
+              <p class="job__company">Penta Studio <span class="job__loc">— Remote</span></p>
+            </div>
+            <span class="job__date">Dec 2025 — now</span>
+          </div>
+          <ul class="job__points">
+            <li>Co-founded a digital product studio delivering secure, scalable web and mobile systems for startups and enterprises.</li>
+            <li>Architect and lead backend development across concurrent client builds — Node.js (Express, NestJS) and Go, complemented by cloud infrastructure.</li>
+            <li>Own system design, API architecture, third-party integrations, and end-to-end delivery from concept to launch.</li>
+          </ul>
+        </article>
+
+        <article class="job reveal">
+          <div class="job__row">
+            <div>
+              <h3 class="job__role">Backend Developer</h3>
+              <p class="job__company">Amen Stories</p>
+            </div>
+            <span class="job__date">Feb 2025 — now</span>
+          </div>
+          <ul class="job__points">
+            <li>Shipped the full backend of a story-commerce platform: cart, Stripe payments, file-processing pipelines, and automated image replacement inside personalized storybooks.</li>
+            <li>Engineered resilient background jobs for order processing, session maintenance, and personalized file delivery.</li>
+            <li>Designed role-based access control for admins, artists, and customers, plus data models for story customization.</li>
+          </ul>
+        </article>
+
+        <article class="job reveal">
+          <div class="job__row">
+            <div>
+              <h3 class="job__role">Freelance Backend Developer</h3>
+              <p class="job__company">Naqaa Al-Ain — Car Maintenance <span class="job__loc">— Saudi Arabia</span></p>
+            </div>
+            <span class="job__date">Apr — Aug 2025</span>
+          </div>
+          <ul class="job__points">
+            <li>Built RESTful APIs for orders, invoices, and payment workflows.</li>
+            <li>Implemented role-based authentication and authorization for admins, staff, and clients.</li>
+            <li>Integrated Azure OCR to extract vendor, date, and amount from uploaded receipts; optimized database workflows for production load.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ======================= PROJECTS ======================= -->
+    <section class="section locked" id="projects">
+      <div class="section__head reveal">
+        <div class="section__label">/projects</div>
+        <h2 class="section__title">Selected <em>builds</em></h2>
+      </div>
+
+      <div class="projects">
+
+        <article class="project reveal">
+          <div class="project__index">01</div>
+          <div class="project__body">
+            <div class="project__head">
+              <div>
+                <h3 class="project__title">Smart Cache Engine</h3>
+                <p class="project__tag">redis-like in-memory cache engine, built from scratch</p>
+              </div>
+              <a class="project__link" href="https://github.com/AhmedAbdelgelel/Cache-engine" target="_blank" rel="noopener">source <span class="arr" aria-hidden="true">→</span></a>
+            </div>
+            <div class="project__stats">
+              <span>3.2M ops/s (Zipf)</span>
+              <span>99.9% herd cutoff</span>
+              <span>79 tests · 0 deps</span>
+              <span>9 stars</span>
+            </div>
+            <ul class="project__points">
+              <li>Redis-inspired in-memory cache engine built from scratch in Node.js + Express — an O(1) Map + doubly-linked-list LRU, dual-layer TTL expiry (lazy on read plus a background sweep), and byte-level memory caps.</li>
+              <li>Redis-style Sorted Sets (ZADD / ZRANK / ZRANGE / ZINCRBY) with lazy-sort, plus a full REST API covering key-value, sorted sets, metrics, and get-or-load.</li>
+              <li>Stampede Guard coalesces concurrent cache-miss loads for the same key into a single backend call — 999 of 1,000 calls saved in a 500-way cache-stampede test.</li>
+              <li>Metrics with p50/p95/p99 latency via reservoir sampling; validated by 79 tests on Node's built-in runner (zero extra deps) and a 10-scenario benchmark hitting 3.2M ops/s on a Zipf hot-key workload.</li>
+            </ul>
+            <div class="tags">
+              <span>node</span><span>express</span><span>cache</span><span>sorted sets</span><span>benchmarking</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="project__index">02</div>
+          <div class="project__body">
+            <div class="project__head">
+              <div>
+                <h3 class="project__title">EPUB-to-PDF Converter</h3>
+                <p class="project__tag">epub → print-ready PDF, Arabic typography first</p>
+              </div>
+              <a class="project__link" href="https://github.com/Mo7ammedd/epub-to-pdf" target="_blank" rel="noopener">source <span class="arr" aria-hidden="true">→</span></a>
+            </div>
+            <div class="project__stats">
+              <span>15 stars</span>
+              <span>Arabic · Amiri</span>
+              <span>fixed-layout + reflowable</span>
+              <span>batch conversion</span>
+            </div>
+            <ul class="project__points">
+              <li>Converts EPUB (fixed-layout or reflowable) into high-quality, print-ready PDFs via headless Chromium (Puppeteer) — extracts and parses XHTML, then renders each page at exact EPUB dimensions to preserve the original layout.</li>
+              <li>First-class Arabic output with the bundled Amiri font: correct glyph shaping, ligatures, and right-to-left direction, with mixed Arabic/English content handled cleanly.</li>
+              <li>Batch conversion of whole directories with per-page PDFs merged into a single document via pdf-lib; cross-platform extraction (PowerShell / unzip) and automatic font loading.</li>
+            </ul>
+            <div class="tags">
+              <span>node</span><span>puppeteer</span><span>pdf-lib</span><span>epub</span><span>arabic</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ======================= SKILLS ======================= -->
+    <section class="section locked" id="skills">
+      <div class="section__head reveal">
+        <div class="section__label">/skills</div>
+        <h2 class="section__title">The <em>stack</em></h2>
+      </div>
+
+      <div class="skills">
+        <div class="skill-group reveal">
+          <h3>languages</h3>
+          <div class="tags"><span>TypeScript</span><span>JavaScript</span><span>Go</span><span>Python</span><span>Java</span><span>C#</span><span>C++</span></div>
+        </div>
+        <div class="skill-group reveal">
+          <h3>backend</h3>
+          <div class="tags"><span>Node.js</span><span>Go</span><span>REST API Design</span><span>Express.js</span><span>NestJS</span><span>WebSockets</span><span>gRPC</span><span>RabbitMQ</span><span>Kafka</span><span>Event-Driven Architecture</span></div>
+        </div>
+        <div class="skill-group reveal">
+          <h3>databases</h3>
+          <div class="tags"><span>PostgreSQL</span><span>MySQL</span><span>Redis</span><span>SQL</span><span>Data Modeling</span></div>
+        </div>
+        <div class="skill-group reveal">
+          <h3>cloud &amp; devops</h3>
+          <div class="tags"><span>Azure</span><span>Cloud Storage</span><span>CI/CD</span><span>Linux</span><span>Git</span></div>
+        </div>
+        <div class="skill-group reveal">
+          <h3>testing</h3>
+          <div class="tags"><span>Jest</span><span>Mocha</span><span>Integration Testing</span><span>Performance Benchmarking</span></div>
+        </div>
+        <div class="skill-group reveal">
+          <h3>architecture</h3>
+          <div class="tags"><span>System Design</span><span>Microservices</span><span>Concurrency</span><span>Third-Party Integration</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= EDUCATION ======================= -->
+    <section class="edu reveal locked" id="education">
+      <div class="edu__label">/education</div>
+      <div class="edu__term">
+        <div class="terminal__bar">
+          <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="terminal__title">ahmed@portfolio ~/education</span>
+          <span class="terminal__hint">cert</span>
+        </div>
+        <div class="edu__term-body">
+          <p class="terminal__line"><span class="prompt">$</span> cat education.txt</p>
+          <p class="edu__out"><span class="edu__deg">BSc Computer Science</span> — <span class="edu__school">Mansoura University</span> <span class="edu__year">[2021 – 2025]</span></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="divider" aria-hidden="true">
+    <span class="divider__label">exit code 0</span>
+  </div>
+
+  <!-- ======================= CONTACT ======================= -->
+  <footer class="contact locked" id="contact">
+    <div class="contact__inner">
+      <div class="section__label reveal">/contact</div>
+      <h2 class="contact__title reveal">reach out — <em>reliably</em></h2>
+
+      <div class="contact__card reveal">
+        <div class="terminal__bar">
+          <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="terminal__title">ahmed@portfolio ~/contact</span>
+          <span class="terminal__hint">open</span>
+        </div>
+        <div class="contact__card-body">
+          <p class="terminal__line"><span class="prompt">$</span> echo $EMAIL</p>
+          <a class="contact__mail" href="mailto:ahmed4bdelgelel@gmail.com">ahmed4bdelgelel@gmail.com</a>
+
+          <p class="terminal__line contact__line-gap"><span class="prompt">$</span> cat contact.txt</p>
+          <div class="contact__cta">
+            <a class="btn btn--solid" href="mailto:ahmed4bdelgelel@gmail.com">send email</a>
+            <a class="btn btn--ghost" href="tel:+201026657839">+20 102 665 7839</a>
+          </div>
+
+          <div class="contact__meta">
+            <a href="mailto:ahmed4bdelgelel@gmail.com">email</a>
+            <a href="https://www.linkedin.com" rel="noopener" target="_blank">linkedin</a>
+            <a href="https://github.com" rel="noopener" target="_blank">github</a>
+            <a href="#top">penta studio</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact__foot">
+      <span>© <span id="year">2026</span> Ahmed Abdelgelel</span>
+      <span class="contact__foot-mid">ahmed@portfolio — bash</span>
+      <span>cairo, egypt · built with care</span>
+    </div>
+  </footer>
+
+  <!-- ======================= THREE.JS ======================= -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="assets/js/scene-background.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
