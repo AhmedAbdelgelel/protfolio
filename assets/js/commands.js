@@ -74,12 +74,12 @@
       hash: "whoami",
       run: function (ctx) {
         ctx.print("<b>Ahmed Mohammed Abdelgelel</b>");
-        ctx.print("Backend Software Engineer · Co-Founder @ Penta Studio");
+        ctx.print("Software Engineer · Co-Founder @ Penta Studio");
         ctx.print("Cairo, Egypt");
         ctx.blank();
-        ctx.print("2 years building Node.js / TypeScript backend systems — REST APIs,");
-        ctx.print("auth flows, backend architecture. B.Sc. Computer Science, Mansoura");
-        ctx.print("University, 2025.");
+        ctx.print("2 years building Node.js / JavaScript backend systems — RESTful");
+        ctx.print("APIs, session &amp; auth flows, backend architecture for real-world");
+        ctx.print("products. B.Sc. Computer Science, Mansoura University, 2025.");
       },
     },
 
@@ -89,14 +89,17 @@
       hash: "projects",
       run: function (ctx) {
         ctx.print("<b>Smart Cache Engine</b>");
-        ctx.print("  Redis-inspired in-memory cache built from scratch in Node.js.");
-        ctx.print("  O(1) LRU eviction, dual-layer TTL expiration, Sorted Sets with a");
-        ctx.print("  Stampede Guard. 3M+ ops/sec, 79 unit tests, zero dependencies.");
+        ctx.print("  Redis-inspired in-memory cache built from scratch in Node.js —");
+        ctx.print("  3M+ ops/sec. O(1) LRU eviction via doubly linked list + hashmap,");
+        ctx.print("  dual-layer TTL expiration, byte-level memory caps, Sorted Sets");
+        ctx.print("  with a Stampede Guard (99.9% fewer backend calls) and p50/p95/p99");
+        ctx.print("  latency metrics. 79 unit tests, zero dependencies.");
         ctx.blank();
         ctx.print("<b>EPUB-to-PDF Converter</b>");
-        ctx.print("  Fixed-layout EPUB rendering pipeline on Puppeteer. Parses XHTML,");
-        ctx.print("  renders each page at exact viewport dimensions, batch PDF");
-        ctx.print("  generation and merging via pdf-lib.");
+        ctx.print("  Unpacks EPUB archives, parses XHTML, renders each page via");
+        ctx.print("  Puppeteer at exact viewport dimensions for fixed-layout fidelity.");
+        ctx.print("  Font injection via @font-face with global CSS overrides; batch");
+        ctx.print("  PDF generation and merging via pdf-lib; auto-cleanup of temp files.");
       },
     },
 
@@ -108,8 +111,9 @@
         ctx.print(pad("languages", 10) + "JavaScript, TypeScript, C++, C#, Java, Go, Python");
         ctx.print(pad("backend", 10) + "Node.js, Express.js, NestJS, REST API Design");
         ctx.print(pad("databases", 10) + "MongoDB, PostgreSQL, MySQL");
-        ctx.print(pad("devops", 10) + "Docker, Azure, CI/CD, Linux, Git");
+        ctx.print(pad("devops", 10) + "Docker, Azure, Cloud Storage, CI/CD, Linux, Git");
         ctx.print(pad("testing", 10) + "Jest, Mocha");
+        ctx.print(pad("frontend", 10) + "HTML, CSS, Bootstrap, React.js");
       },
     },
 
@@ -119,30 +123,30 @@
       hash: "experience",
       run: function (ctx) {
         ctx.job(
-          "Co-Founder & Software Engineer — Penta Studio",
+          "Co-Founder & Software Engineer — Penta Studio (Remote)",
           "Dec 2025 — present",
           [
-            "Architected and shipped backend services for startup and enterprise clients.",
-            "Led Node.js / TypeScript architecture; set up Docker + CI/CD pipelines.",
-            "Co-founded the studio Dec 2025 — 3+ products delivered since.",
+            "Co-founded a digital product studio building secure, scalable web and mobile products.",
+            "Architect and lead backend for client projects — ExpressJS / NestJS + cloud infra.",
+            "System design, API architecture and third-party integrations, concept to launch.",
           ]
         );
         ctx.job(
           "Backend Developer — Amen Stories",
           "Feb 2025 — present",
           [
-            "Built REST APIs and auth flows (JWT, RBAC) serving 10k+ users.",
-            "Shaved ~40% off API latency with MongoDB indexes + caching layers.",
-            "200+ Jest unit tests across services.",
+            "Full backend for a story-commerce platform: cart, Stripe payments, EPUB generation.",
+            "Artist assignment workflows, multilingual story structures, media upload pipelines.",
+            "RBAC for admins, artists and customers; background jobs for order processing.",
           ]
         );
         ctx.job(
           "Freelance Backend Developer — Naqaa Al-Ain, KSA",
           "Apr 2025 — Aug 2025",
           [
-            "Delivered a full Node.js + PostgreSQL backend for a Saudi client.",
-            "Integrated third-party payments; deployed on Azure with CI/CD.",
-            "Kept 99%+ uptime with production monitoring.",
+            "RESTful APIs for orders, invoices and payment workflows.",
+            "Role-based auth for admins, staff and clients; Azure OCR receipt extraction.",
+            "Optimized DB workflows for reliability and scalability in production.",
           ]
         );
       },
