@@ -83,6 +83,142 @@
     });
   };
 
+  /* ---------- CV database + full-page renderer ---------- */
+  var CV = {
+    name: "Ahmed Mohammed Abdelgelel",
+    role: "Software Engineer · Co-Founder @ Penta Studio",
+    location: "Cairo, Egypt · UTC+2 · Remote-friendly",
+    contacts: [
+      { label: "email", value: EMAIL, href: "mailto:" + EMAIL, copy: true, external: false },
+      { label: "phone", value: PHONE, href: "tel:" + PHONE.replace(/\s/g, ""), copy: true, external: false },
+      { label: "linkedin", value: LINKEDIN, href: LINKEDIN, copy: false, external: true },
+      { label: "github", value: GITHUB, href: GITHUB, copy: false, external: true },
+    ],
+    summary:
+      "Backend engineer with 2 years of hands-on experience building real-world products in " +
+      "Node.js / JavaScript — RESTful APIs, session & auth flows, backend architecture. " +
+      "Comfortable owning services end-to-end: system design, payments, media pipelines, " +
+      "background jobs and cloud infrastructure. 79 unit tests and zero excuses.",
+    experience: [
+      {
+        role: "Co-Founder & Software Engineer — Penta Studio (Remote)",
+        dates: "Dec 2025 — present",
+        bullets: [
+          "Co-founded a digital product studio building secure, scalable web and mobile products.",
+          "Architect and lead backend for client projects — ExpressJS / NestJS + cloud infra.",
+          "System design, API architecture and third-party integrations, concept to launch.",
+        ],
+      },
+      {
+        role: "Backend Developer — Amen Stories",
+        dates: "Feb 2025 — present",
+        bullets: [
+          "Full backend for a story-commerce platform: cart, Stripe payments, EPUB generation.",
+          "Artist assignment workflows, multilingual story structures, media upload pipelines.",
+          "RBAC for admins, artists and customers; background jobs for order processing.",
+        ],
+      },
+      {
+        role: "Freelance Backend Developer — Naqaa Al-Ain, KSA",
+        dates: "Apr 2025 — Aug 2025",
+        bullets: [
+          "RESTful APIs for orders, invoices and payment workflows.",
+          "Role-based auth for admins, staff and clients; Azure OCR receipt extraction.",
+          "Optimized DB workflows for reliability and scalability in production.",
+        ],
+      },
+    ],
+    projects: [
+      {
+        name: "Smart Cache Engine",
+        lines: [
+          "Redis-inspired in-memory cache built from scratch in Node.js — 3M+ ops/sec.",
+          "O(1) LRU eviction via doubly linked list + hashmap; dual-layer TTL expiration.",
+          "Byte-level memory caps, Sorted Sets with a Stampede Guard (99.9% fewer backend calls).",
+          "p50/p95/p99 latency metrics via reservoir sampling. 79 unit tests, zero dependencies.",
+        ],
+      },
+      {
+        name: "EPUB-to-PDF Converter",
+        lines: [
+          "Fixed-layout EPUB rendering pipeline: XHTML parsing, Puppeteer viewport rendering.",
+          "Font injection via @font-face with global CSS overrides; batch PDF generation via pdf-lib.",
+          "Auto-cleanup of temp files; designed to run as an unattended background job.",
+        ],
+      },
+    ],
+    education: "B.Sc. Computer Science — Mansoura University, 2025",
+    skills: [
+      ["languages", "JavaScript, TypeScript, C++, C#, Java, Go, Python"],
+      ["backend", "Node.js, Express.js, NestJS, REST API Design"],
+      ["databases", "MongoDB, PostgreSQL, MySQL"],
+      ["devops", "Docker, Azure, Cloud Storage, CI/CD, Linux, Git"],
+      ["testing", "Jest, Mocha"],
+      ["frontend", "HTML, CSS, Bootstrap, React.js"],
+    ],
+  };
+
+  /* full-page résumé — rendered into the overlay by main.js */
+  window.app = window.app || {};   /* ensure the global exists here (bottom init is later) */
+  window.app.cvHtml = function () {
+    var h = [];
+    var hr = function () {
+      h.push('<div class="cvhr">' + "─".repeat(60) + "</div>");
+    };
+    var sec = function (num, name, body) {
+      h.push('<div class="cv__sec"><span class="cv__num">[' + num + "]</span><span class=\"cv__secname\">" + name + "</span></div>");
+      body();
+    };
+    h.push('<div class="cv">');
+    h.push('<div class="cv__title">' + esc(CV.name) + "</div>");
+    h.push('<div class="cv__sub">' + esc(CV.role) + "</div>");
+    h.push('<div class="cv__muted">' + esc(CV.location) + "</div>");
+    hr();
+    CV.contacts.forEach(function (c) {
+      h.push('<div class="cv__row">' + pad("<b>" + esc(c.label) + "</b>", 11) + linkify(c.value, c.href, c.external) +
+        (c.copy ? " " + copyChip(c.value) : "") + "</div>");
+    });
+    hr();
+    sec(1, "Summary", function () {
+      h.push('<div class="cv__text">' + esc(CV.summary) + "</div>");
+    });
+    sec(2, "Experience", function () {
+      CV.experience.forEach(function (job) {
+        h.push('<div class="cv__job"><span>' + esc(job.role) + '</span><span class="cv__dates">' + esc(job.dates) + "</span></div>");
+        job.bullets.forEach(function (b) {
+          h.push('<div class="cv__bullet">· ' + esc(b) + "</div>");
+        });
+      });
+    });
+    sec(3, "Projects", function () {
+      CV.projects.forEach(function (p) {
+        h.push('<div class="cv__project"><b>' + esc(p.name) + "</b></div>");
+        p.lines.forEach(function (l) {
+          h.push('<div class="cv__bullet">· ' + esc(l) + "</div>");
+        });
+      });
+    });
+    sec(4, "Education", function () {
+      h.push('<div class="cv__text">' + esc(CV.education) + "</div>");
+    });
+    sec(5, "Skills", function () {
+      h.push('<div class="cv__skills">');
+      CV.skills.forEach(function (s) {
+        h.push('<div class="cv__skill"><span class="cv__skill-label">' + esc(s[0]) + '</span><span>' + esc(s[1]) + "</span></div>");
+      });
+      h.push("</div>");
+    });
+    sec(6, "Contact", function () {
+      h.push('<div class="cv__text">prefer the short version? type <b>contact</b> back in the terminal.</div>');
+      h.push('<div class="cv__row">' + pad("<b>email</b>", 11) + linkify(EMAIL, "mailto:" + EMAIL) + " " + copyChip(EMAIL) + "</div>");
+      h.push('<div class="cv__row">' + pad("<b>linkedin</b>", 11) + linkify(LINKEDIN, LINKEDIN, true) + "</div>");
+    });
+    hr();
+    h.push('<div class="cv__foot">generated from the terminal · esc to close</div>');
+    h.push("</div>");
+    return h.join("");
+  };
+
   /* ============================================================
      COMMAND TABLE
      ============================================================ */
@@ -102,6 +238,7 @@
         ctx.print(pad("<b>hire</b>", 15) + "— availability card");
         ctx.print(pad("<b>contact</b>", 15) + "— reach me");
         ctx.print(pad("<b>info</b>", 15) + "— system overview (neofetch)");
+        ctx.print(pad("<b>cv</b>", 15) + "— full résumé page");
         ctx.print(pad("<b>version</b>", 15) + "— build info");
         ctx.blank();
         ctx.print('<span class="dim">fun — because terminals need it:</span>');
@@ -265,6 +402,19 @@
         ctx.print("request a résumé: " + linkify(EMAIL, "mailto:" + EMAIL) +
           " " + copyChip(EMAIL, "copy"));
         ctx.print("or connect on " + linkify("LinkedIn", LINKEDIN, true));
+        ctx.blank();
+        ctx.print('<span class="dim">full résumé: run <b>cv</b> ' +
+          '<a href="#" data-action="cv">[open page]</a></span>');
+      },
+    },
+
+    /* ---------- cv ---------- */
+    cv: {
+      help: "full résumé page",
+      hash: "cv",
+      run: function (ctx) {
+        if (window.app.openCv) window.app.openCv();
+        else ctx.print('<span class="dim">cv page unavailable on this build</span>');
       },
     },
 
@@ -502,7 +652,7 @@
   };
 
   /* aliases — cheap to support */
-  var ALIASES = { "?": "help", cls: "clear", dir: "projects", phantom: "danny" };
+  var ALIASES = { "?": "help", cls: "clear", dir: "projects", phantom: "danny", resume: "cv" };
 
   /* expose a tiny global so main.js can talk to the engine */
   window.app = window.app || {};

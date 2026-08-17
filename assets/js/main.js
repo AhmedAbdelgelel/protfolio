@@ -497,21 +497,68 @@
   });
 
   /* ---------- copy chips ---------- */
-  output.addEventListener("click", function (e) {
-    var c = e.target.closest("a.copy");
-    if (!c) return;
-    e.preventDefault();
-    var val = c.getAttribute("data-copy") || "";
-    var restore = function () { c.textContent = "[copy]"; };
-    try {
-      navigator.clipboard.writeText(val).then(function () {
-        c.textContent = "copied!";
-        setTimeout(restore, 1600);
-      }, restore);
-    } catch (err) {
-      restore();
+  var wireCopy = function (root) {
+    root.addEventListener("click", function (e) {
+      var act = e.target.closest("[data-action]");
+      if (act) {
+        e.preventDefault();
+        if (act.getAttribute("data-action") === "cv") openCv();
+        return;
+      }
+      var c = e.target.closest("a.copy");
+      if (!c) return;
+      e.preventDefault();
+      var val = c.getAttribute("data-copy") || "";
+      var restore = function () { c.textContent = "[copy]"; };
+      try {
+        navigator.clipboard.writeText(val).then(function () {
+          c.textContent = "copied!";
+          setTimeout(restore, 1600);
+        }, restore);
+      } catch (err) {
+        restore();
+      }
+    });
+  };
+  wireCopy(output);
+
+  /* ============================================================
+     Full-page CV overlay — "type cv.txt" in a window, cmd-style
+     ============================================================ */
+  var cvPage = doc.getElementById("cvpage");
+  var cvBody = doc.getElementById("cvpage-body");
+
+  var cvOpen = false;
+
+  window.app.openCv = function () {
+    if (isTyping || QUEUE.length) finishAll();
+    if (!cvBody || !cvPage) return;
+    cvBody.innerHTML = window.app.cvHtml ? window.app.cvHtml() : "<pre>cv data unavailable</pre>";
+    cvBody.scrollTop = 0;
+    cvPage.hidden = false;
+    cvOpen = true;
+  };
+
+  window.app.closeCv = function () {
+    if (!cvPage) return;
+    cvPage.hidden = true;
+    cvOpen = false;
+    input.focus();
+  };
+
+  window.addEventListener("keydown", function (e) {
+    if (cvOpen && e.key === "Escape") {
+      e.preventDefault();
+      window.app.closeCv();
     }
+  }, true);
+
+  if (cvPage) cvPage.addEventListener("click", function (e) {
+    if (e.target === cvPage) window.app.closeCv();  // backdrop click
   });
+  if (cvBody) wireCopy(cvBody);
+  var cvCloseBtn = doc.getElementById("cvpage-close");
+  if (cvCloseBtn) cvCloseBtn.addEventListener("click", window.app.closeCv);
 
   /* ---------- click to refocus ---------- */
   term.addEventListener("click", function (e) {
