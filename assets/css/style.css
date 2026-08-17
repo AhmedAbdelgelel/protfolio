@@ -79,9 +79,14 @@ a { color: var(--bright); }
   letter-spacing: 0.01em;
   white-space: nowrap;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .titlebar__brand svg { flex: 0 0 auto; }
+
+/* mobile skin uses a Termux-style brand; hidden on desktop */
+.titlebar__brand--termux { display: none; }
 
 .titlebar__right {
   display: flex;
@@ -326,8 +331,52 @@ html.js.fallback-show .fallback { display: block; }
 
 @media (max-width: 640px) {
   .screen { padding: 12px 12px 10px; }
-  .titlebar__brand { font-size: 11px; }
-  .screen__out, .promptline { font-size: 13.5px; }
+
+  /* ---- Termux-style mobile skin: same flow, new look ----
+     Windows chrome is meaningless on a phone → flat black bar,
+     no window controls, green block cursor. */
+  .terminal { background: #000; }
+
+  .titlebar {
+    height: 30px;
+    padding-left: 10px;
+    background: #000;
+    border-bottom: 1px solid #1b1b1b;
+  }
+
+  .titlebar__brand--win { display: none; }
+  .titlebar__brand--termux {
+    display: flex;
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .titlebar__right { gap: 8px; }
+  .titlebar__controls { display: none; }
+
+  .status { font-size: 10px; gap: 5px; color: #9c9c9c; }
+
+  .cursor-block {
+    background: #3ddc84;
+    box-shadow: 0 0 6px rgba(61, 220, 132, 0.5);
+  }
+
+  .screen__out, .promptline { font-size: 14px; }
+
+  .chips {
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    background: #0d0d0d;
+    border-top: 1px solid #202020;
+  }
+
+  .chips button {
+    padding: 10px 8px;
+    border-radius: 8px;
+    background: #161616;
+    border-color: #2c2c2c;
+  }
+
+  .chips button:active { background: #222; border-color: #444; }
 }
 
 /* ============================================================

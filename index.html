@@ -33,13 +33,21 @@
 
     <!-- window chrome -->
     <header class="titlebar">
-      <span class="titlebar__brand">
+      <span class="titlebar__brand titlebar__brand--win">
         <!-- cmd.exe icon, drawn inline -->
         <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1" y="2" width="14" height="12" rx="1.5" fill="#0c0c0c" stroke="#d4d4d4" stroke-width="1" />
           <text x="8" y="11" text-anchor="middle" font-family="Consolas, monospace" font-size="7" fill="#ffffff">C:\&gt;</text>
         </svg>
         C:\Windows\system32\cmd.exe
+      </span>
+      <!-- mobile skin: Termux-style brand (shown on phones only) -->
+      <span class="titlebar__brand titlebar__brand--termux" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 16 16">
+          <path d="M4.5 11 L8 8 L4.5 5" stroke="#3ddc84" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M9 11.5 L12 11.5" stroke="#3ddc84" stroke-width="1.5" fill="none" stroke-linecap="round" />
+        </svg>
+        Termux
       </span>
 
       <span class="titlebar__right">
