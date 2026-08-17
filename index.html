@@ -43,14 +43,17 @@
       </span>
       <!-- mobile skin: Termux-style brand (shown on phones only) -->
       <span class="titlebar__brand titlebar__brand--termux" aria-hidden="true">
-        <svg width="15" height="15" viewBox="0 0 16 16">
-          <path d="M4.5 11 L8 8 L4.5 5" stroke="#3ddc84" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M9 11.5 L12 11.5" stroke="#3ddc84" stroke-width="1.5" fill="none" stroke-linecap="round" />
+        <svg width="15" height="15" viewBox="0 0 16 16" stroke="currentColor">
+          <path d="M4.5 11 L8 8 L4.5 5" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M9 11.5 L12 11.5" stroke-width="1.5" fill="none" stroke-linecap="round" />
         </svg>
         Termux
       </span>
 
       <span class="titlebar__right">
+        <!-- live clock — like a real terminal's status area -->
+        <span class="status__clock" id="clock" aria-hidden="true">--:--:--</span>
+
         <!-- status dot — cosmetic, always online -->
         <span class="status"><span class="status__dot" aria-hidden="true"></span>online</span>
 
@@ -122,6 +125,12 @@
 
     <p class="fallback__note">This page is meant to be a command line — enable JavaScript and type <em>help</em>.</p>
   </main>
+
+  <!-- idle screensaver — appears after 60s of quiet, hides on any key/tap -->
+  <div class="saver" id="saver" hidden>
+    <div class="saver__clock" id="saver-clock" aria-hidden="true">--:--</div>
+    <div class="saver__hint">press any key to resume</div>
+  </div>
 
   <!-- command table first, then the engine that drives it -->
   <script src="assets/js/commands.js"></script>
