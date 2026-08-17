@@ -57,19 +57,24 @@
         <!-- status dot — cosmetic, always online -->
         <span class="status"><span class="status__dot" aria-hidden="true"></span>online</span>
 
-        <!-- Win11 window controls (decorative) -->
+        <!-- Win11 window controls — fully alive: minimize / maximize / close -->
         <span class="titlebar__controls" role="group" aria-label="Window controls">
-          <button type="button" aria-label="Minimize" tabindex="-1">
+          <button type="button" class="win-min" aria-label="Minimize" aria-pressed="false">
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
               <line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1" />
             </svg>
           </button>
-          <button type="button" aria-label="Maximize" tabindex="-1">
-            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+          <button type="button" class="win-max" aria-label="Maximize" aria-pressed="false">
+            <svg class="icon-max" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
               <rect x="1.5" y="1.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1" />
             </svg>
+            <svg class="icon-restore" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+              <path d="M1 4 L1 1 L4 1" fill="none" stroke="currentColor" stroke-width="1" />
+              <path d="M9 6 L9 9 L6 9" fill="none" stroke="currentColor" stroke-width="1" />
+              <path d="M1.5 2 L8 2 L8 8.5" fill="none" stroke="currentColor" stroke-width="1" />
+            </svg>
           </button>
-          <button type="button" class="win-close" aria-label="Close" tabindex="-1">
+          <button type="button" class="win-close" aria-label="Close">
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
               <path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" stroke-width="1" />
             </svg>
@@ -94,6 +99,18 @@
           aria-label="Terminal commands — type help for a list" />
       </div>
     </main>
+  </div>
+
+  <!-- ==================== POWERED-OFF SCREEN ====================
+       closing the window flips the terminal off; reboot from here -->
+  <div class="poweroff" id="poweroff" role="dialog" aria-label="Terminal is powered off" hidden>
+    <div class="poweroff__inner">
+      <div class="poweroff__echo" id="poweroff-echo"></div>
+      <div class="poweroff__msg" id="poweroff-msg"></div>
+      <div class="poweroff__cursor" aria-hidden="true">█</div>
+      <button type="button" class="poweroff__reboot" id="poweroff-reboot">[ reboot ]</button>
+      <div class="poweroff__hint">tap anywhere or press any key to open the window again</div>
+    </div>
   </div>
 
   <!-- ==================== NO-JS FALLBACK ==================== -->

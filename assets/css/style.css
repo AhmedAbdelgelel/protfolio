@@ -161,8 +161,19 @@ a { color: var(--bright); }
 
 .titlebar__controls button:hover { background: var(--hover); }
 .titlebar__controls button:active { background: rgba(255, 255, 255, 0.16); }
+.titlebar__controls button:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
 .titlebar__controls .win-close:hover { background: var(--btn-close); }
 .titlebar__controls .win-close:hover svg { color: #fff; }
+
+/* maximize icon swaps to the "restore" glyph while maximized */
+.titlebar__controls .icon-restore { display: none; }
+.terminal.is-maximized .titlebar__controls .icon-restore { display: block; }
+.terminal.is-maximized .titlebar__controls .icon-max { display: none; }
+
+/* window states — minimize collapses to the titlebar, close hides it */
+.terminal.is-minimized { height: 34px; min-height: 0; }
+.terminal.is-minimized .screen { display: none; }
+.terminal.is-off { display: none; }
 
 /* ============================================================
    SCREEN — output scrolls above a pinned prompt row
@@ -242,6 +253,8 @@ a { color: var(--bright); }
   margin: 6px 0;
   display: block;
 }
+
+.line--dim { color: var(--dim); }
 
 /* echoed command line — like real cmd: prompt then typed text */
 .line--echo { color: var(--bright); }
@@ -393,6 +406,71 @@ html.js.fallback-show .fallback { display: block; }
 @keyframes saver-hint {
   0%, 100% { opacity: 0.25; }
   50%      { opacity: 0.9; }
+}
+
+/* ============================================================
+   POWERED-OFF SCREEN — close button flips the terminal off;
+   tap / key / reboot chip brings it back
+   ============================================================ */
+.poweroff {
+  position: fixed;
+  inset: 0;
+  z-index: 70;                        /* above terminal, saver (50) and CV (60) */
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+  font-family: var(--mono);
+}
+.poweroff[hidden] { display: none; }
+
+.poweroff__inner {
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+}
+
+.poweroff__echo {
+  font-size: 13px;
+  color: var(--dim);
+  margin-bottom: 20px;
+}
+
+.poweroff__msg {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--bright);
+  margin-bottom: 22px;
+}
+
+.poweroff__cursor {
+  color: var(--accent);
+  font-size: 20px;
+  animation: blink 1s steps(1) infinite;
+}
+
+.poweroff__reboot {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin-top: 26px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.poweroff__reboot:hover { text-decoration: underline; }
+.poweroff__reboot:focus-visible { outline: 1px solid var(--accent); }
+
+.poweroff__hint {
+  margin-top: 18px;
+  font-size: 11px;
+  color: #4d4d4d;
+  letter-spacing: 0.08em;
+  animation: saver-hint 2.4s ease-in-out infinite;
 }
 
 /* ============================================================
@@ -559,7 +637,11 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
   }
 
   .titlebar__right { gap: 8px; }
-  .titlebar__controls { display: none; }
+
+  /* window controls stay alive on phones too — bigger touch targets */
+  .titlebar__controls button { width: 42px; }
+  .titlebar__controls button:hover { background: transparent; }
+  .titlebar__controls button:active { background: rgba(255, 255, 255, 0.12); }
 
   .status { font-size: 10px; gap: 5px; color: #9c9c9c; }
   .status__clock { font-size: 10px; color: #7c7c7c; }

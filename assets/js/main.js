@@ -563,8 +563,120 @@
   /* ---------- click to refocus ---------- */
   term.addEventListener("click", function (e) {
     if (e.target.closest("button, a")) return;
+    if (term.classList.contains("is-minimized")) {
+      setMinimized(false);
+      focusInput();
+      return;
+    }
     input.focus();
   });
+
+  /* ============================================================
+     Window controls — minimize / maximize / close, with a
+     Termux-style power-off screen and a reboot shortcut
+     ============================================================ */
+  var powerOn = true;
+  var GOODBYES = [
+    "saving session… done. the terminal will be alone with its thoughts now.",
+    "powering down circuits (all two of them).",
+    "you close the window, but the magic stays in the terminal.",
+    "shutting down in style — exit code 0, dignity intact.",
+    "the terminal agreed to go off. it says 'finally, some quiet'.",
+  ];
+  var nextGoodbye = 0;
+
+  var minBtn = doc.querySelector(".win-min");
+  var maxBtn = doc.querySelector(".win-max");
+  var closeBtn = doc.querySelector(".win-close");
+  var poweroff = doc.getElementById("poweroff");
+  var powerEcho = doc.getElementById("poweroff-echo");
+  var powerMsg = doc.getElementById("poweroff-msg");
+  var powerReboot = doc.getElementById("poweroff-reboot");
+
+  var setMinimized = function (on) {
+    term.classList.toggle("is-minimized", on);
+    if (minBtn) minBtn.setAttribute("aria-pressed", String(on));
+  };
+
+  if (minBtn) minBtn.addEventListener("click", function () {
+    if (!powerOn) return;
+    blip(true);
+    setMinimized(!term.classList.contains("is-minimized"));
+    if (!term.classList.contains("is-minimized")) focusInput();
+  });
+
+  if (maxBtn) maxBtn.addEventListener("click", function () {
+    if (!powerOn) return;
+    blip(true);
+    var on = term.classList.toggle("is-maximized");
+    maxBtn.setAttribute("aria-pressed", String(on));
+    try {
+      if (on && doc.documentElement.requestFullscreen) {
+        doc.documentElement.requestFullscreen()["catch"](function () { /* not supported */ });
+      } else if (!on && doc.exitFullscreen) {
+        doc.exitFullscreen()["catch"](function () { /* not supported */ });
+      }
+    } catch (err) { /* ignore */ }
+  });
+
+  doc.addEventListener("fullscreenchange", function () {
+    if (doc.fullscreenElement) return;                  // entered via the button
+    if (term.classList.contains("is-maximized")) {      // exited (e.g. Esc) — sync icon
+      term.classList.remove("is-maximized");
+      if (maxBtn) maxBtn.setAttribute("aria-pressed", "false");
+    }
+  });
+
+  var shutdown = function () {
+    if (!powerOn) return;
+    powerOn = false;
+    if (isTyping || QUEUE.length) finishAll();
+    var echo = mobile ? "glgl@phone:~$ poweroff" : "C:\\Users\\glgl> shutdown -s";
+    var msg = GOODBYES[nextGoodbye % GOODBYES.length];
+    nextGoodbye += 1;
+    if (powerEcho) powerEcho.textContent = echo;
+    if (powerMsg) powerMsg.textContent = msg;
+    appendLine(echo, "echo");
+    appendLine(msg, "dim");
+    blip(true);
+    setMinimized(false);
+    term.classList.add("is-off");
+    if (poweroff) {
+      poweroff.hidden = false;
+      if (window.matchMedia("(pointer: fine)").matches && powerReboot) powerReboot.focus({ preventScroll: true });
+    }
+  };
+
+  var reboot = function () {
+    if (powerOn) return;
+    powerOn = true;
+    if (poweroff) poweroff.hidden = true;
+    term.classList.remove("is-off", "is-minimized");
+    if (minBtn) minBtn.setAttribute("aria-pressed", "false");
+    var echo = mobile ? "glgl@phone:~$ reboot" : "C:\\Users\\glgl> shutdown /a";
+    appendLine(echo, "echo");
+    appendLine('welcome back. <span class="dim">type help to see the damage.</span>', "");
+    blip(true);
+    lastActive = Date.now();
+    focusInput();
+  };
+
+  if (closeBtn) closeBtn.addEventListener("click", shutdown);
+
+  if (poweroff) poweroff.addEventListener("click", function (e) {
+    if (e.target.closest("button")) return;   // reboot chip handles its own click
+    reboot();
+  });
+  if (powerReboot) powerReboot.addEventListener("click", function (e) {
+    e.stopPropagation();
+    reboot();
+  });
+  window.addEventListener("keydown", function (e) {
+    if (!powerOn) {
+      e.preventDefault();
+      reboot();
+    }
+  }, true);
 
   var focusInput = function () {
     if (window.matchMedia("(pointer: fine)").matches) input.focus({ preventScroll: true });
@@ -605,6 +717,7 @@
 
   setInterval(function () {
     if (reduced) return;
+    if (!powerOn) return;                                  // terminal is off
     if (saver.hidden && !matrixActive && !gameActive &&
         Date.now() - lastActive > 60000 && doc.visibilityState !== "hidden") {
       saver.hidden = false;
