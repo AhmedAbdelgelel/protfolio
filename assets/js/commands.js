@@ -131,6 +131,7 @@
     projects: [
       {
         name: "Smart Cache Engine",
+        url: "https://github.com/AhmedAbdelgelel/Cache-engine",
         lines: [
           "Redis-inspired in-memory cache built from scratch in Node.js — 3M+ ops/sec.",
           "O(1) LRU eviction via doubly linked list + hashmap; dual-layer TTL expiration.",
@@ -140,6 +141,7 @@
       },
       {
         name: "EPUB-to-PDF Converter",
+        url: "https://github.com/Mo7ammedd/epub-to-pdf",
         lines: [
           "Fixed-layout EPUB rendering pipeline: XHTML parsing, Puppeteer viewport rendering.",
           "Font injection via @font-face with global CSS overrides; batch PDF generation via pdf-lib.",
@@ -192,7 +194,9 @@
     });
     sec(3, "Projects", function () {
       CV.projects.forEach(function (p) {
-        h.push('<div class="cv__project"><b>' + esc(p.name) + "</b></div>");
+        h.push('<div class="cv__project"><b>' + esc(p.name) + "</b>" +
+          (p.url ? ' <a href="' + p.url + '" target="_blank" rel="noopener" class="cv__repo">' + esc(p.url.replace("https://github.com/", "")) + "</a>" : "") +
+          "</div>");
         p.lines.forEach(function (l) {
           h.push('<div class="cv__bullet">· ' + esc(l) + "</div>");
         });
@@ -284,6 +288,7 @@
       hash: "projects",
       run: function (ctx) {
         ctx.print("<b>Smart Cache Engine</b>");
+        ctx.print("  <a href=\"https://github.com/AhmedAbdelgelel/Cache-engine\" target=\"_blank\" rel=\"noopener\" class=\"dim\">github.com/AhmedAbdelgelel/Cache-engine</a>");
         ctx.print("  Redis-inspired in-memory cache built from scratch in Node.js —");
         ctx.print("  3M+ ops/sec. O(1) LRU eviction via doubly linked list + hashmap,");
         ctx.print("  dual-layer TTL expiration, byte-level memory caps, Sorted Sets");
@@ -291,6 +296,7 @@
         ctx.print("  latency metrics. 79 unit tests, zero dependencies.");
         ctx.blank();
         ctx.print("<b>EPUB-to-PDF Converter</b>");
+        ctx.print("  <a href=\"https://github.com/Mo7ammedd/epub-to-pdf\" target=\"_blank\" rel=\"noopener\" class=\"dim\">github.com/Mo7ammedd/epub-to-pdf</a>");
         ctx.print("  Unpacks EPUB archives, parses XHTML, renders each page via");
         ctx.print("  Puppeteer at exact viewport dimensions for fixed-layout fidelity.");
         ctx.print("  Font injection via @font-face with global CSS overrides; batch");

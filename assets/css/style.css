@@ -513,6 +513,8 @@ html.js.fallback-show .fallback { display: block; }
 .cv__dates { margin-left: auto; color: var(--dim); white-space: nowrap; font-size: 13px; }
 .cv__bullet { margin: 2px 0 0 18px; }
 .cv__project { margin-top: 10px; color: var(--bright); }
+.cv__repo { margin-left: 8px; color: var(--ok); font-size: 11px; text-decoration: none; }
+.cv__repo:hover { text-decoration: underline; }
 
 .cv__skills {
   display: grid;
