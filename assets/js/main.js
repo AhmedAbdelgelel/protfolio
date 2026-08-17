@@ -502,7 +502,7 @@
       var act = e.target.closest("[data-action]");
       if (act) {
         e.preventDefault();
-        if (act.getAttribute("data-action") === "cv") openCv();
+        if (act.getAttribute("data-action") === "cv") window.app.openCv();
         return;
       }
       var c = e.target.closest("a.copy");
