@@ -34,7 +34,6 @@
   var input = doc.getElementById("term-input");
   var mirror = doc.getElementById("mirror");
   var promptRow = doc.getElementById("promptline");
-  var chips = Array.prototype.slice.call(doc.querySelectorAll(".chips button"));
 
   /* the terminal is booting — abort early if markup is missing */
   if (!term || !output || !input || !mirror) return;
@@ -159,7 +158,7 @@ var isReload = function () {
 };
 
 var showPrompt = function () {
-    term.classList.add("ready"); // CSS fades prompt + chips in
+    term.classList.add("ready"); // CSS fades the prompt + input row in
     focusInput();
     if (isReload()) {
       /* refresh → reset to a clean home: drop any section hash from the URL
@@ -285,15 +284,6 @@ var showPrompt = function () {
       }
       syncMirror();
     }
-  });
-
-  /* ============================================================
-     Quick-command chips — mobile only. Tap = typed + submitted.
-     ============================================================ */
-  chips.forEach(function (chip) {
-    chip.addEventListener("click", function () {
-      execute(chip.dataset.cmd || chip.textContent);
-    });
   });
 
   /* ============================================================
