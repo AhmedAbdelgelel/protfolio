@@ -172,6 +172,14 @@ a { color: var(--bright); }
   color: var(--text);
 }
 
+/* staggered reveal — lines fade in with a per-line random delay (set in JS) */
+@keyframes line-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.line--anim { animation: line-in 0.16s ease-out both; }
+
 .line b { color: var(--bright); font-weight: 700; }
 .line .dim { color: var(--dim); }
 .line a { color: var(--bright); text-decoration: none; border-bottom: 1px solid #555; }
@@ -364,19 +372,20 @@ html.js.fallback-show .fallback { display: block; }
   .screen__out, .promptline { font-size: 14px; }
 
   .chips {
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
-    background: #0d0d0d;
-    border-top: 1px solid #202020;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+    background: transparent;      /* flush with the screen, like Termux keys */
+    border-top: 0;
   }
 
   .chips button {
-    padding: 10px 8px;
-    border-radius: 8px;
-    background: #161616;
-    border-color: #2c2c2c;
+    padding: 9px 6px;
+    border-radius: 6px;
+    background: #1e1e1e;
+    border-color: #2f2f2f;
+    font-size: 11px;
   }
 
-  .chips button:active { background: #222; border-color: #444; }
+  .chips button:active { background: #333; border-color: #4a4a4a; }
 }
 
 /* ============================================================

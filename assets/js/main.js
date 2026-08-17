@@ -13,6 +13,22 @@
   var doc = document;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* device skin: Windows terminal on desktop, Termux on phones.
+     Text (prompt, boot, errors) follows the skin so the flow feels native. */
+  var mql = window.matchMedia("(max-width: 640px)");
+  var mobile = mql.matches;
+  var promptLabel = doc.getElementById("prompt-label");
+
+  var updateSkin = function () {
+    mobile = mql.matches;
+    document.title = mobile ? "glgl — Termux" : "glgl — C:\\Windows\\system32\\cmd.exe";
+    if (promptLabel) promptLabel.textContent = mobile ? "~ $" : "C:\\Users\\glgl>";
+  };
+
+  if (mql.addEventListener) mql.addEventListener("change", updateSkin);
+  else mql.addListener(updateSkin);
+  updateSkin();
+
   var term = doc.getElementById("terminal");
   var output = doc.getElementById("terminal-output");
   var input = doc.getElementById("term-input");
@@ -42,6 +58,12 @@
     var div = doc.createElement("div");
     div.className = "line" + (cls ? " line--" + cls : "");
     div.innerHTML = html;
+    /* staggered reveal — each line fades in with a random jitter,
+       giving the "printing output" feel without blocking input */
+    if (!reduced) {
+      div.classList.add("line--anim");
+      div.style.animationDelay = Math.floor(Math.random() * 120 + 30) + "ms";
+    }
     output.appendChild(div);
   };
 
@@ -84,15 +106,24 @@
   /* ============================================================
      Boot sequence — printed line by line, not all at once
      ============================================================ */
-  var BOOT_LINES = [
-    "Microsoft Windows [Version 10.0.22631]",
-    "(c) Microsoft Corporation. All rights reserved.",
-  ];
+  var bootLines = function () {
+    return mobile
+      ? [
+          "Welcome to Termux!",
+          "Docs: https://wiki.termux.com",
+          "Community: https://termux.com/community",
+        ]
+      : [
+          "Microsoft Windows [Version 10.0.22631]",
+          "(c) Microsoft Corporation. All rights reserved.",
+        ];
+  };
 
   var boot = function () {
+    var lines = bootLines();
     if (reduced) {
       /* motion off → print everything instantly */
-      BOOT_LINES.forEach(function (line) {
+      lines.forEach(function (line) {
         appendLine(esc(line));
       });
       appendLine("&nbsp;");
@@ -100,7 +131,7 @@
       return;
     }
     var delay = 110;
-    BOOT_LINES.forEach(function (line, i) {
+    lines.forEach(function (line, i) {
       setTimeout(function () {
         appendLine(esc(line));
         scrollDown();
@@ -109,8 +140,8 @@
     setTimeout(function () {
       appendLine("&nbsp;");
       scrollDown();
-    }, BOOT_LINES.length * delay);
-    setTimeout(showPrompt, (BOOT_LINES.length + 1) * delay + 120);
+    }, lines.length * delay);
+    setTimeout(showPrompt, (lines.length + 1) * delay + 120);
   };
 
   /* refresh (F5/reload) always boots the fresh home screen — deep-link
@@ -177,9 +208,9 @@ var showPrompt = function () {
     history.push(trimmed);
     histIndex = -1;
 
-    /* echo:  C:\Users\glgl>  <command>   (own line, then output below) */
+    /* echo:  C:\Users\glgl>  <command>   (or  ~ $  on Termux) */
     appendLine(
-      '<span class="echo-prompt">C:\\Users\\glgl&gt;</span> ' + esc(trimmed),
+      '<span class="echo-prompt">' + esc(mobile ? "~ $" : "C:\\Users\\glgl>") + "</span> " + esc(trimmed),
       "echo"
     );
     scrollDown();
@@ -188,11 +219,18 @@ var showPrompt = function () {
     var cmd = window.app.resolve(token);
 
     if (!cmd) {
-      /* mimic real cmd.exe's "not recognized" message verbatim */
-      appendLine("'" + esc(token) + "' is not recognized as an internal or external command,");
-      appendLine("operable program or batch file.");
-      ctx.blank();
-      scrollDown();
+      if (mobile) {
+        /* Termux syntax — bash's "command not found" */
+        appendLine("bash: " + esc(token) + ": command not found");
+        ctx.blank();
+        scrollDown();
+      } else {
+        /* mimic real cmd.exe's "not recognized" message verbatim */
+        appendLine("'" + esc(token) + "' is not recognized as an internal or external command,");
+        appendLine("operable program or batch file.");
+        ctx.blank();
+        scrollDown();
+      }
       return;
     }
 
