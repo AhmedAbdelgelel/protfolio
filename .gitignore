@@ -16,3 +16,5 @@ Thumbs.db
 .idea/
 
 # source images kept out of the repo? none needed
+.vercel
+.env*

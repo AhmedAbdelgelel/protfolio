@@ -14,8 +14,8 @@
   "use strict";
 
   /* ---------- editable constants — replace the two URLs with the real profiles ---------- */
-  var LINKEDIN = "https://linkedin.com/in/ahmed-abdelgelel"; // TODO: real profile URL
-  var GITHUB = "https://github.com/ahmed-abdelgelel"; // TODO: real profile URL
+  var LINKEDIN = "https://www.linkedin.com/in/ahmed-abdelgelel-6aa523283/";
+  var GITHUB = "https://github.com/AhmedAbdelgelel";
   var EMAIL = "ahmed4bdelgelel@gmail.com";
   var PHONE = "+20 102 665 7839";
 
@@ -32,8 +32,10 @@
       .replace(/"/g, "&quot;");
   };
 
-  var linkify = function (label, href) {
-    return '<a href="' + esc(href) + '" rel="noopener">' + esc(label || href) + "</a>";
+  /* external = true → opens in a new tab; mailto/tel stay in place */
+  var linkify = function (label, href, external) {
+    var extra = external ? ' target="_blank" rel="noopener"' : "";
+    return '<a href="' + esc(href) + '"' + extra + ">" + esc(label || href) + "</a>";
   };
 
   /* today as YYYY-MM-DD — used by `version` */
@@ -164,8 +166,8 @@
       run: function (ctx) {
         ctx.print(pad("email", 9) + linkify(EMAIL, "mailto:" + EMAIL));
         ctx.print(pad("phone", 9) + linkify(PHONE, "tel:" + PHONE.replace(/\s/g, "")));
-        ctx.print(pad("linkedin", 9) + linkify(LINKEDIN, LINKEDIN));
-        ctx.print(pad("github", 9) + linkify(GITHUB, GITHUB));
+        ctx.print(pad("linkedin", 9) + linkify(LINKEDIN, LINKEDIN, true));
+        ctx.print(pad("github", 9) + linkify(GITHUB, GITHUB, true));
       },
     },
 
