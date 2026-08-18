@@ -625,295 +625,56 @@ html.js.fallback-show .fallback { display: block; }
 }
 
 /* ============================================================
-   MODE PICKER — choose your mood on first visit
+   IN-TERMINAL MENU — the interactive index rendered inside the
+   terminal output (opens by default; reopen with `menu`)
    ============================================================ */
-.pick {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  background: linear-gradient(160deg, #101014 0%, #17171c 55%, #0d0d10 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  overflow: auto;
-  font-family: var(--mono);
-}
-.pick[hidden] { display: none; }
+.menu-block { margin: 18px 0 4px; }
 
-.pick__inner {
-  max-width: 560px;
-  width: 100%;
-  animation: line-in 0.25s ease-out both;
-}
+.menu-block__hint { font-size: 11px; color: var(--dim); margin-bottom: 10px; }
 
-.pick__brand {
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--bright);
-  letter-spacing: 0.02em;
-}
-.pick__cursor {
-  color: var(--accent);
-  animation: blink 1s steps(1) infinite;
-}
-
-.pick__title {
-  font-size: 15px;
-  color: var(--dim);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-top: 22px;
-}
-.pick__sub {
-  font-size: 12px;
-  color: #555;
-  margin-top: 6px;
-}
-
-.pick__options {
-  display: grid;
-  gap: 12px;
-  margin-top: 26px;
-}
-
-.pick__card {
-  appearance: none;
-  background: #1b1b20;
-  border: 1px solid #2e2e36;
-  border-radius: 12px;
-  padding: 16px 18px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  text-align: left;
-  font: inherit;
-  cursor: pointer;
-  transition: border-color 0.12s ease, background 0.12s ease;
-}
-.pick__card:hover { border-color: #4a4a58; background: #20202a; }
-.pick__card--sel { outline: 2px solid var(--accent); outline-offset: -1px; }
-
-.pick__num {
-  flex: 0 0 auto;
-  min-width: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.pick__card-title {
-  display: block;
-  color: var(--bright);
-  font-size: 15px;
-}
-.pick__card-desc {
-  display: block;
-  color: var(--dim);
-  font-size: 12.5px;
-  line-height: 1.55;
-  margin-top: 5px;
-}
-
-.pick__hint {
-  margin-top: 22px;
-  font-size: 11px;
-  color: #4d4d4d;
-  letter-spacing: 0.08em;
-}
-
-.pick__skip {
+.menu-row {
   appearance: none;
   background: none;
   border: 0;
-  margin-top: 18px;
-  padding: 4px 6px;
-  font: inherit;
-  font-size: 12px;
-  color: var(--accent);
-  cursor: pointer;
-}
-.pick__skip:hover { text-decoration: underline; }
-
-/* ============================================================
-   RECRUITER MODE — friendly face of the same portfolio
-   ============================================================ */
-html.js body.mode-recruiter .terminal { display: none; }
-html.js body.mode-recruiter .taskbar { display: none; }
-
-.recruiter {
-  position: fixed;
-  inset: 0;
-  z-index: 35;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  display: flex;
-  flex-direction: column;
-}
-.recruiter[hidden] { display: none; }
-
-.recruiter__bar {
-  height: 44px;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: #16161a;
-  border-bottom: 1px solid #2a2a2e;
-}
-
-.recruiter__brand { font-size: 13px; color: var(--bright); }
-.recruiter__edition { color: var(--dim); font-size: 11px; }
-
-.recruiter__switch {
-  appearance: none;
-  background: none;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  border-radius: 8px;
-  padding: 5px 12px;
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-.recruiter__switch:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.recruiter__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-.recruiter__body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 30px 20px 70px;
-}
-
-.recruiter__hero { max-width: 720px; margin: 0 auto; }
-.recruiter__hero h1 { font-size: 27px; color: var(--bright); }
-.recruiter__role { margin-top: 8px; color: var(--accent); font-size: 14px; }
-.recruiter__blurb {
-  margin-top: 12px;
-  color: var(--dim);
-  font-size: 13.5px;
-  line-height: 1.65;
-  max-width: 640px;
-}
-
-.recruiter__cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-.recruiter__cta a,
-.recruiter__cta button {
-  appearance: none;
-  background: #1b1b20;
-  border: 1px solid #36363e;
-  border-radius: 9px;
-  padding: 8px 14px;
-  font: inherit;
-  font-size: 12.5px;
-  color: var(--bright);
-  text-decoration: none;
-  cursor: pointer;
-}
-.recruiter__cta a:hover,
-.recruiter__cta button:hover { border-color: var(--accent); color: var(--accent); }
-
-.recruiter__menu {
-  max-width: 720px;
-  margin: 30px auto 0;
-  display: grid;
-  gap: 10px;
-}
-
-.recruiter__item {
-  appearance: none;
-  background: #16161a;
-  border: 1px solid #2c2c32;
-  border-radius: 11px;
-  padding: 12px 15px;
+  border-left: 2px solid transparent;
+  border-bottom: 1px solid #1f1f24;
+  width: 100%;
+  padding: 9px 6px 9px 10px;
   display: flex;
   align-items: flex-start;
   gap: 14px;
   text-align: left;
   font: inherit;
+  color: var(--text);
   cursor: pointer;
-  transition: border-color 0.12s ease;
 }
-.recruiter__item:hover { border-color: #50505e; }
-.recruiter__item--sel { outline: 2px solid var(--accent); outline-offset: -1px; }
+.menu-row:last-child { border-bottom: 0; }
+.menu-row:hover { background: #17171c; }
+.menu-row--sel {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.menu-row--sel .menu-row__title { color: var(--accent); }
 
-.recruiter__num {
+.menu-row__num {
   flex: 0 0 auto;
-  min-width: 24px;
-  height: 24px;
+  min-width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.recruiter__item-title { display: block; color: var(--bright); font-size: 13.5px; }
-.recruiter__item-desc {
-  display: block;
+  border: 1px solid #3a3a44;
+  border-radius: 5px;
+  font-size: 11px;
   color: var(--dim);
-  font-size: 11.5px;
-  line-height: 1.5;
-  margin-top: 4px;
+  margin-top: 1px;
 }
+.menu-row--sel .menu-row__num { border-color: var(--accent); color: var(--accent); }
 
-.recruiter__panel { max-width: 720px; margin: 26px auto 0; }
-
-.rec__panelhead {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  border-bottom: 1px solid #2a2a2e;
-  padding-bottom: 10px;
-  margin-bottom: 16px;
-}
-.rec__back {
-  appearance: none;
-  background: none;
-  border: 0;
-  font: inherit;
-  font-size: 12.5px;
-  color: var(--accent);
-  cursor: pointer;
-  padding: 0;
-}
-.rec__back:hover { text-decoration: underline; }
-.rec__paneltitle { font-size: 15px; color: var(--bright); }
-
-.rec__job { margin-top: 12px; }
-.rec__jobline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  color: var(--bright);
-  font-size: 13.5px;
-}
-.rec__dates { margin-left: auto; color: var(--dim); white-space: nowrap; font-size: 12px; }
-.rec__bullet { margin-top: 5px; color: #d4d4d4; font-size: 13px; line-height: 1.6; }
-.rec__row { margin-top: 9px; font-size: 13px; line-height: 1.7; }
-.rec__row a { color: var(--ok); text-decoration: none; }
-.rec__row a:hover { text-decoration: underline; }
-.rec__stack { display: grid; gap: 6px; margin-top: 6px; }
-.rec__skill { font-size: 13px; }
-.rec__skill-label { color: var(--bright); }
-.rec__note { margin-top: 16px; color: var(--dim); font-size: 12px; line-height: 1.6; }
+.menu-row__body { flex: 1 1 auto; min-width: 0; }
+.menu-row__title { display: block; color: var(--bright); font-size: 13px; }
+.menu-row__desc { display: block; color: var(--dim); font-size: 11.5px; margin-top: 3px; line-height: 1.5; }
+.menu-row__keys { flex: 0 0 auto; font-size: 11px; color: #6d6d7a; margin-top: 1px; }
 
 /* ============================================================
    FULL-PAGE CV OVERLAY — a cmd document window (`cv` command)
@@ -1103,11 +864,7 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
   .screen__out, .promptline { font-size: 14px; }
 
-  .recruiter__body { padding: 22px 14px 50px; }
-  .recruiter__hero h1 { font-size: 21px; }
-  .recruiter__brand { font-size: 12px; }
-  .recruiter__switch { font-size: 11px; padding: 4px 9px; }
-
+  .menu-row__keys { display: none; }
   .cvpage__body { padding: 16px 14px 22px; font-size: 13.5px; }
   .cvpage { padding: 6px; }
   .cv__title { font-size: 17px; }

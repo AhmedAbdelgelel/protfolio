@@ -306,6 +306,16 @@
       },
     },
 
+    /* ---------- education ---------- */
+    education: {
+      help: "B.Sc. Computer Science",
+      hash: "education",
+      run: function (ctx) {
+        ctx.print("<b>education</b>");
+        ctx.print("  " + CV.education);
+      },
+    },
+
     /* ---------- stack ---------- */
     stack: {
       help: "print the stack",
@@ -654,13 +664,14 @@
       help: "wipe the terminal",
       hash: null, // note: clear has no shareable section
       run: function (ctx) {
+        if (window.app.menuDidClear) window.app.menuDidClear();
         ctx.clear();
       },
     },
   };
 
   /* aliases — cheap to support */
-  var ALIASES = { "?": "help", cls: "clear", dir: "projects", phantom: "danny", resume: "cv", mood: "mode" };
+  var ALIASES = { "?": "help", cls: "clear", dir: "projects", phantom: "danny", resume: "cv", list: "menu" };
 
   /* expose a tiny global so main.js can talk to the engine */
   window.app = window.app || {};

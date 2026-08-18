@@ -460,6 +460,10 @@
       e.preventDefault();
       blip(true);
       if (isTyping || QUEUE.length) { finishAll(); return; }  // skip animation
+      if (menuOpen) {
+        if (!input.value.trim()) { pickMenuItem(menuSel); return; }
+        closeMenu();               // typing a real command wins over the menu
+      }
       var raw = input.value;
       input.value = "";
       syncMirror();
@@ -467,7 +471,9 @@
       draft = "";
     } else if (e.key === "Escape") {
       e.preventDefault();
-      if (isTyping || QUEUE.length) finishAll();
+      if (isTyping || QUEUE.length) { finishAll(); return; }
+      if (menuOpen) { closeMenu(); return; }
+      if (menuReturn) { menuReturn = false; openMenu(); return; }
     } else if (e.key === "Tab") {
       e.preventDefault();
       if (input.value.indexOf(" ") === -1 && input.value.length) {
@@ -484,6 +490,7 @@
       }
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      if (menuOpen) { menuSel = (menuSel + MENU_ITEMS.length - 1) % MENU_ITEMS.length; renderMenu(); return; }
       if (!history.length) return;
       if (histIndex < 0) draft = input.value;
       histIndex = Math.min(histIndex + 1, history.length - 1);
@@ -491,11 +498,15 @@
       syncMirror();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
+      if (menuOpen) { menuSel = (menuSel + 1) % MENU_ITEMS.length; renderMenu(); return; }
       if (histIndex < 0) return;
       histIndex -= 1;
       if (histIndex < 0) input.value = draft;
       else input.value = history[history.length - 1 - histIndex];
       syncMirror();
+    } else if (menuOpen && /^[1-7]$/.test(e.key)) {
+      e.preventDefault();
+      pickMenuItem(Number(e.key) - 1);
     } else if (e.key.length === 1) {
       blip(false);
     }
@@ -805,7 +816,6 @@
   setInterval(function () {
     if (reduced) return;
     if (!powerOn || minimized) return;                 // terminal is off / parked
-    if (recruiterActive) return;                       // recruiter mode has no saver
     if (saver.hidden && !matrixActive && !gameActive &&
         Date.now() - lastActive > 60000 && doc.visibilityState !== "hidden") {
       saver.hidden = false;
@@ -873,269 +883,108 @@
   };
 
   /* ============================================================
-     Mood picker + recruiter mode — pick your mood on first
-     visit; recruiters get clickable cards, devs keep the shell
+     In-terminal menu — one CLI, one entry point. the interactive
+     index (cv, contact, projects…) lives inside the terminal,
+     opens by default at boot, and can be reopened any time with
+     the `menu` command.
      ============================================================ */
-  var pick = doc.getElementById("pick");
-  var recView = doc.getElementById("recruiter");
-  var recMenu = doc.getElementById("recruiter-menu");
-  var recPanel = doc.getElementById("recruiter-panel");
-  var recSwitch = doc.getElementById("recruiter-switch");
-  var recruiterActive = false;
-  var recIndex = 0;
-  var pickSel = 0;
-  var mode = null;
-  try { mode = localStorage.getItem("glgl-mode"); } catch (e) { /* ignore */ }
+  var menuOpen = false;       // menu is currently rendered
+  var menuReturn = false;     // a menu item was picked; esc returns
+  var menuSel = 0;            // highlighted row
+  var menuRows = null;        // element holding the menu rows
 
-  var persistMode = function (m) {
-    try { localStorage.setItem("glgl-mode", m); } catch (e) { /* ignore */ }
-  };
-
-  var C = function () { return window.app.CV || {}; };
-  var K = function () { return window.app.CONST || {}; };
-
-  var enterMode = function (m) {
-    if (m !== "recruiter" && m !== "shell") return;
-    mode = m;
-    persistMode(m);
-    if (m === "recruiter") {
-      recruiterActive = true;
-      doc.body.classList.add("mode-recruiter");
-      document.title = "glgl — recruiter edition";
-      renderRecHero();
-      renderRecMenu();
-      if (recView) recView.hidden = false;
-      if (saver && !saver.hidden) saver.hidden = true;
-    } else {
-      recruiterActive = false;
-      doc.body.classList.remove("mode-recruiter");
-      updateSkin();                                     // restore the shell title
-      if (recView) recView.hidden = true;
-      if (recPanel) recPanel.hidden = true;
-      if (recMenu) recMenu.hidden = false;
-    }
-    if (pick) pick.hidden = true;
-  };
-
-  var REC_ITEMS = [
-    {
-      title: "CV · full résumé",
-      desc: "the whole story in one tidy document",
-      open: function () { window.app.openCv(); },
-    },
-    {
-      title: "experience",
-      desc: "three roles, real products",
-      build: function () {
-        var h = [];
-        (C().experience || []).forEach(function (job) {
-          h.push('<div class="rec__job"><div class="rec__jobline"><b>' + esc(job.role) + '</b><span class="rec__dates">' + esc(job.dates) + "</span></div>");
-          job.bullets.forEach(function (b) { h.push('<div class="rec__bullet">· ' + esc(b) + "</div>"); });
-          h.push("</div>");
-        });
-        return h.join("");
-      },
-    },
-    {
-      title: "projects",
-      desc: "selected builds — repos included",
-      build: function () {
-        var h = [];
-        (C().projects || []).forEach(function (p) {
-          h.push('<div class="rec__job"><div class="rec__jobline"><b>' + esc(p.name) + "</b></div>");
-          if (p.url) h.push('<div class="rec__bullet"><a href="' + p.url + '" target="_blank" rel="noopener">' + esc(p.url.replace("https://github.com/", "")) + "</a></div>");
-          p.lines.forEach(function (l) { h.push('<div class="rec__bullet">· ' + esc(l) + "</div>"); });
-          h.push("</div>");
-        });
-        return h.join("");
-      },
-    },
-    {
-      title: "skills & stack",
-      desc: "languages, backend, devops, testing",
-      build: function () {
-        var h = ['<div class="rec__stack">'];
-        (C().skills || []).forEach(function (s) {
-          h.push('<div class="rec__skill"><span class="rec__skill-label">' + esc(s[0]) + "</span> — " + esc(s[1]) + "</div>");
-        });
-        h.push("</div>");
-        return h.join("");
-      },
-    },
-    {
-      title: "education",
-      desc: "the degree, the university, the year",
-      build: function () {
-        return '<div class="rec__bullet">' + esc(C().education || "") + "</div>";
-      },
-    },
-    {
-      title: "contact",
-      desc: "email, phone, linkedin, github",
-      build: function () {
-        var k = K();
-        var rows = [
-          ["email", "mailto:" + k.EMAIL, k.EMAIL, true],
-          ["phone", "tel:" + k.PHONE, k.PHONE, true],
-          ["linkedin", k.LINKEDIN, k.LINKEDIN, false],
-          ["github", k.GITHUB, k.GITHUB, false],
-        ];
-        var h = [];
-        rows.forEach(function (r) {
-          h.push('<div class="rec__row"><b>' + r[0] + "</b> — <a href=\"" + r[1] + '" target="_blank" rel="noopener">' + esc(r[2]) + "</a>" +
-            (r[3] ? ' <a href="#" class="copy" data-copy="' + esc(r[2]) + '">[copy]</a>' : "") + "</div>");
-        });
-        return h.join("");
-      },
-    },
-    {
-      title: "hire me",
-      desc: "open to roles — reach out",
-      build: function () {
-        var k = K();
-        return '<div class="rec__note">open to full-time backend roles, internships, and interesting contracts.<br />the fastest way to reach me is email — or a message on linkedin.</div>' +
-          '<div class="recruiter__cta">' +
-          '<a href="mailto:' + k.EMAIL + '">email me</a>' +
-          '<a href="' + k.LINKEDIN + '" target="_blank" rel="noopener">linkedin</a>' +
-          '<button type="button" data-action="cv">view my CV</button>' +
-          "</div>";
-      },
-    },
+  /* one canonical command per row — the menu never drifts from the CLI */
+  var MENU_ITEMS = [
+    { title: "CV · full résumé", desc: "the whole story in one tidy document", cmd: "cv" },
+    { title: "experience", desc: "three roles, real products", cmd: "experience" },
+    { title: "projects", desc: "selected builds — repos included", cmd: "projects" },
+    { title: "skills & stack", desc: "languages, backend, devops, testing", cmd: "stack" },
+    { title: "education", desc: "the degree, the university, the year", cmd: "education" },
+    { title: "contact", desc: "email, phone, linkedin, github", cmd: "contact" },
+    { title: "hire me", desc: "open to roles — reach out", cmd: "contact" },
   ];
 
-  var renderRecHero = function () {
-    var n = doc.getElementById("recruiter-name");
-    var role = doc.getElementById("recruiter-role");
-    var blurb = doc.getElementById("recruiter-blurb");
-    var cta = doc.getElementById("recruiter-cta");
-    var k = K();
-    if (n) n.textContent = "Ahmed Mohammed Abdelgelel";
-    if (role) role.textContent = C().role || "";
-    if (blurb) blurb.textContent = "this page is a working terminal — if you land here by surprise, welcome: no commands needed. tap a card, read, done.";
-    if (cta) cta.innerHTML =
-      '<a href="mailto:' + k.EMAIL + '">email</a>' +
-      '<a href="tel:' + k.PHONE + '">call</a>' +
-      '<a href="' + k.LINKEDIN + '" target="_blank" rel="noopener">linkedin</a>' +
-      '<a href="' + k.GITHUB + '" target="_blank" rel="noopener">github</a>' +
-      '<button type="button" data-action="cv">view CV</button>';
-  };
-
-  var renderRecMenu = function () {
-    if (!recMenu) return;
-    recMenu.innerHTML = "";
-    REC_ITEMS.forEach(function (it, i) {
-      var b = doc.createElement("button");
-      b.type = "button";
-      b.className = "recruiter__item" + (i === recIndex ? " recruiter__item--sel" : "");
-      b.innerHTML =
-        '<span class="recruiter__num">' + (i + 1) + "</span>" +
-        '<span class="recruiter__item-body"><span class="recruiter__item-title">' + esc(it.title) + '</span><span class="recruiter__item-desc">' + esc(it.desc) + "</span></span>";
-      b.addEventListener("click", function () {
-        recIndex = i;
-        renderRecMenu();
-        recOpenItem(i);
-      });
-      recMenu.appendChild(b);
+  var renderMenu = function () {
+    if (!menuRows) {
+      menuRows = doc.createElement("div");
+      menuRows.className = "menu-block";
+      output.appendChild(menuRows);
+    }
+    var h = [
+      '<div class="menu-block__hint"><span class="dim">use <b>↑↓</b> / <b>1–7</b> to pick — <b>enter</b> opens — <b>esc</b> closes — type <b>menu</b> to reopen</span></div>',
+    ];
+    MENU_ITEMS.forEach(function (it, i) {
+      h.push(
+        '<button type="button" class="menu-row' + (i === menuSel ? " menu-row--sel" : "") + '" data-i="' + i + '">' +
+          '<span class="menu-row__num">' + (i + 1) + "</span>" +
+          '<span class="menu-row__body"><span class="menu-row__title">' + esc(it.title) + "</span>" +
+          '<span class="menu-row__desc">' + esc(it.desc) + "</span></span>" +
+          '<span class="menu-row__keys dim">' + esc(it.cmd) + "</span>" +
+        "</button>"
+      );
     });
+    menuRows.innerHTML = h.join("");
+    menuRows.querySelectorAll(".menu-row").forEach(function (row) {
+      row.addEventListener("click", function (e) {
+        e.stopPropagation();     // don't steal focus / fire term taps
+        if (!menuOpen) return;
+        pickMenuItem(Number(row.getAttribute("data-i")));
+      });
+    });
+    scrollDown();
   };
 
-  var recOpenItem = function (i) {
-    var it = REC_ITEMS[i];
+  var openMenu = function () {
+    if (menuOpen) return;
+    menuOpen = true;
+    menuReturn = false;
+    menuSel = 0;
+    renderMenu();
+  };
+
+  var closeMenu = function () {
+    menuOpen = false;
+    if (menuRows) {
+      if (menuRows.parentNode) menuRows.parentNode.removeChild(menuRows);
+      menuRows = null;
+    }
+  };
+
+  var pickMenuItem = function (i) {
+    var it = MENU_ITEMS[i];
     if (!it) return;
     blip(true);
-    if (it.open) { it.open(); return; }
-    if (recMenu) recMenu.hidden = true;
-    if (recPanel) {
-      recPanel.hidden = false;
-      recPanel.innerHTML =
-        '<div class="rec__panelhead"><button type="button" class="rec__back" aria-label="Back to menu">← menu</button><span class="rec__paneltitle">' + esc(it.title) + "</span></div>" +
-        (it.build ? it.build() : "");
-      var back = recPanel.querySelector(".rec__back");
-      if (back) back.addEventListener("click", recBack);
-      recPanel.scrollTop = 0;
+    closeMenu();
+    menuReturn = true;
+    execute(it.cmd);
+    if (it.cmd !== "cv") {       // the cv overlay handles its own esc
+      setTimeout(function () {
+        var hint = doc.createElement("div");
+        hint.className = "dim";
+        hint.innerHTML = "— <b>esc</b> back to the menu · or type <b>menu</b> —";
+        output.appendChild(hint);
+        scrollDown();
+      }, 10);
     }
   };
 
-  var recBack = function () {
-    blip(true);
-    if (recPanel) recPanel.hidden = true;
-    if (recMenu) recMenu.hidden = false;
+  window.app.menuDidClear = function () {
+    menuOpen = false;
+    menuReturn = false;
+    menuRows = null;
   };
 
-  /* ---- picker: keyboard + clicks ---- */
-  var markPickSel = function () {
-    doc.querySelectorAll(".pick__card").forEach(function (c, i) {
-      c.classList.toggle("pick__card--sel", i === pickSel);
-    });
-  };
-  var choosePick = function () { enterMode(pickSel === 0 ? "recruiter" : "shell"); };
-  markPickSel();
-
-  doc.querySelectorAll(".pick__card").forEach(function (c) {
-    c.addEventListener("click", function () { enterMode(c.getAttribute("data-mode")); });
-  });
-  var pickSkip = doc.getElementById("pick-skip");
-  if (pickSkip) pickSkip.addEventListener("click", function () { enterMode("shell"); });
-
-  window.addEventListener("keydown", function (e) {
-    if (!pick || pick.hidden) return;
-    if (e.key === "1") { e.preventDefault(); enterMode("recruiter"); }
-    else if (e.key === "2") { e.preventDefault(); enterMode("shell"); }
-    else if (e.key === "ArrowDown" || e.key.toLowerCase() === "j") { e.preventDefault(); pickSel = 1; markPickSel(); }
-    else if (e.key === "ArrowUp" || e.key.toLowerCase() === "k") { e.preventDefault(); pickSel = 0; markPickSel(); }
-    else if (e.key === "Enter") { e.preventDefault(); choosePick(); }
-  }, true);
-
-  /* ---- recruiter: numbered options, arrows, esc ---- */
-  window.addEventListener("keydown", function (e) {
-    if (!recruiterActive || !recView || recView.hidden) return;
-    var panelOpen = recPanel && !recPanel.hidden;
-    if (panelOpen) {
-      if (e.key === "Escape") { e.preventDefault(); recBack(); }
-      return;
-    }
-    if (/^[1-7]$/.test(e.key)) {
-      e.preventDefault();
-      recOpenItem(Number(e.key) - 1);
-    } else if (e.key === "ArrowDown" || e.key.toLowerCase() === "j") {
-      e.preventDefault();
-      recIndex = (recIndex + 1) % REC_ITEMS.length;
-      renderRecMenu();
-    } else if (e.key === "ArrowUp" || e.key.toLowerCase() === "k") {
-      e.preventDefault();
-      recIndex = (recIndex + REC_ITEMS.length - 1) % REC_ITEMS.length;
-      renderRecMenu();
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      recOpenItem(recIndex);
-    }
-  }, true);
-
-  if (recSwitch) recSwitch.addEventListener("click", function () { blip(true); enterMode("shell"); });
-  if (recView) wireCopy(recView);
-
-  window.app.commands.mode = {
-    help: "switch the mood: recruiter / shell",
-    hash: null,
-    run: function (ctx2, rest) {
-      var arg = (rest || "").trim().toLowerCase();
-      if (arg === "recruiter" || arg === "shell") {
-        if (cvOpen) window.app.closeCv();
-        enterMode(arg);
-        ctx2.print("mood switched to <b>" + arg + "</b> — see you on the other side.");
-        return;
-      }
-      ctx2.print("mood: currently <b>" + (mode || "shell") + "</b>");
-      ctx2.print('<span class="dim">usage: mode recruiter | mode shell</span>');
-    },
+  /* the always-available way back in: `menu` (alias: `list`) */
+  window.app.commands.menu = {
+    help: "interactive index — cv, contact, projects…",
+    hash: null, // the menu lives in the terminal, not in a URL anchor
+    run: function () { menuReturn = false; openMenu(); },
   };
 
-  /* persisted mood: skip the picker on repeat visits.
-     fresh phones go straight to recruiter mode — easier UX;
-     fresh desktops get to choose. */
-  if (mode === "recruiter") enterMode("recruiter");
-  else if (mode === "shell") enterMode("shell");
-  else if (mobile) enterMode("recruiter");
+  /* the index opens by default at boot — deep links skip straight to work */
+  setTimeout(function () {
+    if (!(location.hash.length > 1)) openMenu();
+  }, 320);
 
   /* ---------- go ---------- */
   boot();
