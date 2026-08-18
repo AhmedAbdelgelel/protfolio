@@ -64,17 +64,19 @@
     }
   };
 
-  /* tiny ghost — the neofetch/danny logo */
+  /* sheet-ghost — the neofetch/danny logo */
   var GHOST_ART = [
     '        .-""""""-.',
     "      .'          '.",
-    '     /   O      O   \\',
-    "    :                :",
-    "    |                |",
-    "    : ','        ',' :",
-    '     \\  \'-......-\'  /',
-    "      '.          .'",
-    "        '-......-'",
+    "     /   (o)  (o)   \\",
+    "    :     \\____/     :",
+    "    :   (  '--'  )   :",
+    "     \\  (_______)  /",
+    "      '.   ~~|~~  .'",
+    "        '.  | |  .'",
+    "          '.| |.'",
+    "            | |",
+    "           (_|_)",
   ];
 
   var ghost = function (ctx) {
@@ -82,6 +84,18 @@
       ctx.print('<span class="art">' + esc(row) + "</span>");
     });
   };
+
+  /* danny caption rotation — one random post-script after the classic quote */
+  var GHOST_BANTER = [
+    "the terminal reports <b>ECTOPLASM</b> levels: off the charts.",
+    "he is half ghost, half human, 100% unhireable.",
+    "you file a bug report — he wails at it until it resolves itself.",
+    "license plate: <b>GHOST14</b> — yes, really.",
+    "he lists 'boo' as a full-stack skill on his ghost resume.",
+    "his wail auto-scales. no autoscaling groups needed.",
+    "dash through walls, deploy through <b>vault</b> — same energy.",
+    "he tried printf(\"boo\"); — the terminal got scared.",
+  ];
 
   /* ---------- CV database + full-page renderer ---------- */
   var CV = {
@@ -642,15 +656,31 @@
         ghost(ctx);
         ctx.blank();
         ctx.print('"I\'m going ghost!" — Danny Phantom');
-        ctx.print('<span class="dim">the green glow follows the <b>theme</b> you pick</span>');
+        ctx.print('<span class="dim">' + GHOST_BANTER[Math.floor(Math.random() * GHOST_BANTER.length)] + "</span>");
+        if (Math.random() < 0.4) {
+          ctx.print('<span class="dim">the ghost glow follows the <b>theme</b> you pick — try <b>theme dracula</b></span>');
+        }
       },
     },
 
     cowsay: {
-      help: "(cow) your text",
+      help: "(cow) your text — moods: -b -d -g -p -s -t -w -y",
       hash: null,
       run: function (ctx, rest) {
-        var text = (rest || "moo").trim();
+        /* real cowsay moods: the flag swaps the eyes (and -d hangs a tongue) */
+        var MOODS = { b: "==", d: "xx", g: "$$", p: "@@", s: "**", t: "--", w: "OO", y: ".." };
+        var LONG = { borg: "==", dead: "xx", greedy: "$$", paranoid: "@@", stoned: "**", tired: "--", wired: "OO", young: ".." };
+        var parts = rest.trim().split(/\s+/).filter(Boolean);
+        var eyes = "oo", tongued = false, text;
+        if (parts.length >= 2 && /^-/.test(parts[0])) {
+          var key = parts[0].toLowerCase().replace(/^-+/, "");
+          if (MOODS[key] || LONG[key]) {
+            eyes = MOODS[key] || LONG[key];
+            tongued = key === "d" || key === "dead";
+            parts = parts.slice(1);
+          }
+        }
+        text = (parts.length ? parts.join(" ") : "moo").trim();
         if (text.length > 46) text = text.slice(0, 43) + "...";
         var top = "_" .repeat(text.length + 2);
         var bot = "-" .repeat(text.length + 2);
@@ -658,10 +688,12 @@
         ctx.print("&lt; " + esc(text) + " &gt;");   /* &lt;/&gt; keep the typewriter's tag parser out of the art */
         ctx.print(" " + bot);
         ctx.print("        \\   ^__^");
-        ctx.print("         \\  (oo)\\_______");
+        ctx.print("         \\  (" + eyes + ")\\_______");
         ctx.print("            (__)\\       )\\/\\");
+        if (tongued) ctx.print("             U  ||----w |");
         ctx.print("                ||----w |");
         ctx.print("                ||     ||");
+        if (tongued) ctx.print('<span class="dim">(she is dead, jim — but her commit history is immaculate)</span>');
       },
     },
 
@@ -812,6 +844,8 @@
       hash: null,
       run: function (ctx) {
         ctx.print("<span class='dim'>brewing… [▓▓▓▓▓▓▓▓▓▓] done.</span>");
+        ctx.print("   ( ( ");
+        ctx.print("    ) )");
         ctx.print("   _____");
         ctx.print("  |     |");
         ctx.print("  |  ☕  |");
