@@ -932,6 +932,17 @@
     openMenu();
   });
 
+  /* the dock pill is a real button: tapping it comes home to the menu.
+     (it lives in the header of this section so it exists even if the
+     menu never opened at boot, e.g. deep links like /#cv) */
+  if (menuDock) {
+    menuDock.addEventListener("click", function (e) {
+      e.stopPropagation();
+      openMenu();
+      scrollDown();
+    });
+  }
+
   /* one canonical command per row — the menu never drifts from the CLI */
   var MENU_ITEMS = [
     { title: "CV · full résumé", desc: "the real cv.pdf — open it when you want", cmd: "cv" },
@@ -1046,6 +1057,7 @@
   /* the index opens by default at boot — deep links skip straight to work */
   setTimeout(function () {
     if (!(location.hash.length > 1)) openMenu();
+    else showDock();   // deep-linked (menu closed) — show the mobile way home
   }, 320);
 
   /* ---------- go ---------- */
