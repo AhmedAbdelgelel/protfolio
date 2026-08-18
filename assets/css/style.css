@@ -737,6 +737,25 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
   .screen__out, .promptline { font-size: 14px; }
 
+  /* ---- menu on touch: Termux-style plain list ----
+     no arrows on phones, so there is no keyboard selection either:
+     rows become chunky tap targets, the pre-highlight fades out,
+     and feedback happens at the moment of the press. */
+  .menu-row {
+    padding: 12px 8px 12px 12px;
+    gap: 12px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .menu-row:active {
+    background: rgba(61, 220, 132, 0.10);
+    transition: background 0.08s ease;
+  }
+  .menu-row--sel .menu-row__title,
+  .menu-row--sel .menu-row__num {
+    color: var(--bright);
+    border-color: #3a3a44;
+  }
+
   /* ---- mobile way back to the menu ----
      the dock pill hugs the bottom-right above the prompt line;
      touch-sized, thumb reachable, hides when the menu is open */

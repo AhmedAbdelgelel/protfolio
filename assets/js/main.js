@@ -966,7 +966,11 @@
       output.appendChild(menuRows);
     }
     var h = [
-      '<div class="menu-block__hint"><span class="dim">use <b>↑↓</b> / <b>1–7</b> to pick — <b>enter</b> opens — <b>esc</b> closes — type <b>menu</b> to reopen</span></div>',
+      '<div class="menu-block__hint"><span class="dim">' +
+        (window.innerWidth <= 640
+          ? "tap a row to open it — <b>‹ menu</b> below brings you back · or type <b>menu</b>"
+          : "use <b>↑↓</b> / <b>1–7</b> to pick — <b>enter</b> opens — <b>esc</b> closes — type <b>menu</b> to reopen") +
+        "</span></div>",
     ];
     MENU_ITEMS.forEach(function (it, i) {
       h.push(
