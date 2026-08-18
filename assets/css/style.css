@@ -649,7 +649,6 @@ html.js.fallback-show .fallback { display: block; }
   cursor: pointer;
 }
 .menu-row:last-child { border-bottom: 0; }
-.menu-row:hover { background: #17171c; }
 .menu-row--sel {
   border-left-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
