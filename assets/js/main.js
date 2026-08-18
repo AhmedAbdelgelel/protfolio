@@ -518,7 +518,7 @@
       var act = e.target.closest("[data-action]");
       if (act) {
         e.preventDefault();
-        if (act.getAttribute("data-action") === "cv") window.app.openCv();
+        if (act.getAttribute("data-action") === "cv") window.app.cvLoad();
         return;
       }
       var c = e.target.closest("a.copy");
@@ -539,42 +539,41 @@
   wireCopy(output);
 
   /* ============================================================
-     Full-page CV overlay — "type cv.txt" in a window, cmd-style
+     cv.txt — the résumé loads like a program INSIDE the terminal:
+     a loader bar first, then the document streams in line by line
      ============================================================ */
-  var cvPage = doc.getElementById("cvpage");
-  var cvBody = doc.getElementById("cvpage-body");
+  var loadTimer = null;
 
-  var cvOpen = false;
-
-  window.app.openCv = function () {
-    if (isTyping || QUEUE.length) finishAll();
-    if (!cvBody || !cvPage) return;
-    cvBody.innerHTML = window.app.cvHtml ? window.app.cvHtml() : "<pre>cv data unavailable</pre>";
-    cvBody.scrollTop = 0;
-    cvPage.hidden = false;
-    cvOpen = true;
+  window.app.cvLoad = function () {
+    if (!window.app.cvLines) return;
+    if (loadTimer) return;              // already loading — ignore re-entry
+    finishAll();
+    var loadDiv = doc.createElement("div");
+    loadDiv.className = "line line--load";
+    output.appendChild(loadDiv);
+    var ticks = 14;
+    var i = 0;
+    var paint = function () {
+      if (!loadDiv.parentNode) { clearInterval(loadTimer); loadTimer = null; return; }
+      i += 1;
+      var p = Math.min(i / ticks, 1);
+      var filled = Math.round(p * 20);
+      loadDiv.innerHTML =
+        '<span class="dim">loading cv.txt …</span> <span class="load__bar">[' +
+        "▓".repeat(filled) + "░".repeat(20 - filled) + "]</span> " + Math.round(p * 100) + "%";
+      scrollDown();
+      if (p >= 1) {
+        clearInterval(loadTimer);
+        loadTimer = null;
+        loadDiv.classList.add("line--load-done");
+        loadDiv.innerHTML = '<span class="dim">cv.txt loaded — streaming…</span>';
+        scrollDown();
+        window.app.cvLines().forEach(function (html) { appendLine(html); });
+      }
+    };
+    paint();
+    loadTimer = setInterval(paint, 85);
   };
-
-  window.app.closeCv = function () {
-    if (!cvPage) return;
-    cvPage.hidden = true;
-    cvOpen = false;
-    input.focus();
-  };
-
-  window.addEventListener("keydown", function (e) {
-    if (cvOpen && e.key === "Escape") {
-      e.preventDefault();
-      window.app.closeCv();
-    }
-  }, true);
-
-  if (cvPage) cvPage.addEventListener("click", function (e) {
-    if (e.target === cvPage) window.app.closeCv();  // backdrop click
-  });
-  if (cvBody) wireCopy(cvBody);
-  var cvCloseBtn = doc.getElementById("cvpage-close");
-  if (cvCloseBtn) cvCloseBtn.addEventListener("click", window.app.closeCv);
 
   /* ---------- click to refocus ---------- */
   term.addEventListener("click", function (e) {
@@ -719,6 +718,7 @@
     if (!powerOn) return;
     powerOn = false;
     if (isTyping || QUEUE.length) finishAll();
+    if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }  // no loading after power-off
     var echo = mobile ? "glgl@phone:~$ poweroff" : "C:\\Users\\glgl> shutdown -s";
     var msg = GOODBYES[nextGoodbye % GOODBYES.length];
     nextGoodbye += 1;

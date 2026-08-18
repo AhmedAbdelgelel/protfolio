@@ -160,69 +160,40 @@
     ],
   };
 
-  /* full-page résumé — rendered into the overlay by main.js */
+  /* résumé streamed into the terminal by the cv.txt loader in main.js */
   window.app = window.app || {};   /* ensure the global exists here (bottom init is later) */
-  window.app.CV = CV;              /* recruiter edition reads the same data */
+  window.app.CV = CV;              /* the menu + loader read the same data */
   window.app.CONST = { EMAIL: EMAIL, PHONE: PHONE, LINKEDIN: LINKEDIN, GITHUB: GITHUB };
-  window.app.cvHtml = function () {
-    var h = [];
-    var hr = function () {
-      h.push('<div class="cvhr">' + "─".repeat(60) + "</div>");
-    };
-    var sec = function (num, name, body) {
-      h.push('<div class="cv__sec"><span class="cv__num">[' + num + "]</span><span class=\"cv__secname\">" + name + "</span></div>");
-      body();
-    };
-    h.push('<div class="cv">');
-    h.push('<div class="cv__title">' + esc(CV.name) + "</div>");
-    h.push('<div class="cv__sub">' + esc(CV.role) + "</div>");
-    h.push('<div class="cv__muted">' + esc(CV.location) + "</div>");
-    hr();
+  window.app.cvLines = function () {
+    var L = [];
+    var hr = function () { L.push('<span class="dim">' + "─".repeat(60) + "</span>"); };
+    L.push("<b>" + esc(CV.name) + "</b>");
+    L.push(esc(CV.role));
+    L.push('<span class="dim">' + esc(CV.location) + "</span>");
     CV.contacts.forEach(function (c) {
-      h.push('<div class="cv__row">' + pad("<b>" + esc(c.label) + "</b>", 11) + linkify(c.value, c.href, c.external) +
-        (c.copy ? " " + copyChip(c.value) : "") + "</div>");
+      L.push(pad("<b>" + esc(c.label) + "</b>", 11) + linkify(c.value, c.href, c.external) +
+        (c.copy ? " " + copyChip(c.value) : ""));
     });
     hr();
-    sec(1, "Summary", function () {
-      h.push('<div class="cv__text">' + esc(CV.summary) + "</div>");
-    });
-    sec(2, "Experience", function () {
-      CV.experience.forEach(function (job) {
-        h.push('<div class="cv__job"><span>' + esc(job.role) + '</span><span class="cv__dates">' + esc(job.dates) + "</span></div>");
-        job.bullets.forEach(function (b) {
-          h.push('<div class="cv__bullet">· ' + esc(b) + "</div>");
-        });
-      });
-    });
-    sec(3, "Projects", function () {
-      CV.projects.forEach(function (p) {
-        h.push('<div class="cv__project"><b>' + esc(p.name) + "</b>" +
-          (p.url ? ' <a href="' + p.url + '" target="_blank" rel="noopener" class="cv__repo">' + esc(p.url.replace("https://github.com/", "")) + "</a>" : "") +
-          "</div>");
-        p.lines.forEach(function (l) {
-          h.push('<div class="cv__bullet">· ' + esc(l) + "</div>");
-        });
-      });
-    });
-    sec(4, "Education", function () {
-      h.push('<div class="cv__text">' + esc(CV.education) + "</div>");
-    });
-    sec(5, "Skills", function () {
-      h.push('<div class="cv__skills">');
-      CV.skills.forEach(function (s) {
-        h.push('<div class="cv__skill"><span class="cv__skill-label">' + esc(s[0]) + '</span><span>' + esc(s[1]) + "</span></div>");
-      });
-      h.push("</div>");
-    });
-    sec(6, "Contact", function () {
-      h.push('<div class="cv__text">prefer the short version? type <b>contact</b> back in the terminal.</div>');
-      h.push('<div class="cv__row">' + pad("<b>email</b>", 11) + linkify(EMAIL, "mailto:" + EMAIL) + " " + copyChip(EMAIL) + "</div>");
-      h.push('<div class="cv__row">' + pad("<b>linkedin</b>", 11) + linkify(LINKEDIN, LINKEDIN, true) + "</div>");
+    L.push("<b>experience</b>");
+    CV.experience.forEach(function (job) {
+      L.push('<span class="jobrow"><span>' + esc(job.role) + '</span><span class="jobrow__dates">' + esc(job.dates) + "</span></span>");
+      job.bullets.forEach(function (b) { L.push("· " + esc(b)); });
     });
     hr();
-    h.push('<div class="cv__foot">generated from the terminal · esc to close</div>');
-    h.push("</div>");
-    return h.join("");
+    L.push("<b>projects</b>");
+    CV.projects.forEach(function (p) {
+      L.push("<b>" + esc(p.name) + "</b>" +
+        (p.url ? ' <a href="' + p.url + '" target="_blank" rel="noopener" class="dim">' + esc(p.url.replace("https://github.com/", "")) + "</a>" : ""));
+      p.lines.forEach(function (l) { L.push("· " + esc(l)); });
+    });
+    hr();
+    L.push("<b>skills &amp; stack</b>");
+    CV.skills.forEach(function (s) { L.push(pad(s[0], 11) + esc(s[1])); });
+    L.push(pad("<b>education</b>", 11) + esc(CV.education));
+    hr();
+    L.push('<span class="dim">(end of cv.txt — type <b>menu</b> to reopen the index)</span>');
+    return L;
   };
 
   /* ============================================================
@@ -244,7 +215,7 @@
         ctx.print(pad("<b>hire</b>", 15) + "— availability card");
         ctx.print(pad("<b>contact</b>", 15) + "— reach me");
         ctx.print(pad("<b>info</b>", 15) + "— system overview (neofetch)");
-        ctx.print(pad("<b>cv</b>", 15) + "— full résumé page");
+        ctx.print(pad("<b>cv</b>", 15) + "— full résumé (loads cv.txt)");
         ctx.print(pad("<b>version</b>", 15) + "— build info");
         ctx.blank();
         ctx.print('<span class="dim">fun — because terminals need it:</span>');
@@ -422,17 +393,17 @@
         ctx.print("or connect on " + linkify("LinkedIn", LINKEDIN, true));
         ctx.blank();
         ctx.print('<span class="dim">full résumé: run <b>cv</b> ' +
-          '<a href="#" data-action="cv">[open page]</a></span>');
+          '<a href="#" data-action="cv">[load cv.txt]</a></span>');
       },
     },
 
     /* ---------- cv ---------- */
     cv: {
-      help: "full résumé page",
+      help: "full résumé — loads cv.txt into the terminal",
       hash: "cv",
       run: function (ctx) {
-        if (window.app.openCv) window.app.openCv();
-        else ctx.print('<span class="dim">cv page unavailable on this build</span>');
+        if (window.app.cvLoad) window.app.cvLoad();
+        else ctx.print('<span class="dim">cv loader unavailable on this build</span>');
       },
     },
 
