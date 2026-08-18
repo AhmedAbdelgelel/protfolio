@@ -636,7 +636,6 @@ html.js.fallback-show .fallback { display: block; }
   appearance: none;
   background: none;
   border: 0;
-  border-left: 2px solid transparent;
   border-bottom: 1px solid #1f1f24;
   width: 100%;
   padding: 9px 6px 9px 10px;
@@ -649,8 +648,7 @@ html.js.fallback-show .fallback { display: block; }
   cursor: pointer;
 }
 .menu-row:last-child { border-bottom: 0; }
-/* selection colours the text only — no highlight block, native cmd feel */
-.menu-row--sel { border-left-color: #3ddc84; }
+/* selection colours the text only — no highlight block, no side bar, native cmd feel */
 .menu-row--sel .menu-row__title { color: #3ddc84; }
 
 .menu-row__num {
