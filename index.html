@@ -101,6 +101,19 @@
     </main>
   </div>
 
+  <!-- ==================== TASKBAR ====================
+       minimize drops the window here, Windows-style -->
+  <div class="taskbar" id="taskbar" hidden>
+    <button type="button" class="taskbar__item" id="taskbar-item" aria-label="Restore the window">
+      <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="1" y="2" width="14" height="12" rx="1.5" fill="#0c0c0c" stroke="#3a3a3a" stroke-width="1" />
+        <text x="8" y="11" text-anchor="middle" font-family="Consolas, monospace" font-size="7" fill="#ffffff">C:\&gt;</text>
+      </svg>
+      <span class="taskbar__item-name" id="taskbar-item-name">glgl</span>
+    </button>
+    <span class="taskbar__clock" id="taskbar-clock" aria-hidden="true">--:--</span>
+  </div>
+
   <!-- ==================== POWERED-OFF SCREEN ====================
        closing the window flips the terminal off; reboot from here -->
   <div class="poweroff" id="poweroff" role="dialog" aria-label="Terminal is powered off" hidden>

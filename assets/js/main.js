@@ -563,11 +563,6 @@
   /* ---------- click to refocus ---------- */
   term.addEventListener("click", function (e) {
     if (e.target.closest("button, a")) return;
-    if (term.classList.contains("is-minimized")) {
-      setMinimized(false);
-      focusInput();
-      return;
-    }
     input.focus();
   });
 
@@ -592,17 +587,72 @@
   var powerEcho = doc.getElementById("poweroff-echo");
   var powerMsg = doc.getElementById("poweroff-msg");
   var powerReboot = doc.getElementById("poweroff-reboot");
+  var taskbar = doc.getElementById("taskbar");
+  var taskItem = doc.getElementById("taskbar-item");
+  var taskName = doc.getElementById("taskbar-item-name");
+  var taskClock = doc.getElementById("taskbar-clock");
 
-  var setMinimized = function (on) {
-    term.classList.toggle("is-minimized", on);
-    if (minBtn) minBtn.setAttribute("aria-pressed", String(on));
+  var minimized = false;
+  var winAnim = false;
+  var MIN_MS = 240;
+
+  /* Windows-style minimize: swoosh down into the taskbar */
+  var collapseToTaskbar = function () {
+    if (minimized || winAnim || !powerOn) return;
+    if (reduced) {
+      minimized = true;
+      term.classList.add("is-minimized");
+      taskbar.hidden = false;
+      if (minBtn) minBtn.setAttribute("aria-pressed", "true");
+      return;
+    }
+    winAnim = true;
+    term.classList.add("is-minimizing");            // shrink toward the bar
+    setTimeout(function () {
+      minimized = true;
+      term.classList.add("is-minimized");
+      term.classList.remove("is-minimizing");
+      taskbar.hidden = false;
+      if (minBtn) minBtn.setAttribute("aria-pressed", "true");
+      winAnim = false;
+      if (taskItem) taskItem.focus({ preventScroll: true });
+    }, MIN_MS);
+  };
+
+  var restoreFromTaskbar = function () {
+    if (!minimized || winAnim) return;
+    if (reduced) {
+      minimized = false;
+      term.classList.remove("is-minimized");
+      taskbar.hidden = true;
+      if (minBtn) minBtn.setAttribute("aria-pressed", "false");
+      focusInput();
+      return;
+    }
+    winAnim = true;
+    taskbar.hidden = true;
+    term.classList.remove("is-minimized");
+    term.classList.add("is-minimizing");            // start from the collapsed pose
+    void term.offsetWidth;                           // force reflow, then animate up
+    term.classList.remove("is-minimizing");
+    setTimeout(function () {
+      minimized = false;
+      if (minBtn) minBtn.setAttribute("aria-pressed", "false");
+      winAnim = false;
+      focusInput();
+    }, MIN_MS);
   };
 
   if (minBtn) minBtn.addEventListener("click", function () {
     if (!powerOn) return;
     blip(true);
-    setMinimized(!term.classList.contains("is-minimized"));
-    if (!term.classList.contains("is-minimized")) focusInput();
+    if (minimized) restoreFromTaskbar();
+    else collapseToTaskbar();
+  });
+
+  if (taskItem) taskItem.addEventListener("click", function () {
+    blip(true);
+    restoreFromTaskbar();
   });
 
   if (maxBtn) maxBtn.addEventListener("click", function () {
@@ -639,7 +689,10 @@
     appendLine(echo, "echo");
     appendLine(msg, "dim");
     blip(true);
-    setMinimized(false);
+    minimized = false;
+    winAnim = false;
+    if (taskbar) taskbar.hidden = true;
+    term.classList.remove("is-minimizing");
     term.classList.add("is-off");
     if (poweroff) {
       poweroff.hidden = false;
@@ -651,7 +704,9 @@
     if (powerOn) return;
     powerOn = true;
     if (poweroff) poweroff.hidden = true;
-    term.classList.remove("is-off", "is-minimized");
+    minimized = false;
+    if (taskbar) taskbar.hidden = true;
+    term.classList.remove("is-off", "is-minimized", "is-minimizing");
     if (minBtn) minBtn.setAttribute("aria-pressed", "false");
     var echo = mobile ? "glgl@phone:~$ reboot" : "C:\\Users\\glgl> shutdown /a";
     appendLine(echo, "echo");
@@ -700,6 +755,7 @@
   setInterval(function () {
     if (clockEl) clockEl.textContent = clockText(true);
     if (saverClock && !saver.hidden) saverClock.textContent = clockText(false);
+    if (taskClock && taskbar && !taskbar.hidden) taskClock.textContent = clockText(false);
   }, 1000);
   if (clockEl) clockEl.textContent = clockText(true);
 
@@ -717,7 +773,7 @@
 
   setInterval(function () {
     if (reduced) return;
-    if (!powerOn) return;                                  // terminal is off
+    if (!powerOn || minimized) return;                 // terminal is off / parked
     if (saver.hidden && !matrixActive && !gameActive &&
         Date.now() - lastActive > 60000 && doc.visibilityState !== "hidden") {
       saver.hidden = false;
