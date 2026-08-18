@@ -649,13 +649,9 @@ html.js.fallback-show .fallback { display: block; }
   cursor: pointer;
 }
 .menu-row:last-child { border-bottom: 0; }
-/* quiet, text-hugging selection â€” like native cmd text selection,
-   not a full-width web highlight */
+/* selection colours the text only — no highlight block, native cmd feel */
 .menu-row--sel { border-left-color: #3ddc84; }
-.menu-row--sel .menu-row__body {
-  background: linear-gradient(90deg, rgba(61, 220, 132, 0.16), rgba(61, 220, 132, 0.03));
-  border-radius: 2px;
-}
+.menu-row--sel .menu-row__title { color: #3ddc84; }
 
 .menu-row__num {
   flex: 0 0 auto;

@@ -166,32 +166,69 @@
   window.app.CONST = { EMAIL: EMAIL, PHONE: PHONE, LINKEDIN: LINKEDIN, GITHUB: GITHUB };
   window.app.cvLines = function () {
     var L = [];
-    var hr = function () { L.push('<span class="dim">' + "─".repeat(60) + "</span>"); };
-    L.push("<b>" + esc(CV.name) + "</b>");
-    L.push(esc(CV.role));
-    L.push('<span class="dim">' + esc(CV.location) + "</span>");
+    var narrow = window.innerWidth <= 640;
+    var BW = 66;   /* header box width (desktop) */
+    var rule = function () { L.push('<span class="dim">' + "─".repeat(60) + "</span>"); };
+    var sec = function (num, name) {
+      var txt = "[" + num + "] " + name;
+      L.push('<span class="dim">' + "─── " + txt + " " + "─".repeat(Math.max(2, 60 - txt.length - 8)) + "</span>");
+    };
+    var wrap = function (text, width) {
+      var out = [], cur = "";
+      text.split(" ").forEach(function (w) {
+        if (cur && (cur + " " + w).length > width) { out.push(cur); cur = w; }
+        else cur = cur ? cur + " " + w : w;
+      });
+      if (cur) out.push(cur);
+      return out;
+    };
+
+    var boxLine = function (txt, bold) {
+      var inner = txt.length > BW - 6 ? txt.slice(0, BW - 6) + "…" : txt;
+      if (bold) inner = "<b>" + esc(inner) + "</b>";
+      else inner = esc(inner);
+      L.push("║  " + inner + " ".repeat(Math.max(0, BW - 4 - txt.length)) + "║");
+    };
+    if (narrow) {
+      L.push("<b>" + esc(CV.name) + "</b>");
+      L.push(esc(CV.role));
+      L.push('<span class="dim">' + esc(CV.location) + "</span>");
+    } else {
+      L.push("╔" + "═".repeat(BW - 2) + "╗");
+      boxLine(CV.name, true);
+      boxLine(CV.role);
+      boxLine(CV.location);
+      L.push("╚" + "═".repeat(BW - 2) + "╝");
+    }
+    wrap(CV.summary, 56).forEach(function (ln) {
+      L.push('<span class="dim">│</span>  ' + esc(ln));
+    });
+
+    sec("01", "experience");
+    CV.experience.forEach(function (job) {
+      L.push('├─ <span class="jobrow"><span>' + esc(job.role) + '</span><span class="jobrow__dates">' + esc(job.dates) + "</span></span>");
+      job.bullets.forEach(function (b) { L.push("│  · " + esc(b)); });
+    });
+
+    sec("02", "projects");
+    CV.projects.forEach(function (p) {
+      L.push("├─ <b>" + esc(p.name) + "</b>" +
+        (p.url ? ' <a href="' + p.url + '" target="_blank" rel="noopener" class="dim">' + esc(p.url.replace("https://github.com/", "")) + "</a>" : ""));
+      p.lines.forEach(function (l) { L.push("│  · " + esc(l)); });
+    });
+
+    sec("03", "skills & stack");
+    CV.skills.forEach(function (s) { L.push(pad(s[0], 11) + esc(s[1])); });
+
+    sec("04", "education");
+    L.push(esc(CV.education));
+
+    sec("05", "contact");
     CV.contacts.forEach(function (c) {
       L.push(pad("<b>" + esc(c.label) + "</b>", 11) + linkify(c.value, c.href, c.external) +
         (c.copy ? " " + copyChip(c.value) : ""));
     });
-    hr();
-    L.push("<b>experience</b>");
-    CV.experience.forEach(function (job) {
-      L.push('<span class="jobrow"><span>' + esc(job.role) + '</span><span class="jobrow__dates">' + esc(job.dates) + "</span></span>");
-      job.bullets.forEach(function (b) { L.push("· " + esc(b)); });
-    });
-    hr();
-    L.push("<b>projects</b>");
-    CV.projects.forEach(function (p) {
-      L.push("<b>" + esc(p.name) + "</b>" +
-        (p.url ? ' <a href="' + p.url + '" target="_blank" rel="noopener" class="dim">' + esc(p.url.replace("https://github.com/", "")) + "</a>" : ""));
-      p.lines.forEach(function (l) { L.push("· " + esc(l)); });
-    });
-    hr();
-    L.push("<b>skills &amp; stack</b>");
-    CV.skills.forEach(function (s) { L.push(pad(s[0], 11) + esc(s[1])); });
-    L.push(pad("<b>education</b>", 11) + esc(CV.education));
-    hr();
+    rule();
     L.push('<span class="dim">(end of cv.txt — type <b>menu</b> to reopen the index)</span>');
     return L;
   };

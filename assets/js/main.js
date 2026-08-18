@@ -136,9 +136,20 @@
   };
 
   var pump = function () {
-    typeStep();
-    if (typeLine) { scrollDown(); return; }
-    startNext();
+    if (!typeLine && QUEUE.length) startNext();
+    if (!typeLine) return doneTyping();
+    /* burst a few chars per tick — streaming feels printed but fast */
+    var n = SPEED <= 2 ? 4 : SPEED <= 5 ? 3 : 2;
+    while (n > 0) {
+      typeStep();
+      n--;
+      if (!typeLine) {
+        if (QUEUE.length) startNext();
+        else break;
+      }
+    }
+    if (!typeLine && !QUEUE.length) return doneTyping();
+    scrollDown();
   };
 
   var startTimer = function () {
@@ -565,10 +576,12 @@
       if (p >= 1) {
         clearInterval(loadTimer);
         loadTimer = null;
+        var cvContent = window.app.cvLines();
         loadDiv.classList.add("line--load-done");
-        loadDiv.innerHTML = '<span class="dim">cv.txt loaded — streaming…</span>';
+        loadDiv.innerHTML =
+          '<span class="dim">cv.txt loaded — ' + cvContent.length + " lines, " + cvContent.join("").length + " bytes — streaming…</span>";
         scrollDown();
-        window.app.cvLines().forEach(function (html) { appendLine(html); });
+        cvContent.forEach(function (html) { appendLine(html); });
       }
     };
     paint();
