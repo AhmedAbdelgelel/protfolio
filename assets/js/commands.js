@@ -417,7 +417,7 @@
 
     /* ---------- cv ---------- */
     cv: {
-      help: "full résumé — opens cv.pdf",
+      help: "full résumé — cv.pdf is offered as an option to open",
       hash: "cv",
       run: function (ctx) {
         if (window.app.cvLoad) window.app.cvLoad();

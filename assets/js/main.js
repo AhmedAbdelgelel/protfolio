@@ -581,15 +581,14 @@
         var cvContent = window.app.cvLines();
         loadDiv.classList.add("line--load-done");
         loadDiv.innerHTML =
-          '<span class="dim">cv.pdf loaded — ' + cvContent.length + " lines, " + cvContent.join("").length + " bytes — opening…</span>";
+          '<span class="dim">cv.pdf loaded — ' + cvContent.length + " lines, " + cvContent.join("").length + " bytes — ready.</span>";
         scrollDown();
         var openLink = doc.createElement("div");
         openLink.className = "line";
         openLink.innerHTML =
-          '<a href="' + CV_PDF + '" target="_blank" rel="noopener">cv.pdf — [open]</a> ' +
-          '<span class="dim">(if nothing opened, tap it)</span>';
+          '<a href="' + CV_PDF + '" target="_blank" rel="noopener">[open cv.pdf]</a> ' +
+          '<span class="dim">— your choice: view the pdf, or keep reading the copy below</span>';
         output.appendChild(openLink);
-        try { window.open(CV_PDF, "_blank"); } catch (err) { /* popup blocked — link stays */ }
         scrollDown();
         cvContent.forEach(function (html) { appendLine(html); });
       }
@@ -919,7 +918,7 @@
 
   /* one canonical command per row — the menu never drifts from the CLI */
   var MENU_ITEMS = [
-    { title: "CV · full résumé", desc: "the real cv.pdf — opens in a new tab", cmd: "cv" },
+    { title: "CV · full résumé", desc: "the real cv.pdf — open it when you want", cmd: "cv" },
     { title: "experience", desc: "three roles, real products", cmd: "experience" },
     { title: "projects", desc: "selected builds — repos included", cmd: "projects" },
     { title: "skills & stack", desc: "languages, backend, devops, testing", cmd: "stack" },
