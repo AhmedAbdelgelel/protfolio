@@ -5,6 +5,7 @@
    ============================================================ */
 
 :root {
+  --taskbar-h: 46px;
   --bg: #0c0c0c;            /* terminal body */
   --chrome-top: #252526;    /* title bar gradient top */
   --chrome-bottom: #1e1e1e; /* title bar gradient bottom */
@@ -42,6 +43,12 @@ body {
   font-size: 14px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease;
+}
+
+/* minimized → the wallpaper shows, exactly like a real desktop */
+body.desktop-mode {
+  background: linear-gradient(168deg, #1565c0 0%, #0d4ea2 42%, #083a7f 78%, #062e68 100%);
 }
 
 ::selection { background: #424242; color: #fff; }
@@ -68,7 +75,7 @@ a { color: var(--bright); }
 
 /* minimize animation — window swooshes down toward the taskbar */
 .terminal.is-minimizing {
-  transform: translateY(-46px) scale(0.3);
+  transform: translateY(calc(-1 * var(--taskbar-h))) scale(0.3);
   opacity: 0;
 }
 
@@ -190,7 +197,7 @@ a { color: var(--bright); }
   left: 0;
   right: 0;
   bottom: 0;
-  height: 46px;
+  height: var(--taskbar-h);
   background: #f3f3f3;
   border-top: 1px solid #d6d6d6;
   display: flex;
@@ -670,7 +677,7 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
   .screen { padding: 12px 12px 10px; }
 
   /* taskbar sits lower & slimmer on phones */
-  .taskbar { height: 40px; }
+  :root { --taskbar-h: 40px; }
   .taskbar__item { font-size: 12px; padding: 4px 10px; gap: 6px; }
   .taskbar__clock { right: 10px; font-size: 10px; }
 

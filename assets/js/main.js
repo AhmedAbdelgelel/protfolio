@@ -602,6 +602,7 @@
     if (reduced) {
       minimized = true;
       term.classList.add("is-minimized");
+      doc.body.classList.add("desktop-mode");
       taskbar.hidden = false;
       if (minBtn) minBtn.setAttribute("aria-pressed", "true");
       return;
@@ -612,6 +613,7 @@
       minimized = true;
       term.classList.add("is-minimized");
       term.classList.remove("is-minimizing");
+      doc.body.classList.add("desktop-mode");
       taskbar.hidden = false;
       if (minBtn) minBtn.setAttribute("aria-pressed", "true");
       winAnim = false;
@@ -624,6 +626,7 @@
     if (reduced) {
       minimized = false;
       term.classList.remove("is-minimized");
+      doc.body.classList.remove("desktop-mode");
       taskbar.hidden = true;
       if (minBtn) minBtn.setAttribute("aria-pressed", "false");
       focusInput();
@@ -631,6 +634,7 @@
     }
     winAnim = true;
     taskbar.hidden = true;
+    doc.body.classList.remove("desktop-mode");
     term.classList.remove("is-minimized");
     term.classList.add("is-minimizing");            // start from the collapsed pose
     void term.offsetWidth;                           // force reflow, then animate up
@@ -691,6 +695,7 @@
     blip(true);
     minimized = false;
     winAnim = false;
+    doc.body.classList.remove("desktop-mode");
     if (taskbar) taskbar.hidden = true;
     term.classList.remove("is-minimizing");
     term.classList.add("is-off");
@@ -705,6 +710,7 @@
     powerOn = true;
     if (poweroff) poweroff.hidden = true;
     minimized = false;
+    doc.body.classList.remove("desktop-mode");
     if (taskbar) taskbar.hidden = true;
     term.classList.remove("is-off", "is-minimized", "is-minimizing");
     if (minBtn) minBtn.setAttribute("aria-pressed", "false");
