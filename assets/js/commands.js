@@ -166,12 +166,10 @@
   window.app.CONST = { EMAIL: EMAIL, PHONE: PHONE, LINKEDIN: LINKEDIN, GITHUB: GITHUB };
   window.app.cvLines = function () {
     var L = [];
-    var narrow = window.innerWidth <= 640;
-    var BW = 66;   /* header box width (desktop) */
     var rule = function () { L.push('<span class="dim">' + "─".repeat(60) + "</span>"); };
     var sec = function (num, name) {
-      var txt = "[" + num + "] " + name;
-      L.push('<span class="dim">' + "─── " + txt + " " + "─".repeat(Math.max(2, 60 - txt.length - 8)) + "</span>");
+      rule();
+      L.push('<span class="dim">[' + num + "] " + name + "</span>");
     };
     var wrap = function (text, width) {
       var out = [], cur = "";
@@ -182,39 +180,22 @@
       if (cur) out.push(cur);
       return out;
     };
-
-    var boxLine = function (txt, bold) {
-      var inner = txt.length > BW - 6 ? txt.slice(0, BW - 6) + "…" : txt;
-      if (bold) inner = "<b>" + esc(inner) + "</b>";
-      else inner = esc(inner);
-      L.push("║  " + inner + " ".repeat(Math.max(0, BW - 4 - txt.length)) + "║");
-    };
-    if (narrow) {
-      L.push("<b>" + esc(CV.name) + "</b>");
-      L.push(esc(CV.role));
-      L.push('<span class="dim">' + esc(CV.location) + "</span>");
-    } else {
-      L.push("╔" + "═".repeat(BW - 2) + "╗");
-      boxLine(CV.name, true);
-      boxLine(CV.role);
-      boxLine(CV.location);
-      L.push("╚" + "═".repeat(BW - 2) + "╝");
-    }
-    wrap(CV.summary, 56).forEach(function (ln) {
-      L.push('<span class="dim">│</span>  ' + esc(ln));
-    });
+    L.push("<b>" + esc(CV.name) + "</b>");
+    L.push(esc(CV.role));
+    L.push('<span class="dim">' + esc(CV.location) + "</span>");
+    wrap(CV.summary, 66).forEach(function (ln) { L.push("  " + esc(ln)); });
 
     sec("01", "experience");
     CV.experience.forEach(function (job) {
-      L.push('├─ <span class="jobrow"><span>' + esc(job.role) + '</span><span class="jobrow__dates">' + esc(job.dates) + "</span></span>");
-      job.bullets.forEach(function (b) { L.push("│  · " + esc(b)); });
+      L.push('<span class="jobrow"><span><b>' + esc(job.role) + "</b></span><span class=\"jobrow__dates\">" + esc(job.dates) + "</span></span>");
+      job.bullets.forEach(function (b, i) { L.push("  " + (i + 1) + ". " + esc(b)); });
     });
 
     sec("02", "projects");
     CV.projects.forEach(function (p) {
-      L.push("├─ <b>" + esc(p.name) + "</b>" +
+      L.push("<b>" + esc(p.name) + "</b>" +
         (p.url ? ' <a href="' + p.url + '" target="_blank" rel="noopener" class="dim">' + esc(p.url.replace("https://github.com/", "")) + "</a>" : ""));
-      p.lines.forEach(function (l) { L.push("│  · " + esc(l)); });
+      p.lines.forEach(function (l, i) { L.push("  " + (i + 1) + ". " + esc(l)); });
     });
 
     sec("03", "skills & stack");
@@ -252,7 +233,7 @@
         ctx.print(pad("<b>hire</b>", 15) + "— availability card");
         ctx.print(pad("<b>contact</b>", 15) + "— reach me");
         ctx.print(pad("<b>info</b>", 15) + "— system overview (neofetch)");
-        ctx.print(pad("<b>cv</b>", 15) + "— full résumé (loads cv.txt)");
+        ctx.print(pad("<b>cv</b>", 15) + "— full résumé (opens cv.pdf)");
         ctx.print(pad("<b>version</b>", 15) + "— build info");
         ctx.blank();
         ctx.print('<span class="dim">fun — because terminals need it:</span>');
@@ -430,13 +411,13 @@
         ctx.print("or connect on " + linkify("LinkedIn", LINKEDIN, true));
         ctx.blank();
         ctx.print('<span class="dim">full résumé: run <b>cv</b> ' +
-          '<a href="#" data-action="cv">[load cv.txt]</a></span>');
+          '<a href="#" data-action="cv">[open cv.pdf]</a></span>');
       },
     },
 
     /* ---------- cv ---------- */
     cv: {
-      help: "full résumé — loads cv.txt into the terminal",
+      help: "full résumé — opens cv.pdf",
       hash: "cv",
       run: function (ctx) {
         if (window.app.cvLoad) window.app.cvLoad();

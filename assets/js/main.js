@@ -139,7 +139,7 @@
     if (!typeLine && QUEUE.length) startNext();
     if (!typeLine) return doneTyping();
     /* burst a few chars per tick — streaming feels printed but fast */
-    var n = SPEED <= 2 ? 4 : SPEED <= 5 ? 3 : 2;
+    var n = SPEED <= 2 ? 5 : SPEED <= 5 ? 4 : 3;
     while (n > 0) {
       typeStep();
       n--;
@@ -550,10 +550,11 @@
   wireCopy(output);
 
   /* ============================================================
-     cv.txt — the résumé loads like a program INSIDE the terminal:
-     a loader bar first, then the document streams in line by line
+     cv.pdf — the résumé loads like a program, then the real pdf
+     opens in a new tab; a quick in-terminal card always follows
      ============================================================ */
   var loadTimer = null;
+  var CV_PDF = "assets/cv/AhmedAbdelgelel_CV_v3.pdf";
 
   window.app.cvLoad = function () {
     if (!window.app.cvLines) return;
@@ -561,8 +562,9 @@
     finishAll();
     var loadDiv = doc.createElement("div");
     loadDiv.className = "line line--load";
+    loadDiv.setAttribute("role", "status");
     output.appendChild(loadDiv);
-    var ticks = 14;
+    var ticks = 10;
     var i = 0;
     var paint = function () {
       if (!loadDiv.parentNode) { clearInterval(loadTimer); loadTimer = null; return; }
@@ -570,7 +572,7 @@
       var p = Math.min(i / ticks, 1);
       var filled = Math.round(p * 20);
       loadDiv.innerHTML =
-        '<span class="dim">loading cv.txt …</span> <span class="load__bar">[' +
+        '<span class="dim">loading cv.pdf …</span> <span class="load__bar">[' +
         "▓".repeat(filled) + "░".repeat(20 - filled) + "]</span> " + Math.round(p * 100) + "%";
       scrollDown();
       if (p >= 1) {
@@ -579,13 +581,21 @@
         var cvContent = window.app.cvLines();
         loadDiv.classList.add("line--load-done");
         loadDiv.innerHTML =
-          '<span class="dim">cv.txt loaded — ' + cvContent.length + " lines, " + cvContent.join("").length + " bytes — streaming…</span>";
+          '<span class="dim">cv.pdf loaded — ' + cvContent.length + " lines, " + cvContent.join("").length + " bytes — opening…</span>";
+        scrollDown();
+        var openLink = doc.createElement("div");
+        openLink.className = "line";
+        openLink.innerHTML =
+          '<a href="' + CV_PDF + '" target="_blank" rel="noopener">cv.pdf — [open]</a> ' +
+          '<span class="dim">(if nothing opened, tap it)</span>';
+        output.appendChild(openLink);
+        try { window.open(CV_PDF, "_blank"); } catch (err) { /* popup blocked — link stays */ }
         scrollDown();
         cvContent.forEach(function (html) { appendLine(html); });
       }
     };
     paint();
-    loadTimer = setInterval(paint, 85);
+    loadTimer = setInterval(paint, 70);
   };
 
   /* ---------- click to refocus ---------- */
@@ -909,7 +919,7 @@
 
   /* one canonical command per row — the menu never drifts from the CLI */
   var MENU_ITEMS = [
-    { title: "CV · full résumé", desc: "the whole story in one tidy document", cmd: "cv" },
+    { title: "CV · full résumé", desc: "the real cv.pdf — opens in a new tab", cmd: "cv" },
     { title: "experience", desc: "three roles, real products", cmd: "experience" },
     { title: "projects", desc: "selected builds — repos included", cmd: "projects" },
     { title: "skills & stack", desc: "languages, backend, devops, testing", cmd: "stack" },
@@ -938,7 +948,10 @@
       );
     });
     menuRows.innerHTML = h.join("");
+    menuRows.setAttribute("role", "listbox");
     menuRows.querySelectorAll(".menu-row").forEach(function (row) {
+      row.setAttribute("role", "option");
+      row.setAttribute("aria-selected", String(row.getAttribute("data-i") === String(menuSel)));
       row.addEventListener("click", function (e) {
         e.stopPropagation();     // don't steal focus / fire term taps
         if (!menuOpen) return;
@@ -988,10 +1001,11 @@
     menuRows = null;
   };
 
-  /* the always-available way back in: `menu` (alias: `list`) */
+  /* the always-available way back in: `menu` (alias: `list`,
+     shareable deep link: <site>/#list) */
   window.app.commands.menu = {
     help: "interactive index — cv, contact, projects…",
-    hash: null, // the menu lives in the terminal, not in a URL anchor
+    hash: "list", // #list reopens the menu from anywhere, incl. mobile shares
     run: function () { menuReturn = false; openMenu(); },
   };
 
