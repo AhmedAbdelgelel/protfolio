@@ -650,12 +650,12 @@ html.js.fallback-show .fallback { display: block; }
 }
 .menu-row:last-child { border-bottom: 0; }
 .menu-row--sel {
-  border-left-color: #000080;                 /* classic cmd selection navy */
-  background: #000080;
+  border-left-color: #3ddc84;                 /* phosphor-green inverse video */
+  background: #3ddc84;
 }
-.menu-row--sel .menu-row__title { color: #fff; }
-.menu-row--sel .menu-row__desc { color: #d4d4e0; }
-.menu-row--sel .menu-row__keys { color: #c8c8d8; }
+.menu-row--sel .menu-row__title { color: #06120b; }
+.menu-row--sel .menu-row__desc { color: #0d2418; }
+.menu-row--sel .menu-row__keys { color: #126b3b; }
 
 .menu-row__num {
   flex: 0 0 auto;
@@ -670,7 +670,7 @@ html.js.fallback-show .fallback { display: block; }
   color: var(--dim);
   margin-top: 1px;
 }
-.menu-row--sel .menu-row__num { border-color: #fff; color: #fff; }
+.menu-row--sel .menu-row__num { border-color: #06120b; color: #06120b; }
 
 .menu-row__body { flex: 1 1 auto; min-width: 0; }
 .menu-row__title { display: block; color: var(--bright); font-size: 13px; }
