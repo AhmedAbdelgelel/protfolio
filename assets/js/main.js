@@ -755,6 +755,7 @@
     appendLine('welcome back. <span class="dim">type help to see the damage.</span>', "");
     blip(true);
     lastActive = Date.now();
+    if (menuOpen && !menuRows) renderMenu();  // a shutdown must not eat the menu
     focusInput();
   };
 
