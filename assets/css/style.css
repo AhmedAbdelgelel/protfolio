@@ -336,6 +336,7 @@ body.desktop-mode .desktop__note { display: block; }
   flex-direction: column;
   padding: 14px 16px 16px;
   overflow: hidden;
+  position: relative;         /* anchors the mobile menu dock */
 }
 
 .screen__out {
@@ -462,6 +463,25 @@ body.desktop-mode .desktop__note { display: block; }
 @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
 .terminal.ready .promptline { opacity: 1; transform: none; }
+
+/* back-to-menu chip — tap it after any pick; esc still works on keyboards */
+.back-chip {
+  appearance: none;
+  background: none;
+  border: 1px dashed #555;
+  border-radius: 5px;
+  color: var(--bright);
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.back-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+/* mobile dock — a pinned pill above the prompt, shown when the menu is
+   closed (phones have no esc key). hidden with the menu is open. */
+.menu-dock { display: none; }
 
 /* the real field â€” visually absent, functionally a full <input> */
 .term-input {
@@ -731,6 +751,39 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
   }
 
   .screen__out, .promptline { font-size: 14px; }
+
+  /* ---- mobile way back to the menu ----
+     the dock pill hugs the bottom-right above the prompt line;
+     touch-sized, thumb reachable, hides when the menu is open */
+  .menu-dock {
+    position: absolute;
+    right: 12px;
+    bottom: 62px;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--bright);
+    background: #101014;
+    border: 1px solid #3a3a44;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  }
+  .menu-dock[hidden] { display: none; }
+  .menu-dock:active { transform: translateY(1px); border-color: var(--accent); color: var(--accent); }
+
+  /* the in-terminal back chip goes full-width and thumb-sized */
+  .back-chip {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px 10px;
+    font-size: 13px;
+  }
 
   .menu-row__keys { display: none; }
 }

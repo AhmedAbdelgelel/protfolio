@@ -87,6 +87,12 @@
     <main class="screen">
       <div class="screen__out" id="terminal-output" role="log" aria-live="polite" aria-label="Terminal output"></div>
 
+      <!-- mobile back-to-menu dock — phones have no esc key; this is the way home.
+           appears only when the menu is closed, hides when it opens -->
+      <button type="button" class="menu-dock" id="menu-dock" hidden aria-label="Back to the menu">
+        <span aria-hidden="true">‹</span> menu
+      </button>
+
       <!-- the live prompt line:  C:\Users\glgl> █ -->
       <div class="promptline" id="promptline">
         <span class="promptline__prompt" aria-hidden="true" id="prompt-label">C:\Users\glgl&gt;</span>

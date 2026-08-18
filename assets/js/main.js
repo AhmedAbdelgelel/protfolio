@@ -915,6 +915,22 @@
   var menuReturn = false;     // a menu item was picked; esc returns
   var menuSel = 0;            // highlighted row
   var menuRows = null;        // element holding the menu rows
+  var menuDock = doc.getElementById("menu-dock");   // mobile way home (null on old builds)
+  var docked = false;         // a history entry for back-to-menu is pending
+
+  var hideDock = function () { if (menuDock) menuDock.hidden = true; };
+  var showDock = function () { if (menuDock) menuDock.hidden = false; };
+
+  /* Android back button / browser back — pickMenu pushes one entry;
+     popping it reopens the menu (the esc key of the phone).
+     Only react when the popped state is OUR marker — some browsers
+     fire stray popstate events (restores, odd navigations) and we
+     must not reopen the menu off a state-less pop. */
+  window.addEventListener("popstate", function (e) {
+    if (menuOpen) return;
+    if (!e.state || e.state.glgl !== "back-to-menu") return;
+    openMenu();
+  });
 
   /* one canonical command per row — the menu never drifts from the CLI */
   var MENU_ITEMS = [
@@ -965,6 +981,8 @@
     menuOpen = true;
     menuReturn = false;
     menuSel = 0;
+    docked = false;          // the back-entry was (or will be) consumed
+    hideDock();
     renderMenu();
   };
 
@@ -974,6 +992,7 @@
       if (menuRows.parentNode) menuRows.parentNode.removeChild(menuRows);
       menuRows = null;
     }
+    showDock();
   };
 
   var pickMenuItem = function (i) {
@@ -982,22 +1001,38 @@
     blip(true);
     closeMenu();
     menuReturn = true;
-    execute(it.cmd);
-    if (it.cmd !== "cv") {       // the cv overlay handles its own esc
-      setTimeout(function () {
-        var hint = doc.createElement("div");
-        hint.className = "dim";
-        hint.innerHTML = "— <b>esc</b> back to the menu · or type <b>menu</b> —";
-        output.appendChild(hint);
-        scrollDown();
-      }, 10);
+    if (!docked && history && history.pushState) {
+      docked = true;
+      try { history.pushState({ glgl: "back-to-menu" }, ""); } catch (err) { docked = false; }
     }
+    execute(it.cmd);
+    /* the way home: a tap-able chip at the bottom of the output —
+       phones have no esc key. waits for the stream to drain so it
+       always sits at the very bottom, then calls back if never idle. */
+    var chip = doc.createElement("button");
+    chip.type = "button";
+    chip.className = "back-chip";
+    chip.innerHTML = "&lsaquo; back to menu" +
+      (window.innerWidth > 640 ? ' <span class="dim">(esc)</span>' : "");
+    chip.addEventListener("click", function (e) {
+      e.stopPropagation();
+      openMenu();
+      scrollDown();
+    });
+    var tries = 0;
+    (function waitIdle() {
+      tries += 1;
+      if (!isTyping && !QUEUE.length) { output.appendChild(chip); scrollDown(); return; }
+      if (tries > 60) { output.appendChild(chip); scrollDown(); return; }  // give up waiting — still show it
+      setTimeout(waitIdle, 120);
+    })();
   };
 
   window.app.menuDidClear = function () {
     menuOpen = false;
     menuReturn = false;
     menuRows = null;
+    showDock();
   };
 
   /* the always-available way back in: `menu` (alias: `list`,
