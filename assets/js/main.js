@@ -344,6 +344,8 @@
      Guess game
      ============================================================ */
   var gameActive = false, secret = 0, tries = 0;
+  /* su command sets window.app.suAsk (commands.js); execute() here consumes it */
+  window.app.suAsk = false;
 
   /* ============================================================
      Sound blips — WebAudio, opt-in, persisted
@@ -420,6 +422,23 @@
         appendLine("<b>Correct!</b> You got it in " + tries + (tries === 1 ? " try" : " tries") + ".");
         appendLine('<span class="dim">— your reward: a calm sense of closure.</span>');
         gameActive = false;
+      }
+      return;
+    }
+
+    if (window.app.suAsk) {
+      window.app.suAsk = false;
+      var pw = trimmed.toLowerCase();
+      if (pw === "cancel" || pw === "quit" || pw === "q") {
+        appendLine("su: authentication cancelled.");
+        return;
+      }
+      if (pw === "glgl") {
+        appendLine("<b>admin</b> — root switch complete. the terminal bows to you.");
+        appendLine('<span class="dim">(try <b>sudo</b> for the encore, or <b>ls</b> to look around)</span>');
+      } else {
+        appendLine("su: authentication failure — and yes, we saw that.");
+        appendLine('<span class="dim">(hint: four lowercase letters, same as the username — run <b>su</b> to try again)</span>');
       }
       return;
     }

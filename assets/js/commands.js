@@ -222,9 +222,19 @@
     help: {
       help: "list every command",
       hash: "help",
-      run: function (ctx) {
+      run: function (ctx, rest) {
+        if (rest.trim()) {
+          var target = window.app.resolve(rest.trim());
+          if (target && target.help) {
+            ctx.print(pad("<b>" + esc(rest.trim()) + "</b>", 15) + "— " + esc(target.help) +
+              (target.hash ? ' <span class="dim">· shareable: /#' + esc(target.hash) + "</span>" : ""));
+          } else {
+            ctx.print('<span class="dim">help: no such command — try <b>help</b> for the list</span>');
+          }
+          return;
+        }
         ctx.print('<span class="dim">sections are offline — type <b>help</b> to boot one:</span>');
-        ctx.print(pad("<b>help</b>", 15) + "— list every command");
+        ctx.print(pad("<b>help</b>", 15) + "— list every command · try <b>help &lt;cmd&gt;</b> for details");
         ctx.print(pad("<b>projects</b>", 15) + "— selected builds");
         ctx.print(pad("<b>stack</b>", 15) + "— print the stack");
         ctx.print(pad("<b>whoami</b>", 15) + "— identity");
@@ -243,10 +253,15 @@
         ctx.print(pad("<b>rick</b>", 15) + "— never gonna give you up");
         ctx.print(pad("<b>danny</b>", 15) + "— ascii danny phantom");
         ctx.print(pad("<b>sudo</b>", 15) + "— admin access");
-        ctx.print(pad("<b>su</b>", 15) + "— authentication failure");
+        ctx.print(pad("<b>su</b>", 15) + "— switch user — guess the password");
+        ctx.print(pad("<b>fortune</b>", 15) + "— cookie, terminal edition");
+        ctx.print(pad("<b>hack &lt;target&gt;</b>", 15) + "— full mainframe invasion (probably)");
+        ctx.print(pad("<b>coffee</b>", 15) + "— brew a virtual one");
         ctx.blank();
         ctx.print('<span class="dim">tools:</span>');
-        ctx.print(pad("<b>ls</b>", 15) + "— files in this terminal");
+        ctx.print(pad("<b>ls &lt;dir&gt;</b>", 15) + "— files in this terminal");
+        ctx.print(pad("<b>tree</b>", 15) + "— the file tree, drawn badly");
+        ctx.print(pad("<b>cat &lt;file&gt;</b>", 15) + "— read a terminal file");
         ctx.print(pad("<b>ping</b>", 15) + "— real latency to this site");
         ctx.print(pad("<b>theme</b>", 15) + "— termux color schemes");
         ctx.print(pad("<b>encode &lt;text&gt;</b>", 15) + "— base64 encode");
@@ -597,11 +612,11 @@
     },
 
     su: {
-      help: "authentication failure",
+      help: "switch user — guess the password",
       hash: null,
       run: function (ctx) {
-        ctx.print("su: Authentication failure");
-        ctx.print('<span class="dim">(hint: admin lives behind <b>sudo</b> — if you can type, you can be one)</span>');
+        ctx.print("password: <span class='dim'>(four lowercase letters — type it, or <b>cancel</b>)</span>");
+        window.app.suAsk = true;
       },
     },
 
@@ -662,9 +677,29 @@
 
     /* ---------- ls ---------- */
     ls: {
-      help: "list the files of this terminal",
+      help: "list the files of this terminal — try: ls projects",
       hash: "ls", // shareable: <site>/#ls
-      run: function (ctx) {
+      run: function (ctx, rest) {
+        var dir = rest.trim().toLowerCase();
+        if (dir === "projects" || dir === "projects/") {
+          ctx.print('<span class="dim">projects/ — selected builds, repos included:</span>');
+          ctx.print(pad("<b>cache-engine</b>", 18) + "— high-throughput redis cache middleware");
+          ctx.print(pad("<b>epub-to-pdf</b>", 18) + "— in-browser epub to pdf converter");
+          ctx.blank();
+          ctx.print('<span class="dim">open one: <b>projects</b></span>');
+          return;
+        }
+        if (dir === "experience" || dir === "experience/") {
+          ctx.print('<span class="dim">experience/ — career log:</span>');
+          ctx.print(pad("<b>penta</b>", 18) + "— dev studio, node.js backend · since 2023");
+          ctx.blank();
+          ctx.print('<span class="dim">open it: <b>experience</b></span>');
+          return;
+        }
+        if (dir) {
+          ctx.print('<span class="dim">ls: ' + esc(rest.trim()) + ": no such directory — try <b>ls projects</b> or <b>ls experience</b></span>");
+          return;
+        }
         ctx.print('<span class="dim">total 7 — everything you need lives here</span>');
         [
           ["drwxr-xr-x", "projects/", "selected builds — repos included"],
@@ -680,6 +715,111 @@
         });
         ctx.blank();
         ctx.print('<span class="dim">every file opens by name — try <b>cv</b>, <b>contact</b>, <b>projects</b>…</span>');
+      },
+    },
+
+    /* ---------- cat — read a terminal file ---------- */
+    cat: {
+      help: "read a terminal file — try: cat README.txt",
+      hash: "cat", // shareable: <site>/#cat
+      run: function (ctx, rest) {
+        var files = {
+          "README.txt": "glgl terminal — a résumé disguised as cmd.exe. run <b>help</b> for the manual.",
+          "cv.pdf": "a binary file — browsers handle it better than we do. run <b>cv</b> to open it.",
+          "skills.txt": "node.js · express · nestjs · redis · postgres · docker · aws",
+          "education.txt": "B.Sc. computer science — Mansoura University, class of 2025.",
+          "experience.txt": "three chapters of backend shipping — run <b>experience</b> for the log.",
+          "projects.txt": "two builds, repos included — run <b>projects</b> to walk through them.",
+          "contact.txt": "ahmed4bdelgelel@gmail.com — run <b>contact</b> for linkedin, github & more.",
+        };
+        var name = rest.trim().toLowerCase();
+        var content = files[name];
+        if (name) {
+          if (content) {
+            ctx.print(esc(name) + ': <span class="dim">' + content + "</span>");
+          } else {
+            ctx.print('<span class="dim">cat: ' + esc(rest.trim()) + ': no such file — run <b>ls</b> to see what lives here</span>');
+          }
+          return;
+        }
+        ctx.print('<span class="dim">usage: cat &lt;file&gt; — try <b>cat README.txt</b> or <b>cat skills.txt</b></span>');
+      },
+    },
+
+    /* ---------- tree — the file tree, drawn badly ---------- */
+    tree: {
+      help: "the terminal's file tree, drawn badly",
+      hash: null,
+      run: function (ctx) {
+        ctx.print("<span class='dim'>.</span>");
+        ctx.print("<span class='dim'>├──</span> projects/");
+        ctx.print("<span class='dim'>│   ├──</span> cache-engine");
+        ctx.print("<span class='dim'>│   └──</span> epub-to-pdf");
+        ctx.print("<span class='dim'>├──</span> experience/");
+        ctx.print("<span class='dim'>│   └──</span> penta /");
+        ctx.print("<span class='dim'>├──</span> cv.pdf");
+        ctx.print("<span class='dim'>├──</span> contact.txt");
+        ctx.print("<span class='dim'>└──</span> README.txt");
+        ctx.blank();
+        ctx.print('<span class="dim">1 directory, 2 builds, 0 broken promises.</span>');
+      },
+    },
+
+    /* ---------- fortune ---------- */
+    fortune: {
+      help: "a fortune cookie, terminal edition",
+      hash: null,
+      run: function (ctx) {
+        var fortunes = [
+          "you will deploy on a friday. may god have mercy.",
+          "your code will work on the first try. roll for initiative.",
+          "a recruiter will find this portfolio. you will check the date twice.",
+          "the bug is not in your code. it is in your heart.",
+          "merge conflicts: an opportunity to learn about merge conflicts.",
+          "today's lucky command is sudo. today's lucky number is no.",
+          "someone, somewhere, will ask you to make the logo bigger.",
+          "production is fine. said no one, ever, at 3am.",
+          "the internet was down. the real problem was you had no coffee.",
+          "you will read this fortune twice. it is the same both times.",
+        ];
+        ctx.print('<span class="dim">fortune:</span> ' + esc(fortunes[Math.floor(Math.random() * fortunes.length)]));
+      },
+    },
+
+    /* ---------- hack — full mainframe invasion (probably) ---------- */
+    hack: {
+      help: "invade a mainframe (probably)",
+      hash: "hack",
+      run: function (ctx, rest) {
+        var target = rest.trim() || "the mainframe";
+        ctx.print('<span class="dim">hacking ' + esc(target) + "…</span>");
+        ctx.print('<span class="dim">bypassing firewall… done</span>');
+        ctx.print('<span class="dim">decrypting passwords…</span>');
+        ctx.print('<span class="dim">  the passwords were "glgl" — 100% of them</span>');
+        ctx.print('<span class="dim">uploading viruses…</span>');
+        ctx.print('<span class="dim">  the viruses were you</span>');
+        ctx.print('<span class="dim">gaining admin…</span>');
+        ctx.print('<span class="dim">  you were already admin (sudo remembers)</span>');
+        ctx.blank();
+        ctx.print("<b>ACCESS GRANTED</b> — hmm. nothing happened. " + esc(target) +
+          " is a static site with no backend. you got pranked by a résumé.");
+      },
+    },
+
+    /* ---------- coffee ---------- */
+    coffee: {
+      help: "brew a virtual coffee",
+      hash: null,
+      run: function (ctx) {
+        ctx.print("<span class='dim'>brewing… [▓▓▓▓▓▓▓▓▓▓] done.</span>");
+        ctx.print("   _____");
+        ctx.print("  |     |");
+        ctx.print("  |  ☕  |");
+        ctx.print("  |_____|");
+        ctx.print("   `---'");
+        ctx.blank();
+        ctx.print("hot, black, zero calories — like your commit messages.");
+        ctx.print('<span class="dim">(productivity +10 — apply at the next sentence)</span>');
       },
     },
   };
