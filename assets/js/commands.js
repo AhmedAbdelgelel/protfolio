@@ -162,6 +162,8 @@
 
   /* full-page résumé — rendered into the overlay by main.js */
   window.app = window.app || {};   /* ensure the global exists here (bottom init is later) */
+  window.app.CV = CV;              /* recruiter edition reads the same data */
+  window.app.CONST = { EMAIL: EMAIL, PHONE: PHONE, LINKEDIN: LINKEDIN, GITHUB: GITHUB };
   window.app.cvHtml = function () {
     var h = [];
     var hr = function () {
@@ -658,7 +660,7 @@
   };
 
   /* aliases — cheap to support */
-  var ALIASES = { "?": "help", cls: "clear", dir: "projects", phantom: "danny", resume: "cv" };
+  var ALIASES = { "?": "help", cls: "clear", dir: "projects", phantom: "danny", resume: "cv", mood: "mode" };
 
   /* expose a tiny global so main.js can talk to the engine */
   window.app = window.app || {};

@@ -33,6 +33,11 @@
   var promptRow = doc.getElementById("promptline");
   if (!term || !output || !input || !mirror) return;
 
+  /* ---------- platform: factory-reset skins differ phone-to-phone ---------- */
+  var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(navigator.userAgent);
+
   /* ---------- helpers ---------- */
   var esc = function (s) {
     return String(s)
@@ -595,6 +600,20 @@
   var minimized = false;
   var winAnim = false;
   var MIN_MS = 240;
+  var reset = doc.getElementById("reset");
+
+  /* the factory-reset joke — platform-flavoured skin */
+  var showReset = function () {
+    if (!reset) return;
+    reset.hidden = false;
+    var android = doc.getElementById("reset-android");
+    var ios = doc.getElementById("reset-ios");
+    if (android) android.hidden = isIOS;
+    if (ios) ios.hidden = !isIOS;
+  };
+  var hideReset = function () {
+    if (reset) reset.hidden = true;
+  };
 
   /* Windows-style minimize: swoosh down into the taskbar */
   var collapseToTaskbar = function () {
@@ -602,7 +621,8 @@
     if (reduced) {
       minimized = true;
       term.classList.add("is-minimized");
-      doc.body.classList.add("desktop-mode");
+      if (mobile) showReset();
+      else doc.body.classList.add("desktop-mode");
       taskbar.hidden = false;
       if (minBtn) minBtn.setAttribute("aria-pressed", "true");
       return;
@@ -613,7 +633,8 @@
       minimized = true;
       term.classList.add("is-minimized");
       term.classList.remove("is-minimizing");
-      doc.body.classList.add("desktop-mode");
+      if (mobile) showReset();
+      else doc.body.classList.add("desktop-mode");
       taskbar.hidden = false;
       if (minBtn) minBtn.setAttribute("aria-pressed", "true");
       winAnim = false;
@@ -626,6 +647,7 @@
     if (reduced) {
       minimized = false;
       term.classList.remove("is-minimized");
+      hideReset();
       doc.body.classList.remove("desktop-mode");
       taskbar.hidden = true;
       if (minBtn) minBtn.setAttribute("aria-pressed", "false");
@@ -634,6 +656,7 @@
     }
     winAnim = true;
     taskbar.hidden = true;
+    hideReset();
     doc.body.classList.remove("desktop-mode");
     term.classList.remove("is-minimized");
     term.classList.add("is-minimizing");            // start from the collapsed pose
@@ -695,6 +718,7 @@
     blip(true);
     minimized = false;
     winAnim = false;
+    hideReset();
     doc.body.classList.remove("desktop-mode");
     if (taskbar) taskbar.hidden = true;
     term.classList.remove("is-minimizing");
@@ -710,6 +734,7 @@
     powerOn = true;
     if (poweroff) poweroff.hidden = true;
     minimized = false;
+    hideReset();
     doc.body.classList.remove("desktop-mode");
     if (taskbar) taskbar.hidden = true;
     term.classList.remove("is-off", "is-minimized", "is-minimizing");
@@ -780,6 +805,7 @@
   setInterval(function () {
     if (reduced) return;
     if (!powerOn || minimized) return;                 // terminal is off / parked
+    if (recruiterActive) return;                       // recruiter mode has no saver
     if (saver.hidden && !matrixActive && !gameActive &&
         Date.now() - lastActive > 60000 && doc.visibilityState !== "hidden") {
       saver.hidden = false;
@@ -845,6 +871,271 @@
       ctx2.print('<span class="dim">usage: speed slow | speed normal | speed fast</span>');
     },
   };
+
+  /* ============================================================
+     Mood picker + recruiter mode — pick your mood on first
+     visit; recruiters get clickable cards, devs keep the shell
+     ============================================================ */
+  var pick = doc.getElementById("pick");
+  var recView = doc.getElementById("recruiter");
+  var recMenu = doc.getElementById("recruiter-menu");
+  var recPanel = doc.getElementById("recruiter-panel");
+  var recSwitch = doc.getElementById("recruiter-switch");
+  var recruiterActive = false;
+  var recIndex = 0;
+  var pickSel = 0;
+  var mode = null;
+  try { mode = localStorage.getItem("glgl-mode"); } catch (e) { /* ignore */ }
+
+  var persistMode = function (m) {
+    try { localStorage.setItem("glgl-mode", m); } catch (e) { /* ignore */ }
+  };
+
+  var C = function () { return window.app.CV || {}; };
+  var K = function () { return window.app.CONST || {}; };
+
+  var enterMode = function (m) {
+    if (m !== "recruiter" && m !== "shell") return;
+    mode = m;
+    persistMode(m);
+    if (m === "recruiter") {
+      recruiterActive = true;
+      doc.body.classList.add("mode-recruiter");
+      document.title = "glgl — recruiter edition";
+      renderRecHero();
+      renderRecMenu();
+      if (recView) recView.hidden = false;
+      if (saver && !saver.hidden) saver.hidden = true;
+    } else {
+      recruiterActive = false;
+      doc.body.classList.remove("mode-recruiter");
+      updateSkin();                                     // restore the shell title
+      if (recView) recView.hidden = true;
+      if (recPanel) recPanel.hidden = true;
+      if (recMenu) recMenu.hidden = false;
+    }
+    if (pick) pick.hidden = true;
+  };
+
+  var REC_ITEMS = [
+    {
+      title: "CV · full résumé",
+      desc: "the whole story in one tidy document",
+      open: function () { window.app.openCv(); },
+    },
+    {
+      title: "experience",
+      desc: "three roles, real products",
+      build: function () {
+        var h = [];
+        (C().experience || []).forEach(function (job) {
+          h.push('<div class="rec__job"><div class="rec__jobline"><b>' + esc(job.role) + '</b><span class="rec__dates">' + esc(job.dates) + "</span></div>");
+          job.bullets.forEach(function (b) { h.push('<div class="rec__bullet">· ' + esc(b) + "</div>"); });
+          h.push("</div>");
+        });
+        return h.join("");
+      },
+    },
+    {
+      title: "projects",
+      desc: "selected builds — repos included",
+      build: function () {
+        var h = [];
+        (C().projects || []).forEach(function (p) {
+          h.push('<div class="rec__job"><div class="rec__jobline"><b>' + esc(p.name) + "</b></div>");
+          if (p.url) h.push('<div class="rec__bullet"><a href="' + p.url + '" target="_blank" rel="noopener">' + esc(p.url.replace("https://github.com/", "")) + "</a></div>");
+          p.lines.forEach(function (l) { h.push('<div class="rec__bullet">· ' + esc(l) + "</div>"); });
+          h.push("</div>");
+        });
+        return h.join("");
+      },
+    },
+    {
+      title: "skills & stack",
+      desc: "languages, backend, devops, testing",
+      build: function () {
+        var h = ['<div class="rec__stack">'];
+        (C().skills || []).forEach(function (s) {
+          h.push('<div class="rec__skill"><span class="rec__skill-label">' + esc(s[0]) + "</span> — " + esc(s[1]) + "</div>");
+        });
+        h.push("</div>");
+        return h.join("");
+      },
+    },
+    {
+      title: "education",
+      desc: "the degree, the university, the year",
+      build: function () {
+        return '<div class="rec__bullet">' + esc(C().education || "") + "</div>";
+      },
+    },
+    {
+      title: "contact",
+      desc: "email, phone, linkedin, github",
+      build: function () {
+        var k = K();
+        var rows = [
+          ["email", "mailto:" + k.EMAIL, k.EMAIL, true],
+          ["phone", "tel:" + k.PHONE, k.PHONE, true],
+          ["linkedin", k.LINKEDIN, k.LINKEDIN, false],
+          ["github", k.GITHUB, k.GITHUB, false],
+        ];
+        var h = [];
+        rows.forEach(function (r) {
+          h.push('<div class="rec__row"><b>' + r[0] + "</b> — <a href=\"" + r[1] + '" target="_blank" rel="noopener">' + esc(r[2]) + "</a>" +
+            (r[3] ? ' <a href="#" class="copy" data-copy="' + esc(r[2]) + '">[copy]</a>' : "") + "</div>");
+        });
+        return h.join("");
+      },
+    },
+    {
+      title: "hire me",
+      desc: "open to roles — reach out",
+      build: function () {
+        var k = K();
+        return '<div class="rec__note">open to full-time backend roles, internships, and interesting contracts.<br />the fastest way to reach me is email — or a message on linkedin.</div>' +
+          '<div class="recruiter__cta">' +
+          '<a href="mailto:' + k.EMAIL + '">email me</a>' +
+          '<a href="' + k.LINKEDIN + '" target="_blank" rel="noopener">linkedin</a>' +
+          '<button type="button" data-action="cv">view my CV</button>' +
+          "</div>";
+      },
+    },
+  ];
+
+  var renderRecHero = function () {
+    var n = doc.getElementById("recruiter-name");
+    var role = doc.getElementById("recruiter-role");
+    var blurb = doc.getElementById("recruiter-blurb");
+    var cta = doc.getElementById("recruiter-cta");
+    var k = K();
+    if (n) n.textContent = "Ahmed Mohammed Abdelgelel";
+    if (role) role.textContent = C().role || "";
+    if (blurb) blurb.textContent = "this page is a working terminal — if you land here by surprise, welcome: no commands needed. tap a card, read, done.";
+    if (cta) cta.innerHTML =
+      '<a href="mailto:' + k.EMAIL + '">email</a>' +
+      '<a href="tel:' + k.PHONE + '">call</a>' +
+      '<a href="' + k.LINKEDIN + '" target="_blank" rel="noopener">linkedin</a>' +
+      '<a href="' + k.GITHUB + '" target="_blank" rel="noopener">github</a>' +
+      '<button type="button" data-action="cv">view CV</button>';
+  };
+
+  var renderRecMenu = function () {
+    if (!recMenu) return;
+    recMenu.innerHTML = "";
+    REC_ITEMS.forEach(function (it, i) {
+      var b = doc.createElement("button");
+      b.type = "button";
+      b.className = "recruiter__item" + (i === recIndex ? " recruiter__item--sel" : "");
+      b.innerHTML =
+        '<span class="recruiter__num">' + (i + 1) + "</span>" +
+        '<span class="recruiter__item-body"><span class="recruiter__item-title">' + esc(it.title) + '</span><span class="recruiter__item-desc">' + esc(it.desc) + "</span></span>";
+      b.addEventListener("click", function () {
+        recIndex = i;
+        renderRecMenu();
+        recOpenItem(i);
+      });
+      recMenu.appendChild(b);
+    });
+  };
+
+  var recOpenItem = function (i) {
+    var it = REC_ITEMS[i];
+    if (!it) return;
+    blip(true);
+    if (it.open) { it.open(); return; }
+    if (recMenu) recMenu.hidden = true;
+    if (recPanel) {
+      recPanel.hidden = false;
+      recPanel.innerHTML =
+        '<div class="rec__panelhead"><button type="button" class="rec__back" aria-label="Back to menu">← menu</button><span class="rec__paneltitle">' + esc(it.title) + "</span></div>" +
+        (it.build ? it.build() : "");
+      var back = recPanel.querySelector(".rec__back");
+      if (back) back.addEventListener("click", recBack);
+      recPanel.scrollTop = 0;
+    }
+  };
+
+  var recBack = function () {
+    blip(true);
+    if (recPanel) recPanel.hidden = true;
+    if (recMenu) recMenu.hidden = false;
+  };
+
+  /* ---- picker: keyboard + clicks ---- */
+  var markPickSel = function () {
+    doc.querySelectorAll(".pick__card").forEach(function (c, i) {
+      c.classList.toggle("pick__card--sel", i === pickSel);
+    });
+  };
+  var choosePick = function () { enterMode(pickSel === 0 ? "recruiter" : "shell"); };
+  markPickSel();
+
+  doc.querySelectorAll(".pick__card").forEach(function (c) {
+    c.addEventListener("click", function () { enterMode(c.getAttribute("data-mode")); });
+  });
+  var pickSkip = doc.getElementById("pick-skip");
+  if (pickSkip) pickSkip.addEventListener("click", function () { enterMode("shell"); });
+
+  window.addEventListener("keydown", function (e) {
+    if (!pick || pick.hidden) return;
+    if (e.key === "1") { e.preventDefault(); enterMode("recruiter"); }
+    else if (e.key === "2") { e.preventDefault(); enterMode("shell"); }
+    else if (e.key === "ArrowDown" || e.key.toLowerCase() === "j") { e.preventDefault(); pickSel = 1; markPickSel(); }
+    else if (e.key === "ArrowUp" || e.key.toLowerCase() === "k") { e.preventDefault(); pickSel = 0; markPickSel(); }
+    else if (e.key === "Enter") { e.preventDefault(); choosePick(); }
+  }, true);
+
+  /* ---- recruiter: numbered options, arrows, esc ---- */
+  window.addEventListener("keydown", function (e) {
+    if (!recruiterActive || !recView || recView.hidden) return;
+    var panelOpen = recPanel && !recPanel.hidden;
+    if (panelOpen) {
+      if (e.key === "Escape") { e.preventDefault(); recBack(); }
+      return;
+    }
+    if (/^[1-7]$/.test(e.key)) {
+      e.preventDefault();
+      recOpenItem(Number(e.key) - 1);
+    } else if (e.key === "ArrowDown" || e.key.toLowerCase() === "j") {
+      e.preventDefault();
+      recIndex = (recIndex + 1) % REC_ITEMS.length;
+      renderRecMenu();
+    } else if (e.key === "ArrowUp" || e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      recIndex = (recIndex + REC_ITEMS.length - 1) % REC_ITEMS.length;
+      renderRecMenu();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      recOpenItem(recIndex);
+    }
+  }, true);
+
+  if (recSwitch) recSwitch.addEventListener("click", function () { blip(true); enterMode("shell"); });
+  if (recView) wireCopy(recView);
+
+  window.app.commands.mode = {
+    help: "switch the mood: recruiter / shell",
+    hash: null,
+    run: function (ctx2, rest) {
+      var arg = (rest || "").trim().toLowerCase();
+      if (arg === "recruiter" || arg === "shell") {
+        if (cvOpen) window.app.closeCv();
+        enterMode(arg);
+        ctx2.print("mood switched to <b>" + arg + "</b> — see you on the other side.");
+        return;
+      }
+      ctx2.print("mood: currently <b>" + (mode || "shell") + "</b>");
+      ctx2.print('<span class="dim">usage: mode recruiter | mode shell</span>');
+    },
+  };
+
+  /* persisted mood: skip the picker on repeat visits.
+     fresh phones go straight to recruiter mode — easier UX;
+     fresh desktops get to choose. */
+  if (mode === "recruiter") enterMode("recruiter");
+  else if (mode === "shell") enterMode("shell");
+  else if (mobile) enterMode("recruiter");
 
   /* ---------- go ---------- */
   boot();

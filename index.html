@@ -28,6 +28,35 @@
 </head>
 <body>
 
+  <!-- ==================== MODE PICKER ====================
+       first visit = pick your mood: easy mode for recruiters,
+       the real shell for devs. choice is remembered. -->
+  <div class="pick" id="pick" role="dialog" aria-label="Choose a mode">
+    <div class="pick__inner">
+      <div class="pick__brand">glgl<span class="pick__cursor">█</span></div>
+      <h1 class="pick__title">pick your mood</h1>
+      <p class="pick__sub">two versions of the same story</p>
+      <div class="pick__options">
+        <button type="button" class="pick__card" id="pick-recruiter" data-mode="recruiter">
+          <span class="pick__num">1</span>
+          <span class="pick__card-body">
+            <span class="pick__card-title">recruiter mode</span>
+            <span class="pick__card-desc">plain &amp; simple — clickable cards, no commands, my CV in two taps</span>
+          </span>
+        </button>
+        <button type="button" class="pick__card" id="pick-shell" data-mode="shell">
+          <span class="pick__num">2</span>
+          <span class="pick__card-body">
+            <span class="pick__card-title">shell mode</span>
+            <span class="pick__card-desc">a working terminal for devs — type help, pet the cow, get lost in here</span>
+          </span>
+        </button>
+      </div>
+      <div class="pick__hint">press 1 or 2 · arrows + enter · or tap a card</div>
+      <button type="button" class="pick__skip" id="pick-skip">skip → shell</button>
+    </div>
+  </div>
+
   <!-- ==================== THE TERMINAL ==================== -->
   <div class="terminal" id="terminal">
 
@@ -118,6 +147,54 @@
   <div class="desktop__note" id="desktop-note" aria-hidden="true">
     <div class="desktop__icon">▮_</div>
     <div class="desktop__text">the terminal left the chat.<br />tap the task below to summon it back.</div>
+  </div>
+
+  <!-- factory reset joke — what the phone shows when you minimize
+       on mobile: android gets the wipe, iphone gets the terms -->
+  <div class="reset" id="reset" hidden>
+    <div class="reset__screen reset__screen--ios" id="reset-ios" hidden>
+      <div class="reset__brand">glgl</div>
+      <div class="reset__title">reset in progress…</div>
+      <div class="reset__body">
+        all content &amp; settings will be erased.<br />
+        except this joke.<br />
+        you already agreed — it was in the terms.<br />
+        (the ones nobody reads. respect.)
+      </div>
+      <div class="reset__bar">▁▂▃▄▅▆▇█ 100%</div>
+      <div class="reset__hint">the white bar below cancels everything</div>
+    </div>
+    <div class="reset__screen reset__screen--android" id="reset-android">
+      <div class="reset__brand">glgl</div>
+      <div class="reset__title">FACTORY RESET</div>
+      <div class="reset__body">
+        erasing: personality cache… done.<br />
+        erasing: "type help" muscle memory… done.<br />
+        erasing: the cow… wait, the cow stays.<br />
+        reply-all privileges revoked.
+      </div>
+      <div class="reset__bar">[▓▓▓▓▓▓▓▓▓▓▓▓] 100%</div>
+      <div class="reset__hint">the white bar below cancels the wipe</div>
+    </div>
+  </div>
+
+  <!-- ==================== RECRUITER MODE ====================
+       the friendly edition: numbered cards, zero typing -->
+  <div class="recruiter" id="recruiter" hidden>
+    <header class="recruiter__bar">
+      <span class="recruiter__brand">glgl <span class="recruiter__edition">— recruiter edition</span></span>
+      <button type="button" class="recruiter__switch" id="recruiter-switch">⚡ back to shell</button>
+    </header>
+    <main class="recruiter__body">
+      <section class="recruiter__hero">
+        <h1 id="recruiter-name"></h1>
+        <p class="recruiter__role" id="recruiter-role"></p>
+        <p class="recruiter__blurb" id="recruiter-blurb"></p>
+        <div class="recruiter__cta" id="recruiter-cta"></div>
+      </section>
+      <nav class="recruiter__menu" id="recruiter-menu" aria-label="Quick navigation"></nav>
+      <section class="recruiter__panel" id="recruiter-panel" hidden></section>
+    </main>
   </div>
 
   <!-- ==================== POWERED-OFF SCREEN ====================
