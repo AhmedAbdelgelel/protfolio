@@ -464,21 +464,6 @@ body.desktop-mode .desktop__note { display: block; }
 
 .terminal.ready .promptline { opacity: 1; transform: none; }
 
-/* back-to-menu chip — tap it after any pick; esc still works on keyboards */
-.back-chip {
-  appearance: none;
-  background: none;
-  border: 1px dashed #555;
-  border-radius: 5px;
-  color: var(--bright);
-  font: inherit;
-  font-size: 12px;
-  padding: 6px 10px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-.back-chip:hover { border-color: var(--accent); color: var(--accent); }
-
 /* mobile dock — a pinned pill above the prompt, shown when the menu is
    closed (phones have no esc key). hidden with the menu is open. */
 .menu-dock { display: none; }
@@ -775,15 +760,6 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
   }
   .menu-dock[hidden] { display: none; }
   .menu-dock:active { transform: translateY(1px); border-color: var(--accent); color: var(--accent); }
-
-  /* the in-terminal back chip goes full-width and thumb-sized */
-  .back-chip {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 12px 10px;
-    font-size: 13px;
-  }
 
   .menu-row__keys { display: none; }
 }

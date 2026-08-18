@@ -482,7 +482,11 @@
       draft = "";
     } else if (e.key === "Escape") {
       e.preventDefault();
-      if (isTyping || QUEUE.length) { finishAll(); return; }
+      if (isTyping || QUEUE.length) {
+        finishAll();                     // skip the animation — never break it
+        if (menuReturn) { menuReturn = false; openMenu(); }   // still go home
+        return;
+      }
       if (menuOpen) { closeMenu(); return; }
       if (menuReturn) { menuReturn = false; openMenu(); return; }
     } else if (e.key === "Tab") {
@@ -555,6 +559,7 @@
      ============================================================ */
   var loadTimer = null;
   var CV_PDF = "assets/cv/AhmedAbdelgelel_CV_v3.pdf";
+  window.app.cvBusy = function () { return !!loadTimer; };   // openMenu waits for the loader too
 
   window.app.cvLoad = function () {
     if (!window.app.cvLines) return;
@@ -987,6 +992,7 @@
     scrollDown();
   };
 
+  var openMenuToken = 0;
   var openMenu = function () {
     if (menuOpen) return;
     menuOpen = true;
@@ -994,7 +1000,26 @@
     menuSel = 0;
     docked = false;          // the back-entry was (or will be) consumed
     hideDock();
-    renderMenu();
+    var token = ++openMenuToken;
+    var show = function () {
+      if (!menuOpen || token !== openMenuToken) return;  // esc'd away / superseded
+      renderMenu();
+      scrollDown();
+    };
+    /* never interrupt a stream: render the menu only once the typewriter
+       AND the cv loader are done — going back to the menu must never
+       split or cut text that is still generating */
+    var busy = function () {
+      return isTyping || QUEUE.length || (window.app.cvBusy && window.app.cvBusy());
+    };
+    if (!busy()) { show(); return; }
+    var tries = 0;
+    (function waitIdle() {
+      tries += 1;
+      if (!busy()) return show();
+      if (tries > 70) return show();      // never leave the user stranded
+      setTimeout(waitIdle, 120);
+    })();
   };
 
   var closeMenu = function () {
@@ -1017,26 +1042,15 @@
       try { history.pushState({ glgl: "back-to-menu" }, ""); } catch (err) { docked = false; }
     }
     execute(it.cmd);
-    /* the way home: a tap-able chip at the bottom of the output —
-       phones have no esc key. waits for the stream to drain so it
-       always sits at the very bottom, then calls back if never idle. */
-    var chip = doc.createElement("button");
-    chip.type = "button";
-    chip.className = "back-chip";
-    chip.innerHTML = "&lsaquo; back to menu" +
-      (window.innerWidth > 640 ? ' <span class="dim">(esc)</span>' : "");
-    chip.addEventListener("click", function (e) {
-      e.stopPropagation();
-      openMenu();
+    /* one button only: the dock pill is the way home (phones).
+       on desktop the keyboard hint stays — esc or `menu` works. */
+    if (window.innerWidth > 640) {
+      var hint = doc.createElement("div");
+      hint.className = "dim";
+      hint.innerHTML = "— <b>esc</b> back to the menu · or type <b>menu</b> —";
+      output.appendChild(hint);
       scrollDown();
-    });
-    var tries = 0;
-    (function waitIdle() {
-      tries += 1;
-      if (!isTyping && !QUEUE.length) { output.appendChild(chip); scrollDown(); return; }
-      if (tries > 60) { output.appendChild(chip); scrollDown(); return; }  // give up waiting — still show it
-      setTimeout(waitIdle, 120);
-    })();
+    }
   };
 
   window.app.menuDidClear = function () {

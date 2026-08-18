@@ -242,10 +242,11 @@
         ctx.print(pad("<b>cowsay &lt;text&gt;</b>", 15) + "— (cow) your text");
         ctx.print(pad("<b>rick</b>", 15) + "— never gonna give you up");
         ctx.print(pad("<b>danny</b>", 15) + "— ascii danny phantom");
-        ctx.print(pad("<b>sudo</b>", 15) + "— with great power…");
+        ctx.print(pad("<b>sudo</b>", 15) + "— admin access");
         ctx.print(pad("<b>su</b>", 15) + "— authentication failure");
         ctx.blank();
         ctx.print('<span class="dim">tools:</span>');
+        ctx.print(pad("<b>ls</b>", 15) + "— files in this terminal");
         ctx.print(pad("<b>ping</b>", 15) + "— real latency to this site");
         ctx.print(pad("<b>theme</b>", 15) + "— termux color schemes");
         ctx.print(pad("<b>encode &lt;text&gt;</b>", 15) + "— base64 encode");
@@ -587,11 +588,11 @@
 
     /* ---------- fun ---------- */
     sudo: {
-      help: "with great power…",
+      help: "admin access",
       hash: null,
       run: function (ctx) {
-        ctx.print("<b>glgl</b> is not in the sudoers file.");
-        ctx.print("This incident will be reported.");
+        ctx.print("<b>admin</b> — access granted, the terminal is now root.");
+        ctx.print('<span class="dim">(with great power comes great responsibility · try <b>ls</b> to look around)</span>');
       },
     },
 
@@ -600,6 +601,7 @@
       hash: null,
       run: function (ctx) {
         ctx.print("su: Authentication failure");
+        ctx.print('<span class="dim">(hint: admin lives behind <b>sudo</b> — if you can type, you can be one)</span>');
       },
     },
 
@@ -655,6 +657,29 @@
       run: function (ctx) {
         if (window.app.menuDidClear) window.app.menuDidClear();
         ctx.clear();
+      },
+    },
+
+    /* ---------- ls ---------- */
+    ls: {
+      help: "list the files of this terminal",
+      hash: "ls", // shareable: <site>/#ls
+      run: function (ctx) {
+        ctx.print('<span class="dim">total 7 — everything you need lives here</span>');
+        [
+          ["drwxr-xr-x", "projects/", "selected builds — repos included"],
+          ["drwxr-xr-x", "experience/", "career log"],
+          ["-rw-r--r--", "cv.pdf", "full résumé"],
+          ["-rw-r--r--", "skills.txt", "print the stack"],
+          ["-rw-r--r--", "education.txt", "the degree, the year"],
+          ["-rw-r--r--", "contact.txt", "reach me"],
+          ["-rw-r--r--", "README.txt", "type help — the manual of this terminal"],
+        ].forEach(function (f) {
+          ctx.print(pad('<span class="dim">' + f[0] + "</span>", 12) + " " + "<b>" + esc(f[1]) + "</b>" +
+            ' <span class="dim">' + esc(f[2]) + "</span>");
+        });
+        ctx.blank();
+        ctx.print('<span class="dim">every file opens by name — try <b>cv</b>, <b>contact</b>, <b>projects</b>…</span>');
       },
     },
   };
