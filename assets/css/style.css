@@ -185,9 +185,9 @@ a { color: var(--bright); }
 .terminal.is-maximized .titlebar__controls .icon-restore { display: block; }
 .terminal.is-maximized .titlebar__controls .icon-max { display: none; }
 
-/* window states — minimize collapses to the titlebar, close hides it */
-.terminal.is-minimized { display: none; }
-.terminal.is-off { display: none; }
+/* window states — note: must out-specificity `html.js .terminal` (0,2,1) */
+html.js .terminal.is-minimized { display: none; }
+html.js .terminal.is-off { display: none; }
 
 /* ============================================================
    TASKBAR — minimized windows land here, Windows-style white bar
@@ -232,6 +232,31 @@ a { color: var(--bright); }
   right: 14px;
   font-size: 12px;
   color: #333;
+}
+
+/* desktop joke — shown on the wallpaper while the window is minimized */
+.desktop__note {
+  position: fixed;
+  left: 16px;
+  bottom: calc(var(--taskbar-h) + 16px);
+  z-index: 44;                    /* under the taskbar, over the wallpaper */
+  display: none;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+}
+body.desktop-mode .desktop__note { display: block; }
+
+.desktop__icon {
+  font-size: 30px;
+  line-height: 1;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.desktop__text {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 /* ============================================================
@@ -679,6 +704,9 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
   /* taskbar sits lower & slimmer on phones */
   :root { --taskbar-h: 40px; }
   .taskbar__item { font-size: 12px; padding: 4px 10px; gap: 6px; }
+  .desktop__note { left: 10px; bottom: calc(var(--taskbar-h) + 10px); }
+  .desktop__icon { font-size: 24px; }
+  .desktop__text { font-size: 10px; }
   .taskbar__clock { right: 10px; font-size: 10px; }
 
   /* ---- Termux-style mobile skin: same flow, new look ----
