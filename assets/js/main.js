@@ -23,6 +23,12 @@
   var isAndroid = /Android/i.test(navigator.userAgent);
   var phone = mobile || isIOS || isAndroid;   /* the phone skins: termux lives here */
 
+  /* platform = the skin you actually see — the termux look is a width effect too */
+  var setPlatform = function () {
+    window.app.platform = isIOS ? "ios" : (isAndroid || mobile) ? "android" : "desktop";
+  };
+  setPlatform();
+
   /* apply the saved theme before first paint — the palette must survive reloads.
      termux is the mobile factory look (green-on-black), android AND ios — no save needed.
      "default" = the native look: no theme attribute at all */
@@ -44,6 +50,7 @@
 
   var updateSkin = function () {
     mobile = mql.matches;
+    setPlatform();
     document.title = shellTitle();
     if (promptLabel) promptLabel.textContent = shellPrompt();
   };
@@ -370,7 +377,6 @@
   window.app.suAsk = false;
   /* admin session — sudo/su elevate, reboot revokes (see reboot()) */
   window.app.admin = false;
-  window.app.platform = isIOS ? "ios" : isAndroid ? "android" : "desktop";
 
   /* ============================================================
      Sound blips — WebAudio, opt-in, persisted

@@ -450,9 +450,9 @@
         var os = p === "ios" ? "iOS 17 · agbox" : p === "android" ? "Android 14 · Termux" : "Windows 10.0.22631 · cmd.exe";
         var shell = shellName();
         var uptime = Math.round(performance.now() / 1000) + "s";
-        var theme = "termux";
+        var theme = mobile() ? "termux" : "default";
         try {
-          theme = localStorage.getItem("glgl-theme") || "termux";
+          theme = localStorage.getItem("glgl-theme") || theme;
         } catch (e) { /* ignore */ }
 
         ghost(ctx);
