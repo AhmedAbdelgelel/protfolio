@@ -12,6 +12,12 @@
   var doc = document;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* apply the saved theme before first paint — the palette must survive reloads */
+  try {
+    var savedTheme = localStorage.getItem("glgl-theme");
+    if (savedTheme && savedTheme !== "termux") doc.documentElement.setAttribute("data-theme", savedTheme);
+  } catch (e) { /* ignore */ }
+
   /* ---------- skin: Windows terminal (desktop) / Termux (Android) / zsh (iOS) ---------- */
   var mql = window.matchMedia("(max-width: 640px)");
   var mobile = mql.matches;

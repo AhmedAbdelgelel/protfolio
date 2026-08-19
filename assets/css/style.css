@@ -16,26 +16,35 @@
   --ghost: #4d4d4d;         /* "type 'help'" placeholder */
   --hover: rgba(255, 255, 255, 0.09);
   --btn-close: #e81123;
-  --ok: #3ddc84;            /* accent: status dot, cursor, art */
-  --accent: #3ddc84;        /* themeable accent (Termux color schemes) */
+  --ok: #3ddc84;            /* status dot (the green LED) */
+  --accent: #3ddc84;        /* themeable accent: cursor, art, menu selection */
+  --sel: rgba(61, 220, 132, 0.22);  /* ::selection background */
+  --cursor: #3ddc84;        /* vscode editorCursor.foreground */
+  --cyan: #4dc4ff;          /* links, like vscode editor links */
+  --blue: #3794ff;
+  --red: #ff5555;
+  --yellow: #e5c07b;
+  --green: #3ddc84;
+  --orange: #ff9e64;
+  --purple: #c678dd;
   --mono: "Consolas", "Cascadia Code", "JetBrains Mono", ui-monospace,
           "Segoe UI Mono", "Liberation Mono", monospace;
   --chrome-font: "Segoe UI", "Inter", system-ui, sans-serif;
 }
 
-/* Theme store palettes — `theme` command installs these: real colors from
-   the official vscode marketplace releases, one var set per scheme. */
-html[data-theme="solarized"]   { --bg: #002b36; --text: #839496; --bright: #93a1a1; --dim: #657b83; --ghost: #586e75; --ok: #b58900; --accent: #b58900; }
-html[data-theme="dracula"]     { --bg: #282a36; --text: #f8f8f2; --bright: #f8f8f2; --dim: #6272a4; --ghost: #6272a4; --ok: #bd93f9; --accent: #bd93f9; }
-html[data-theme="gotham"]      { --bg: #0a0f14; --text: #98d1ce; --bright: #c8e3e0; --dim: #315d5f; --ghost: #315d5f; --ok: #51afef; --accent: #51afef; }
-html[data-theme="fall"]        { --bg: #1d1710; --text: #e0bf9a; --bright: #f5d9b8; --dim: #8a6f52; --ghost: #6e573f; --ok: #ff9e64; --accent: #ff9e64; }
-html[data-theme="nord"]        { --bg: #2e3440; --text: #d8dee9; --bright: #eceff4; --dim: #4c566a; --ghost: #616e88; --ok: #88c0d0; --accent: #88c0d0; }
-html[data-theme="onedark"]     { --bg: #282c34; --text: #abb2bf; --bright: #d4d4d4; --dim: #5c6370; --ghost: #5c6370; --ok: #61afef; --accent: #61afef; }
-html[data-theme="monokaipro"]  { --bg: #2d2a2e; --text: #fcfcfa; --bright: #fcfcfa; --dim: #727072; --ghost: #727072; --ok: #ffd866; --accent: #ab9df2; }
-html[data-theme="tokyonight"]  { --bg: #1a1b26; --text: #a9b1d6; --bright: #c0caf5; --dim: #565f89; --ghost: #565f89; --ok: #7aa2f7; --accent: #7aa2f7; }
-html[data-theme="gruvbox"]     { --bg: #282828; --text: #ebdbb2; --bright: #fbf1c7; --dim: #928374; --ghost: #928374; --ok: #fabd2f; --accent: #fabd2f; }
-html[data-theme="catppuccin"]  { --bg: #1e1e2e; --text: #cdd6f4; --bright: #e6e9f8; --dim: #6c7086; --ghost: #45475a; --ok: #89b4fa; --accent: #cba6f7; }
-html[data-theme="synthwave"]   { --bg: #262335; --text: #f9f9ff; --bright: #f9f9ff; --dim: #6c6783; --ghost: #6c6783; --ok: #ff2e88; --accent: #f97e72; }
+/* Theme store — the full palettes straight from the official vscode releases
+   (editor.background/foreground, selection, cursor, links + ANSI 16 colors). */
+html[data-theme="solarized"]   { --bg:#002b36; --text:#839496; --bright:#93a1a1; --dim:#657b83; --ghost:#586e75; --ok:#859900; --accent:#b58900; --sel:#073642; --cursor:#93a1a1; --cyan:#2aa198; --blue:#268bd2; --red:#dc322f; --yellow:#b58900; --green:#859900; --orange:#cb4b16; --purple:#6c71c4; }
+html[data-theme="dracula"]     { --bg:#282a36; --text:#f8f8f2; --bright:#f8f8f2; --dim:#6272a4; --ghost:#6272a4; --ok:#50fa7b; --accent:#bd93f9; --sel:#44475a; --cursor:#f8f8f2; --cyan:#8be9fd; --blue:#8be9fd; --red:#ff5555; --yellow:#f1fa8c; --green:#50fa7b; --orange:#ffb86c; --purple:#bd93f9; }
+html[data-theme="gotham"]      { --bg:#0a0f14; --text:#98d1ce; --bright:#c8e3e0; --dim:#315d5f; --ghost:#315d5f; --ok:#99d694; --accent:#51afef; --sel:#122a31; --cursor:#98d1ce; --cyan:#98d1ce; --blue:#51afef; --red:#fb0120; --yellow:#e8bf6a; --green:#99d694; --orange:#d26937; --purple:#c071fe; }
+html[data-theme="fall"]        { --bg:#1d1710; --text:#e0bf9a; --bright:#f5d9b8; --dim:#8a6f52; --ghost:#6e573f; --ok:#ff9e64; --accent:#ff9e64; --sel:rgba(255,158,100,0.22); --cursor:#ff9e64; --cyan:#f0b566; --blue:#d08770; --red:#ff6b6b; --yellow:#f5c86e; --green:#9bb168; --orange:#ff9e64; --purple:#c07f6a; }
+html[data-theme="nord"]        { --bg:#2e3440; --text:#d8dee9; --bright:#eceff4; --dim:#4c566a; --ghost:#616e88; --ok:#a3be8c; --accent:#88c0d0; --sel:#3b4252; --cursor:#d8dee9; --cyan:#88c0d0; --blue:#81a1c1; --red:#bf616a; --yellow:#ebcb8b; --green:#a3be8c; --orange:#d08770; --purple:#b48ead; }
+html[data-theme="onedark"]     { --bg:#282c34; --text:#abb2bf; --bright:#d4d4d4; --dim:#5c6370; --ghost:#5c6370; --ok:#98c379; --accent:#61afef; --sel:#3e4451; --cursor:#528bff; --cyan:#56b6c2; --blue:#61afef; --red:#e06c75; --yellow:#e5c07b; --green:#98c379; --orange:#d19a66; --purple:#c678dd; }
+html[data-theme="monokaipro"]  { --bg:#2d2a2e; --text:#fcfcfa; --bright:#fcfcfa; --dim:#727072; --ghost:#727072; --ok:#a9dc76; --accent:#ffd866; --sel:rgba(255,255,255,0.14); --cursor:#fcfcfa; --cyan:#78dce8; --blue:#78dce8; --red:#ff6188; --yellow:#ffd866; --green:#a9dc76; --orange:#fc9867; --purple:#ab9df2; }
+html[data-theme="tokyonight"]  { --bg:#1a1b26; --text:#a9b1d6; --bright:#c0caf5; --dim:#565f89; --ghost:#565f89; --ok:#9ece6a; --accent:#7aa2f7; --sel:#33467c; --cursor:#c0caf5; --cyan:#7dcfff; --blue:#7aa2f7; --red:#f7768e; --yellow:#e0af68; --green:#9ece6a; --orange:#ff9e64; --purple:#bb9af7; }
+html[data-theme="gruvbox"]     { --bg:#282828; --text:#ebdbb2; --bright:#fbf1c7; --dim:#928374; --ghost:#928374; --ok:#b8bb26; --accent:#fabd2f; --sel:#3c3836; --cursor:#ebdbb2; --cyan:#8ec07c; --blue:#83a598; --red:#fb4934; --yellow:#fabd2f; --green:#b8bb26; --orange:#fe8019; --purple:#d3869b; }
+html[data-theme="catppuccin"]  { --bg:#1e1e2e; --text:#cdd6f4; --bright:#e6e9f8; --dim:#6c7086; --ghost:#45475a; --ok:#a6e3a1; --accent:#89b4fa; --sel:#45475a; --cursor:#f5e0dc; --cyan:#89dceb; --blue:#89b4fa; --red:#f38ba8; --yellow:#f9e2af; --green:#a6e3a1; --orange:#fab387; --purple:#cba6f7; }
+html[data-theme="synthwave"]   { --bg:#262335; --text:#f9f9ff; --bright:#f9f9ff; --dim:#6c6783; --ghost:#6c6783; --ok:#36f9f6; --accent:#ff2e88; --sel:rgba(255,46,136,0.22); --cursor:#f9f9ff; --cyan:#36f9f6; --blue:#36f9f6; --red:#ff2e88; --yellow:#fede5d; --green:#36f9f6; --orange:#f97e72; --purple:#b18cf3; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -58,9 +67,9 @@ body.desktop-mode {
   background: linear-gradient(168deg, #1565c0 0%, #0d4ea2 42%, #083a7f 78%, #062e68 100%);
 }
 
-::selection { background: #424242; color: #fff; }
+::selection { background: var(--sel); color: var(--bright); }
 
-a { color: var(--bright); }
+a { color: var(--cyan); }
 
 /* scrollbars â€” dark & thin like a real window */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -389,8 +398,8 @@ body.desktop-mode .desktop__note { display: block; }
 
 .line b { color: var(--bright); font-weight: 700; }
 .line .dim { color: var(--dim); }
-.line a { color: var(--bright); text-decoration: none; border-bottom: 1px solid #555; }
-.line a:hover { color: #fff; border-bottom-color: #fff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.45); }
+.line a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--cyan) 45%, transparent); }
+  .line a:hover { color: var(--bright); border-bottom-color: var(--bright); text-shadow: 0 0 8px color-mix(in srgb, var(--cyan) 45%, transparent); }
 
 /* ASCII art (neofetch logo, danny) â€” tints with the active theme */
 .line .art { color: var(--accent); text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); }
@@ -462,7 +471,7 @@ body.desktop-mode .desktop__note { display: block; }
   width: 0.62em;
   height: 1.02em;
   margin-left: 2px;
-  background: #e8e8e8;
+  background: var(--cursor);
   vertical-align: text-bottom;
   animation: blink 1s steps(1) infinite;
 }
@@ -661,7 +670,7 @@ html.js.fallback-show .fallback { display: block; }
 }
 .menu-row:last-child { border-bottom: 0; }
 /* selection colours the text only — no highlight block, no side bar, native cmd feel */
-.menu-row--sel .menu-row__title { color: #3ddc84; }
+.menu-row--sel .menu-row__title { color: var(--accent); }
 
 .menu-row__num {
   flex: 0 0 auto;
@@ -676,7 +685,7 @@ html.js.fallback-show .fallback { display: block; }
   color: var(--dim);
   margin-top: 1px;
 }
-.menu-row--sel .menu-row__num { border-color: #3ddc84; color: #3ddc84; }
+.menu-row--sel .menu-row__num { border-color: var(--accent); color: var(--accent); }
 
 .menu-row__body { flex: 0 1 auto; min-width: 0; }
 .menu-row__title { display: block; color: var(--bright); font-size: 13px; }
@@ -754,7 +763,7 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
     -webkit-tap-highlight-color: transparent;
   }
   .menu-row:active {
-    background: rgba(61, 220, 132, 0.10);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
     transition: background 0.08s ease;
   }
   .menu-row--sel .menu-row__title,

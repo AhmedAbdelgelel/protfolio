@@ -285,7 +285,7 @@
         ctx.print(pad("<b>tree</b>", 15) + "— the file tree, drawn badly");
         ctx.print(pad("<b>cat &lt;file&gt;</b>", 15) + "— read a terminal file");
         ctx.print(pad("<b>ping</b>", 15) + "— real latency to this site");
-        ctx.print(pad("<b>theme</b>", 15) + "— vscode theme store: theme list / theme install");
+        ctx.print(pad("<b>theme</b>", 15) + "— 12 exact vscode palettes: theme list / theme <name>");
         ctx.print(pad("<b>encode &lt;text&gt;</b>", 15) + "— base64 encode");
         ctx.print(pad("<b>decode &lt;text&gt;</b>", 15) + "— base64 decode");
         ctx.print(pad("<b>speed</b>", 15) + "— typing speed: slow / normal / fast");
@@ -534,9 +534,9 @@
       },
     },
 
-    /* ---------- theme — the theme store: real vscode marketplace colors, persisted ---------- */
+    /* ---------- theme — 12 exact official vscode palettes, applied instantly ---------- */
     theme: {
-      help: "themes from the official vscode theme store — theme list",
+      help: "12 exact official vscode palettes — theme <name> or theme list",
       hash: null,
       run: function (ctx, rest) {
         var STORE = [
@@ -566,28 +566,32 @@
             localStorage.setItem("glgl-theme", t.n);
           } catch (e) { /* ignore */ }
           document.documentElement.setAttribute("data-theme", t.n);
-          ctx2.print('installing <b>' + esc(t.n) + "</b>… <span class='dim'>[▓▓▓▓▓▓▓▓▓▓]</span> done.");
-          ctx2.print("now running: <b>" + esc(t.n) + "</b> by " + esc(t.a) + ' <span class="dim">— ' + esc(t.d) + "</span>");
+          ctx2.print("theme <b>" + esc(t.n) + "</b> applied — <b>" + esc(t.a) + "</b> <span class=\"dim\">· " +
+            esc(t.d) + "</span>");
         };
 
         var list = function (ctx2) {
-          ctx2.print('<span class="dim">─ the theme store — real colors from the official vscode theme marketplace ─</span>');
+          ctx2.print('<span class="dim">─ the theme store · 12 themes · the exact palettes from the official vscode releases ─</span>');
           STORE.forEach(function (t) {
             ctx2.print(pad("<b>" + esc(t.n) + "</b>", 14) +
               '<span style="color:' + t.c + '">██</span> ' +
               '<span class="dim">' + esc(t.a) + " · " + esc(t.d) + "</span>");
           });
-          ctx2.print('<span class="dim">─ install one: <b>theme install &lt;name&gt;</b> (or just: theme &lt;name&gt;) ─</span>');
+          ctx2.print('<span class="dim">─ apply one instantly: <b>theme &lt;name&gt;</b> — no installs, no restarts ─</span>');
         };
 
         var arg = rest.trim().toLowerCase();
         if (!arg) {
           ctx.print("current theme: <b>" + current + "</b>");
-          ctx.print('<span class="dim">usage: <b>theme list</b> — browse the store · <b>theme install &lt;name&gt;</b> — install</span>');
+          ctx.print('<span class="dim">usage: <b>theme list</b> — browse · <b>theme &lt;name&gt;</b> — apply instantly</span>');
           return;
         }
         if (arg === "list" || arg === "store" || arg === "browse") { list(ctx); return; }
-        if (arg.indexOf("install ") === 0) arg = arg.slice(8).trim();
+        if (arg.indexOf("install ") === 0) {
+          ctx.print('<span class="dim">no install needed — themes already ship inside the terminal. just pick one:</span>');
+          list(ctx);
+          return;
+        }
         var t = byName[arg];
         if (!t) {
           ctx.print('<span class="dim">"' + esc(rest.trim()) + '" is not in the store — <b>theme list</b> to browse:</span>');
