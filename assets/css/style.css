@@ -23,12 +23,19 @@
   --chrome-font: "Segoe UI", "Inter", system-ui, sans-serif;
 }
 
-/* Termux color schemes â€” `theme` command swaps these, persisted */
-html[data-theme="solarized"] { --ok: #b58900; --accent: #b58900; }
-html[data-theme="dracula"]   { --ok: #bd93f9; --accent: #bd93f9; }
-html[data-theme="gotham"]    { --ok: #51afef; --accent: #51afef; }
-html[data-theme="fall"]      { --ok: #ff9e64; --accent: #ff9e64; }
-html[data-theme="nord"]      { --ok: #88c0d0; --accent: #88c0d0; }
+/* Theme store palettes — `theme` command installs these: real colors from
+   the official vscode marketplace releases, one var set per scheme. */
+html[data-theme="solarized"]   { --bg: #002b36; --text: #839496; --bright: #93a1a1; --dim: #657b83; --ghost: #586e75; --ok: #b58900; --accent: #b58900; }
+html[data-theme="dracula"]     { --bg: #282a36; --text: #f8f8f2; --bright: #f8f8f2; --dim: #6272a4; --ghost: #6272a4; --ok: #bd93f9; --accent: #bd93f9; }
+html[data-theme="gotham"]      { --bg: #0a0f14; --text: #98d1ce; --bright: #c8e3e0; --dim: #315d5f; --ghost: #315d5f; --ok: #51afef; --accent: #51afef; }
+html[data-theme="fall"]        { --bg: #1d1710; --text: #e0bf9a; --bright: #f5d9b8; --dim: #8a6f52; --ghost: #6e573f; --ok: #ff9e64; --accent: #ff9e64; }
+html[data-theme="nord"]        { --bg: #2e3440; --text: #d8dee9; --bright: #eceff4; --dim: #4c566a; --ghost: #616e88; --ok: #88c0d0; --accent: #88c0d0; }
+html[data-theme="onedark"]     { --bg: #282c34; --text: #abb2bf; --bright: #d4d4d4; --dim: #5c6370; --ghost: #5c6370; --ok: #61afef; --accent: #61afef; }
+html[data-theme="monokaipro"]  { --bg: #2d2a2e; --text: #fcfcfa; --bright: #fcfcfa; --dim: #727072; --ghost: #727072; --ok: #ffd866; --accent: #ab9df2; }
+html[data-theme="tokyonight"]  { --bg: #1a1b26; --text: #a9b1d6; --bright: #c0caf5; --dim: #565f89; --ghost: #565f89; --ok: #7aa2f7; --accent: #7aa2f7; }
+html[data-theme="gruvbox"]     { --bg: #282828; --text: #ebdbb2; --bright: #fbf1c7; --dim: #928374; --ghost: #928374; --ok: #fabd2f; --accent: #fabd2f; }
+html[data-theme="catppuccin"]  { --bg: #1e1e2e; --text: #cdd6f4; --bright: #e6e9f8; --dim: #6c7086; --ghost: #45475a; --ok: #89b4fa; --accent: #cba6f7; }
+html[data-theme="synthwave"]   { --bg: #262335; --text: #f9f9ff; --bright: #f9f9ff; --dim: #6c6783; --ghost: #6c6783; --ok: #ff2e88; --accent: #f97e72; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 

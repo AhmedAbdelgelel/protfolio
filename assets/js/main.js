@@ -12,15 +12,29 @@
   var doc = document;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- skin: Windows terminal (desktop) / Termux (mobile) ---------- */
+  /* ---------- skin: Windows terminal (desktop) / Termux (Android) / zsh (iOS) ---------- */
   var mql = window.matchMedia("(max-width: 640px)");
   var mobile = mql.matches;
   var promptLabel = doc.getElementById("prompt-label");
 
+  /* platform: detected BEFORE the width fallback, so a phone in landscape keeps its shell name */
+  var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(navigator.userAgent);
+
+  var shellPrompt = function () {
+    if (!mobile) return "C:\\Users\\glgl>";
+    return isIOS ? "glgl@iphone ~ %" : "glgl@phone:~$";
+  };
+  var shellTitle = function () {
+    if (!mobile) return "glgl — C:\\Windows\\system32\\cmd.exe";
+    return isIOS ? "glgl — zsh" : "glgl — Termux";
+  };
+
   var updateSkin = function () {
     mobile = mql.matches;
-    document.title = mobile ? "glgl — Termux" : "glgl — C:\\Windows\\system32\\cmd.exe";
-    if (promptLabel) promptLabel.textContent = mobile ? "glgl@phone:~$" : "C:\\Users\\glgl>";
+    document.title = shellTitle();
+    if (promptLabel) promptLabel.textContent = shellPrompt();
   };
   if (mql.addEventListener) mql.addEventListener("change", updateSkin);
   else mql.addListener(updateSkin);
@@ -32,11 +46,6 @@
   var mirror = doc.getElementById("mirror");
   var promptRow = doc.getElementById("promptline");
   if (!term || !output || !input || !mirror) return;
-
-  /* ---------- platform: factory-reset skins differ phone-to-phone ---------- */
-  var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  var isAndroid = /Android/i.test(navigator.userAgent);
 
   /* ---------- helpers ---------- */
   var esc = function (s) {
@@ -215,7 +224,9 @@
      ============================================================ */
   var bootLines = function () {
     return mobile
-      ? ["Welcome to Termux!", "Docs: https://wiki.termux.com", "Community: https://termux.com/community"]
+      ? isIOS
+        ? ["agbox — the iphone shell with delusions of adequacy", "type help — same résumé, new shell", "glgl@iphone ~ % — home is where ~ is"]
+        : ["Welcome to Termux!", "Docs: https://wiki.termux.com", "Community: https://termux.com/community"]
       : ["Microsoft Windows [Version 10.0.22631]", "(c) Microsoft Corporation. All rights reserved."];
   };
 
@@ -346,6 +357,9 @@
   var gameActive = false, secret = 0, tries = 0;
   /* su command sets window.app.suAsk (commands.js); execute() here consumes it */
   window.app.suAsk = false;
+  /* admin session — sudo/su elevate, reboot revokes (see reboot()) */
+  window.app.admin = false;
+  window.app.platform = isIOS ? "ios" : isAndroid ? "android" : "desktop";
 
   /* ============================================================
      Sound blips — WebAudio, opt-in, persisted
@@ -393,7 +407,7 @@
   };
 
   var promptText = function () {
-    return esc(mobile ? "glgl@phone:~$" : "C:\\Users\\glgl>");
+    return esc(shellPrompt());
   };
 
   var execute = function (raw) {
@@ -434,6 +448,7 @@
         return;
       }
       if (pw === "glgl") {
+        window.app.admin = true;
         appendLine("<b>admin</b> — root switch complete. the terminal bows to you.");
         appendLine('<span class="dim">(try <b>sudo</b> for the encore, or <b>ls</b> to look around)</span>');
       } else {
@@ -765,7 +780,7 @@
     powerOn = false;
     if (isTyping || QUEUE.length) finishAll();
     if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }  // no loading after power-off
-    var echo = mobile ? "glgl@phone:~$ poweroff" : "C:\\Users\\glgl> shutdown -s";
+    var echo = shellPrompt() + (mobile ? " poweroff" : " shutdown -s");
     var msg = GOODBYES[nextGoodbye % GOODBYES.length];
     nextGoodbye += 1;
     if (powerEcho) powerEcho.textContent = echo;
@@ -789,6 +804,7 @@
   var reboot = function () {
     if (powerOn) return;
     powerOn = true;
+    window.app.admin = false;  // reality check: root does not survive a reboot
     if (poweroff) poweroff.hidden = true;
     minimized = false;
     hideReset();
@@ -796,7 +812,7 @@
     if (taskbar) taskbar.hidden = true;
     term.classList.remove("is-off", "is-minimized", "is-minimizing");
     if (minBtn) minBtn.setAttribute("aria-pressed", "false");
-    var echo = mobile ? "glgl@phone:~$ reboot" : "C:\\Users\\glgl> shutdown /a";
+    var echo = shellPrompt() + (mobile ? " reboot" : " shutdown /a");
     appendLine(echo, "echo");
     appendLine('welcome back. <span class="dim">type help to see the damage.</span>', "");
     blip(true);

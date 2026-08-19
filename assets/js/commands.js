@@ -228,6 +228,14 @@
     return L;
   };
 
+  /* shell per platform — ios → zsh, android → termux bash, else cmd.exe */
+  var shellName = function () {
+    var p = (window.app && window.app.platform) || "desktop";
+    if (p === "ios") return "zsh 5.9 (iOS)";
+    if (p === "android") return "bash 5.2.15 (Termux)";
+    return "cmd.exe";
+  };
+
   /* ============================================================
      COMMAND TABLE
      ============================================================ */
@@ -277,7 +285,7 @@
         ctx.print(pad("<b>tree</b>", 15) + "— the file tree, drawn badly");
         ctx.print(pad("<b>cat &lt;file&gt;</b>", 15) + "— read a terminal file");
         ctx.print(pad("<b>ping</b>", 15) + "— real latency to this site");
-        ctx.print(pad("<b>theme</b>", 15) + "— termux color schemes");
+        ctx.print(pad("<b>theme</b>", 15) + "— vscode theme store: theme list / theme install");
         ctx.print(pad("<b>encode &lt;text&gt;</b>", 15) + "— base64 encode");
         ctx.print(pad("<b>decode &lt;text&gt;</b>", 15) + "— base64 decode");
         ctx.print(pad("<b>speed</b>", 15) + "— typing speed: slow / normal / fast");
@@ -406,8 +414,9 @@
           ua = navigator.userAgent;
         } catch (e) { /* ignore */ }
         var v8 = (ua.match(/Chrome\/(\d+)/) || [])[1] || "ES2024";
-        var os = mobile() ? "Android · Termux" : "Windows 10.0.22631 · cmd.exe";
-        var shell = mobile() ? "bash 5.2.15" : "cmd.exe";
+        var p = (window.app && window.app.platform) || "desktop";
+        var os = p === "ios" ? "iOS 17 · agbox" : p === "android" ? "Android 14 · Termux" : "Windows 10.0.22631 · cmd.exe";
+        var shell = shellName();
         var uptime = Math.round(performance.now() / 1000) + "s";
         var theme = "termux";
         try {
@@ -525,44 +534,67 @@
       },
     },
 
-    /* ---------- theme — Termux color schemes, persisted ---------- */
+    /* ---------- theme — the theme store: real vscode marketplace colors, persisted ---------- */
     theme: {
-      help: "termux color schemes",
+      help: "themes from the official vscode theme store — theme list",
       hash: null,
       run: function (ctx, rest) {
-        var SCHEMES = {
-          termux: "green (default)",
-          solarized: "yellow",
-          dracula: "purple",
-          gotham: "blue",
-          fall: "amber",
-          nord: "icy blue",
-        };
+        var STORE = [
+          { n: "termux",     a: "Glgl OS",         c: "#3ddc84", d: "glgl green — the factory default" },
+          { n: "solarized",  a: "Ethan Schoonover", c: "#b58900", d: "a precise color scheme for machines and people" },
+          { n: "dracula",    a: "Dracula Theme",   c: "#bd93f9", d: "dark theme, purple vibes, zero vampires" },
+          { n: "onedark",    a: "binaryify",       c: "#61afef", d: "one dark pro — the vscode staple" },
+          { n: "monokaipro", a: "monokai",         c: "#ffd866", d: "monokai pro — a filter machine for your eyes" },
+          { n: "gotham",     a: "whatyouhide",     c: "#51afef", d: "gotham dim — blue hour, terminal edition" },
+          { n: "nord",       a: "arcticicestudio", c: "#88c0d0", d: "nord — an arctic, north-bluish palette" },
+          { n: "tokyonight", a: "enkia",           c: "#7aa2f7", d: "tokyo night — city lights at 2am" },
+          { n: "gruvbox",    a: "morhetz",         c: "#fabd2f", d: "gruvbox dark — retro grease that never cleans off" },
+          { n: "catppuccin", a: "Catppuccin",      c: "#89b4fa", d: "catppuccin mocha — soothing pastels" },
+          { n: "synthwave",  a: "Robb Owen",       c: "#ff2e88", d: "synthwave '84 — outrun the mainframe" },
+          { n: "fall",       a: "Glgl OS",         c: "#ff9e64", d: "autumn amber — the local favorite" },
+        ];
+        var byName = {};
+        STORE.forEach(function (t) { byName[t.n] = t; });
+
         var current = "termux";
         try {
           current = localStorage.getItem("glgl-theme") || "termux";
         } catch (e) { /* ignore */ }
-        if (rest) {
-          var name = rest.trim().toLowerCase();
-          if (!SCHEMES[name]) {
-            ctx.print('<span class="dim">unknown scheme "' + esc(rest.trim()) + '" — pick one:</span>');
-            Object.keys(SCHEMES).forEach(function (n) {
-              ctx.print(pad("  " + n, 14) + SCHEMES[n]);
-            });
-            return;
-          }
+
+        var apply = function (ctx2, t) {
           try {
-            localStorage.setItem("glgl-theme", name);
+            localStorage.setItem("glgl-theme", t.n);
           } catch (e) { /* ignore */ }
-          document.documentElement.setAttribute("data-theme", name);
-          ctx.print("theme set to <b>" + name + "</b> (" + SCHEMES[name] + ") — persisted");
+          document.documentElement.setAttribute("data-theme", t.n);
+          ctx2.print('installing <b>' + esc(t.n) + "</b>… <span class='dim'>[▓▓▓▓▓▓▓▓▓▓]</span> done.");
+          ctx2.print("now running: <b>" + esc(t.n) + "</b> by " + esc(t.a) + ' <span class="dim">— ' + esc(t.d) + "</span>");
+        };
+
+        var list = function (ctx2) {
+          ctx2.print('<span class="dim">─ the theme store — real colors from the official vscode theme marketplace ─</span>');
+          STORE.forEach(function (t) {
+            ctx2.print(pad("<b>" + esc(t.n) + "</b>", 14) +
+              '<span style="color:' + t.c + '">██</span> ' +
+              '<span class="dim">' + esc(t.a) + " · " + esc(t.d) + "</span>");
+          });
+          ctx2.print('<span class="dim">─ install one: <b>theme install &lt;name&gt;</b> (or just: theme &lt;name&gt;) ─</span>');
+        };
+
+        var arg = rest.trim().toLowerCase();
+        if (!arg) {
+          ctx.print("current theme: <b>" + current + "</b>");
+          ctx.print('<span class="dim">usage: <b>theme list</b> — browse the store · <b>theme install &lt;name&gt;</b> — install</span>');
           return;
         }
-        ctx.print("current theme: <b>" + current + "</b>");
-        ctx.print('<span class="dim">usage: theme &lt;name&gt;</span>');
-        Object.keys(SCHEMES).forEach(function (n) {
-          ctx.print(pad("  " + n, 14) + SCHEMES[n]);
-        });
+        if (arg === "list" || arg === "store" || arg === "browse") { list(ctx); return; }
+        if (arg.indexOf("install ") === 0) arg = arg.slice(8).trim();
+        var t = byName[arg];
+        if (!t) {
+          ctx.print('<span class="dim">"' + esc(rest.trim()) + '" is not in the store — <b>theme list</b> to browse:</span>');
+          list(ctx);
+          return;
+        }
+        apply(ctx, t);
       },
     },
 
@@ -610,18 +642,66 @@
       help: "build info",
       hash: "version",
       run: function (ctx) {
-        ctx.print("build 3.3.0 · last deployed " + today + " · running on " +
-          (mobile() ? "Node.js 22 · Termux" : "Node.js 22 · cmd.exe"));
+        ctx.print("build 3.3.0 · last deployed " + today + " · running Node.js 22 · " + shellName());
       },
     },
 
-    /* ---------- fun ---------- */
+  /* ---------- fun ---------- */
     sudo: {
-      help: "admin access",
+      help: "admin access — elevates your privileges",
       hash: null,
       run: function (ctx) {
+        window.app.admin = true;
         ctx.print("<b>admin</b> — access granted, the terminal is now root.");
         ctx.print('<span class="dim">(with great power comes great responsibility · try <b>ls</b> to look around)</span>');
+        ctx.print('<span class="dim">root extras: <b>ls -a</b> · <b>cat .secret</b> · <b>id</b> · <b>top</b> · <b>chmod</b></span>');
+      },
+    },
+
+    /* root-only theater — a normal user just gets permission denied */
+    top: {
+      help: "root only — live process list",
+      hash: null,
+      run: function (ctx) {
+        if (!window.app.admin) {
+          ctx.print("top: permission denied — system metrics are above your pay grade");
+          ctx.print('<span class="dim">(hint: root can see <b>top</b>, <b>ls -a</b>, <b>cat .secret</b>…)</span>');
+          return;
+        }
+        ctx.print('<span class="dim">PID   USER COMMAND</span>');
+        ctx.print("1     root nightwatch.ghost — spawning green pixels");
+        ctx.print("399   root fix-typos-in-comments.sh (sleeping)");
+        ctx.print("1337  glgl  chrome.exe — this very tab (you)");
+        ctx.print("404   root cv.pdf — open, loved");
+        ctx.print("555   root coffee.engine — steam at full capacity");
+        ctx.blank();
+        ctx.print('<span class="dim">load average: 0.00, 0.01, 0.69 · memory: 2 résumés of RAM free</span>');
+      },
+    },
+
+    id: {
+      help: "root only — print user identity",
+      hash: null,
+      run: function (ctx) {
+        if (!window.app.admin) {
+          ctx.print("uid=1000(glgl) gid=1000(glgl) groups=1000(glgl),27(sudo)");
+          return;
+        }
+        ctx.print("uid=0(root) gid=0(root) groups=0(root), 1337(legend)");
+        ctx.print('<span class="dim">(the terminal fears you a little bit now)</span>');
+      },
+    },
+
+    chmod: {
+      help: "root only — wreck the permissions (fun)",
+      hash: null,
+      run: function (ctx) {
+        if (!window.app.admin) {
+          ctx.print("chmod: permission denied — 775 is none of your business");
+          return;
+        }
+        ctx.print("chmod 777 * — done.");
+        ctx.print('<span class="dim">everything is now readable, writable, and owns you.</span>');
       },
     },
 
@@ -713,6 +793,28 @@
       hash: "ls", // shareable: <site>/#ls
       run: function (ctx, rest) {
         var dir = rest.trim().toLowerCase();
+        if (dir === "-a" || dir === "--all") {
+          if (!window.app.admin) {
+            ctx.print("ls -a: permission denied — the hidden files stay hidden");
+            ctx.print('<span class="dim">(hint: root sees everything — including <b>.secret</b>)</span>');
+            return;
+          }
+          ctx.print('<span class="dim">hidden files — root eyes only:</span>');
+          [
+            ["-rw-------", ".secret", "the good stuff — root may cat it"],
+            ["-rw-r--r--", ".glglrc", "theme, volume & secrets (may or may not contain secrets)"],
+            ["-rw-------", ".sudo_as_admin_successful", "it literally is"],
+            ["-rw-r--r--", ".terminalrc", "you are not using xterm — verified"],
+            ["-rw-r--r--", ".bash_history", "mostly: sudo, sudo, ls (you)"],
+            ["-rw-r--r--", ".zsh_history", "12,486 lines of theme tokyonight + undo"],
+            ["-rw-r--r--", ".ntuser.dat.LOG1", "do not open. seriously."],
+          ].forEach(function (f) {
+            ctx.print(pad('<span class="dim">' + f[0] + "</span>", 12) + " " + "<b>" + esc(f[1]) + "</b>" +
+              ' <span class="dim">' + esc(f[2]) + "</span>");
+          });
+          ctx.blank();
+          return;
+        }
         if (dir === "projects" || dir === "projects/") {
           ctx.print('<span class="dim">projects/ — selected builds, repos included:</span>');
           ctx.print(pad("<b>cache-engine</b>", 18) + "— high-throughput redis cache middleware");
@@ -766,6 +868,16 @@
         };
         var name = rest.trim().toLowerCase();
         var content = files[name];
+        if (name === ".secret") {
+          if (!window.app.admin) {
+            ctx.print("cat: .secret: permission denied — you are not root. yet.");
+            ctx.print('<span class="dim">(hint: <b>sudo</b> / <b>su</b> first — the root password is four lowercase letters)</span>');
+          } else {
+            ctx.print(".secret: <span class='dim'>the terminal's darkest secret is that there is no secret.</span>");
+            ctx.print('<span class="dim">you are now 3 steps deep inside a résumé. tell no one.</span>');
+          }
+          return;
+        }
         if (name) {
           if (content) {
             ctx.print(esc(name) + ': <span class="dim">' + content + "</span>");
