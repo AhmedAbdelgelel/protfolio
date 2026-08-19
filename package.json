@@ -1,0 +1,12 @@
+{
+  "name": "glgl-terminal",
+  "version": "3.3.0",
+  "private": true,
+  "description": "glgl.me — an interactive terminal portfolio; cv sync pulls pdfjs-dist to auto-extract the résumé",
+  "scripts": {
+    "sync-cv": "node scripts/sync-cv.js"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "^5.4.296"
+  }
+}

@@ -1,5 +1,7 @@
 {
   "framework": null,
   "outputDirectory": ".",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "installCommand": "npm install --no-audit --no-fund",
+  "buildCommand": "node scripts/sync-cv.js"
 }

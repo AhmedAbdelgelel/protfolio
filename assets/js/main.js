@@ -633,7 +633,8 @@
      opens in a new tab; a quick in-terminal card always follows
      ============================================================ */
   var loadTimer = null;
-  var CV_PDF = "assets/cv/AhmedAbdelgelel_CV_v3.pdf";
+  /* the pdf to open — follows the newest assets/cv/*.pdf via cv-data.js */
+  var CV_PDF = (window.app.CV && window.app.CV.pdf) || "assets/cv/AhmedAbdelgelel.pdf";
   window.app.cvBusy = function () { return !!loadTimer; };   // openMenu waits for the loader too
 
   window.app.cvLoad = function () {
