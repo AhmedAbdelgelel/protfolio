@@ -12,10 +12,13 @@
   var doc = document;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* apply the saved theme before first paint — the palette must survive reloads */
+  /* apply the saved theme before first paint — the palette must survive reloads.
+     on android the factory default is termux (real green-on-black), no save needed */
   try {
     var savedTheme = localStorage.getItem("glgl-theme");
-    if (savedTheme && savedTheme !== "termux") doc.documentElement.setAttribute("data-theme", savedTheme);
+    if (!savedTheme && /Android/i.test(navigator.userAgent)) savedTheme = "termux";
+    if (savedTheme && (savedTheme !== "termux" || /Android/i.test(navigator.userAgent)))
+      doc.documentElement.setAttribute("data-theme", savedTheme);
   } catch (e) { /* ignore */ }
 
   /* ---------- skin: Windows terminal (desktop) / Termux (Android) / zsh (iOS) ---------- */

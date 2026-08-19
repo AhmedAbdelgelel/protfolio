@@ -33,10 +33,12 @@
 }
 
 /* Theme store — the full palettes straight from the official vscode releases
-   (editor.background/foreground, selection, cursor, links + ANSI 16 colors). */
+   (editor.background/foreground, selection, cursor, links + ANSI 16 colors).
+   "termux" is android-only: the real Termux default scheme (green on black). */
+html[data-theme="termux"]      { --bg:#0f0f0f; --text:#00ff41; --bright:#00ff41; --dim:#3f9f5e; --ghost:#3f9f5e; --ok:#00ff41; --accent:#00ff41; --sel:rgba(0,255,65,0.22); --cursor:#00ff41; --cyan:#5ac8fa; --blue:#007aff; --red:#ff3b30; --yellow:#ffcc00; --green:#00ff41; --orange:#ff9f0a; --purple:#ff2d55; }
 html[data-theme="solarized"]   { --bg:#002b36; --text:#839496; --bright:#93a1a1; --dim:#657b83; --ghost:#586e75; --ok:#859900; --accent:#b58900; --sel:#073642; --cursor:#93a1a1; --cyan:#2aa198; --blue:#268bd2; --red:#dc322f; --yellow:#b58900; --green:#859900; --orange:#cb4b16; --purple:#6c71c4; }
 html[data-theme="dracula"]     { --bg:#282a36; --text:#f8f8f2; --bright:#f8f8f2; --dim:#6272a4; --ghost:#6272a4; --ok:#50fa7b; --accent:#bd93f9; --sel:#44475a; --cursor:#f8f8f2; --cyan:#8be9fd; --blue:#8be9fd; --red:#ff5555; --yellow:#f1fa8c; --green:#50fa7b; --orange:#ffb86c; --purple:#bd93f9; }
-html[data-theme="gotham"]      { --bg:#0a0f14; --text:#98d1ce; --bright:#c8e3e0; --dim:#315d5f; --ghost:#315d5f; --ok:#99d694; --accent:#51afef; --sel:#122a31; --cursor:#98d1ce; --cyan:#98d1ce; --blue:#51afef; --red:#fb0120; --yellow:#e8bf6a; --green:#99d694; --orange:#d26937; --purple:#c071fe; }
+html[data-theme="gotham"]      { --bg:#0a0f14; --text:#98d1ce; --bright:#d3ebe9; --dim:#10151b; --ghost:#599caa; --ok:#26a98b; --accent:#599caa; --sel:#0c3040; --cursor:#98d1ce; --cyan:#599caa; --blue:#195465; --red:#c33027; --yellow:#edb54b; --green:#26a98b; --orange:#d26939; --purple:#4e5165; }
 html[data-theme="fall"]        { --bg:#1d1710; --text:#e0bf9a; --bright:#f5d9b8; --dim:#8a6f52; --ghost:#6e573f; --ok:#ff9e64; --accent:#ff9e64; --sel:rgba(255,158,100,0.22); --cursor:#ff9e64; --cyan:#f0b566; --blue:#d08770; --red:#ff6b6b; --yellow:#f5c86e; --green:#9bb168; --orange:#ff9e64; --purple:#c07f6a; }
 html[data-theme="nord"]        { --bg:#2e3440; --text:#d8dee9; --bright:#eceff4; --dim:#4c566a; --ghost:#616e88; --ok:#a3be8c; --accent:#88c0d0; --sel:#3b4252; --cursor:#d8dee9; --cyan:#88c0d0; --blue:#81a1c1; --red:#bf616a; --yellow:#ebcb8b; --green:#a3be8c; --orange:#d08770; --purple:#b48ead; }
 html[data-theme="onedark"]     { --bg:#282c34; --text:#abb2bf; --bright:#d4d4d4; --dim:#5c6370; --ghost:#5c6370; --ok:#98c379; --accent:#61afef; --sel:#3e4451; --cursor:#528bff; --cyan:#56b6c2; --blue:#61afef; --red:#e06c75; --yellow:#e5c07b; --green:#98c379; --orange:#d19a66; --purple:#c678dd; }
@@ -44,7 +46,7 @@ html[data-theme="monokaipro"]  { --bg:#2d2a2e; --text:#fcfcfa; --bright:#fcfcfa;
 html[data-theme="tokyonight"]  { --bg:#1a1b26; --text:#a9b1d6; --bright:#c0caf5; --dim:#565f89; --ghost:#565f89; --ok:#9ece6a; --accent:#7aa2f7; --sel:#33467c; --cursor:#c0caf5; --cyan:#7dcfff; --blue:#7aa2f7; --red:#f7768e; --yellow:#e0af68; --green:#9ece6a; --orange:#ff9e64; --purple:#bb9af7; }
 html[data-theme="gruvbox"]     { --bg:#282828; --text:#ebdbb2; --bright:#fbf1c7; --dim:#928374; --ghost:#928374; --ok:#b8bb26; --accent:#fabd2f; --sel:#3c3836; --cursor:#ebdbb2; --cyan:#8ec07c; --blue:#83a598; --red:#fb4934; --yellow:#fabd2f; --green:#b8bb26; --orange:#fe8019; --purple:#d3869b; }
 html[data-theme="catppuccin"]  { --bg:#1e1e2e; --text:#cdd6f4; --bright:#e6e9f8; --dim:#6c7086; --ghost:#45475a; --ok:#a6e3a1; --accent:#89b4fa; --sel:#45475a; --cursor:#f5e0dc; --cyan:#89dceb; --blue:#89b4fa; --red:#f38ba8; --yellow:#f9e2af; --green:#a6e3a1; --orange:#fab387; --purple:#cba6f7; }
-html[data-theme="synthwave"]   { --bg:#262335; --text:#f9f9ff; --bright:#f9f9ff; --dim:#6c6783; --ghost:#6c6783; --ok:#36f9f6; --accent:#ff2e88; --sel:rgba(255,46,136,0.22); --cursor:#f9f9ff; --cyan:#36f9f6; --blue:#36f9f6; --red:#ff2e88; --yellow:#fede5d; --green:#36f9f6; --orange:#f97e72; --purple:#b18cf3; }
+html[data-theme="synthwave"]   { --bg:#262335; --text:#ffffff; --bright:#ffffff; --dim:#848bbd; --ghost:#848bbd; --ok:#72f1b8; --accent:#ff7edb; --sel:rgba(255,255,255,0.125); --cursor:#03edf9; --cyan:#03edf9; --blue:#03edf9; --red:#fe4450; --yellow:#fede5d; --green:#72f1b8; --orange:#f97e72; --purple:#ff7edb; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 

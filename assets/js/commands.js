@@ -285,7 +285,7 @@
         ctx.print(pad("<b>tree</b>", 15) + "— the file tree, drawn badly");
         ctx.print(pad("<b>cat &lt;file&gt;</b>", 15) + "— read a terminal file");
         ctx.print(pad("<b>ping</b>", 15) + "— real latency to this site");
-        ctx.print(pad("<b>theme</b>", 15) + "— 12 exact vscode palettes: theme list / theme <name>");
+        ctx.print(pad("<b>theme</b>", 15) + "— exact official vscode palettes: theme list / theme <name>");
         ctx.print(pad("<b>encode &lt;text&gt;</b>", 15) + "— base64 encode");
         ctx.print(pad("<b>decode &lt;text&gt;</b>", 15) + "— base64 decode");
         ctx.print(pad("<b>speed</b>", 15) + "— typing speed: slow / normal / fast");
@@ -539,27 +539,31 @@
       help: "12 exact official vscode palettes — theme <name> or theme list",
       hash: null,
       run: function (ctx, rest) {
+        /* termux is android-only: the real Termux default scheme — green on black.
+           on cmd.exe / iOS it does not exist, so it cannot even be picked. */
+        var plat = (window.app && window.app.platform) || "desktop";
         var STORE = [
-          { n: "termux",     a: "Glgl OS",         c: "#3ddc84", d: "glgl green — the factory default" },
+          { n: "termux",     a: "Termux",           c: "#00ff41", d: "the real termux default — green on black (android only)" },
           { n: "solarized",  a: "Ethan Schoonover", c: "#b58900", d: "a precise color scheme for machines and people" },
           { n: "dracula",    a: "Dracula Theme",   c: "#bd93f9", d: "dark theme, purple vibes, zero vampires" },
           { n: "onedark",    a: "binaryify",       c: "#61afef", d: "one dark pro — the vscode staple" },
           { n: "monokaipro", a: "monokai",         c: "#ffd866", d: "monokai pro — a filter machine for your eyes" },
-          { n: "gotham",     a: "whatyouhide",     c: "#51afef", d: "gotham dim — blue hour, terminal edition" },
+          { n: "gotham",     a: "whatyouhide",     c: "#599caa", d: "gotham dim — blue hour, terminal edition" },
           { n: "nord",       a: "arcticicestudio", c: "#88c0d0", d: "nord — an arctic, north-bluish palette" },
           { n: "tokyonight", a: "enkia",           c: "#7aa2f7", d: "tokyo night — city lights at 2am" },
           { n: "gruvbox",    a: "morhetz",         c: "#fabd2f", d: "gruvbox dark — retro grease that never cleans off" },
           { n: "catppuccin", a: "Catppuccin",      c: "#89b4fa", d: "catppuccin mocha — soothing pastels" },
-          { n: "synthwave",  a: "Robb Owen",       c: "#ff2e88", d: "synthwave '84 — outrun the mainframe" },
+          { n: "synthwave",  a: "Robb Owen",       c: "#ff7edb", d: "synthwave '84 — outrun the mainframe" },
           { n: "fall",       a: "Glgl OS",         c: "#ff9e64", d: "autumn amber — the local favorite" },
-        ];
+        ].filter(function (t) { return t.n !== "termux" || plat === "android"; });
         var byName = {};
         STORE.forEach(function (t) { byName[t.n] = t; });
 
-        var current = "termux";
+        var current = null;
         try {
-          current = localStorage.getItem("glgl-theme") || "termux";
+          current = localStorage.getItem("glgl-theme");
         } catch (e) { /* ignore */ }
+        if (!current) current = plat === "android" ? "termux" : "default";
 
         var apply = function (ctx2, t) {
           try {
@@ -571,7 +575,7 @@
         };
 
         var list = function (ctx2) {
-          ctx2.print('<span class="dim">─ the theme store · 12 themes · the exact palettes from the official vscode releases ─</span>');
+          ctx2.print('<span class="dim">─ the theme store · ' + STORE.length + ' themes · the exact palettes from the official vscode releases ─</span>');
           STORE.forEach(function (t) {
             ctx2.print(pad("<b>" + esc(t.n) + "</b>", 14) +
               '<span style="color:' + t.c + '">██</span> ' +
@@ -582,7 +586,10 @@
 
         var arg = rest.trim().toLowerCase();
         if (!arg) {
-          ctx.print("current theme: <b>" + current + "</b>");
+          var label = current === "default"
+            ? "glgl default <span class=\"dim\">(the native terminal look)</span>"
+            : current;
+          ctx.print("current theme: <b>" + label + "</b>");
           ctx.print('<span class="dim">usage: <b>theme list</b> — browse · <b>theme &lt;name&gt;</b> — apply instantly</span>');
           return;
         }
