@@ -697,7 +697,7 @@ html.js.fallback-show .fallback { display: block; }
 /* ============================================================
    CV LOADER — cv.txt loads like a program inside the terminal
    ============================================================ */
-.line--load { color: var(--bright); white-space: nowrap; }
+.line--load { color: var(--text); white-space: nowrap; }
 .line--load .load__bar { color: var(--accent); }
 .line--load-done { color: var(--dim); font-size: 11px; }
 

@@ -239,11 +239,42 @@
   /* ============================================================
      COMMAND TABLE
      ============================================================ */
+
+  /* the theme store — every palette ships with the terminal; the run-time
+     list filters termux to the phone skins (android + ios) only.
+     "default" = the native look: no theme attribute at all */
+  var THEME_STORE = [
+    { n: "default",    a: "Glgl OS",         c: "#3ddc84", d: "the factory terminal look — no theme installed" },
+    { n: "termux",     a: "Termux",          c: "#00ff41", d: "the real termux default — green on black, the phone look (android & ios)" },
+    { n: "solarized",  a: "Ethan Schoonover", c: "#b58900", d: "a precise color scheme for machines and people" },
+    { n: "dracula",    a: "Dracula Theme",   c: "#bd93f9", d: "dark theme, purple vibes, zero vampires" },
+    { n: "onedark",    a: "binaryify",       c: "#61afef", d: "one dark pro — the vscode staple" },
+    { n: "monokaipro", a: "monokai",         c: "#ffd866", d: "monokai pro — a filter machine for your eyes" },
+    { n: "gotham",     a: "whatyouhide",     c: "#599caa", d: "gotham dim — blue hour, terminal edition" },
+    { n: "nord",       a: "arcticicestudio", c: "#88c0d0", d: "nord — an arctic, north-bluish palette" },
+    { n: "tokyonight", a: "enkia",           c: "#7aa2f7", d: "tokyo night — city lights at 2am" },
+    { n: "gruvbox",    a: "morhetz",         c: "#fabd2f", d: "gruvbox dark — retro grease that never cleans off" },
+    { n: "catppuccin", a: "Catppuccin",      c: "#89b4fa", d: "catppuccin mocha — soothing pastels" },
+    { n: "synthwave",  a: "Robb Owen",       c: "#ff7edb", d: "synthwave '84 — outrun the mainframe" },
+    { n: "fall",       a: "Glgl OS",         c: "#ff9e64", d: "autumn amber — the local favorite" },
+  ];
+
+  var CAT_FILES = {
+    "README.txt": "glgl terminal — a résumé disguised as cmd.exe. run <b>help</b> for the manual.",
+    "cv.pdf": "a binary file — browsers handle it better than we do. run <b>cv</b> to open it.",
+    "skills.txt": "node.js · express · nestjs · redis · postgres · docker · aws",
+    "education.txt": "B.Sc. computer science — Mansoura University, class of 2025.",
+    "experience.txt": "three chapters of backend shipping — run <b>experience</b> for the log.",
+    "projects.txt": "two builds, repos included — run <b>projects</b> to walk through them.",
+    "contact.txt": "ahmed4bdelgelel@gmail.com — run <b>contact</b> for linkedin, github & more.",
+  };
+
   var commands = {
     /* ---------- help ---------- */
     help: {
       help: "list every command",
       hash: "help",
+      complete: function () { return Object.keys(commands).concat(Object.keys(ALIASES)); },
       run: function (ctx, rest) {
         if (rest.trim()) {
           var target = window.app.resolve(rest.trim());
@@ -293,6 +324,7 @@
         ctx.print(pad("<b>clear</b>", 15) + "— wipe the terminal");
         ctx.blank();
         ctx.print('<span class="dim">aliases: ? · cls · dir · phantom</span>');
+        ctx.print('<span class="dim">tip: press <b>tab</b> to autocomplete commands &amp; arguments</span>');
       },
     },
 
@@ -534,28 +566,25 @@
       },
     },
 
-    /* ---------- theme — 12 exact official vscode palettes, applied instantly ---------- */
+    /* ---------- theme — the exact official vscode palettes, applied instantly ---------- */
     theme: {
-      help: "12 exact official vscode palettes — theme <name> or theme list",
+      help: "theme store — theme <name> or theme list",
       hash: null,
-      run: function (ctx, rest) {
-        /* termux is android-only: the real Termux default scheme — green on black.
-           on cmd.exe / iOS it does not exist, so it cannot even be picked. */
+      complete: function () {
         var plat = (window.app && window.app.platform) || "desktop";
-        var STORE = [
-          { n: "termux",     a: "Termux",           c: "#00ff41", d: "the real termux default — green on black (android only)" },
-          { n: "solarized",  a: "Ethan Schoonover", c: "#b58900", d: "a precise color scheme for machines and people" },
-          { n: "dracula",    a: "Dracula Theme",   c: "#bd93f9", d: "dark theme, purple vibes, zero vampires" },
-          { n: "onedark",    a: "binaryify",       c: "#61afef", d: "one dark pro — the vscode staple" },
-          { n: "monokaipro", a: "monokai",         c: "#ffd866", d: "monokai pro — a filter machine for your eyes" },
-          { n: "gotham",     a: "whatyouhide",     c: "#599caa", d: "gotham dim — blue hour, terminal edition" },
-          { n: "nord",       a: "arcticicestudio", c: "#88c0d0", d: "nord — an arctic, north-bluish palette" },
-          { n: "tokyonight", a: "enkia",           c: "#7aa2f7", d: "tokyo night — city lights at 2am" },
-          { n: "gruvbox",    a: "morhetz",         c: "#fabd2f", d: "gruvbox dark — retro grease that never cleans off" },
-          { n: "catppuccin", a: "Catppuccin",      c: "#89b4fa", d: "catppuccin mocha — soothing pastels" },
-          { n: "synthwave",  a: "Robb Owen",       c: "#ff7edb", d: "synthwave '84 — outrun the mainframe" },
-          { n: "fall",       a: "Glgl OS",         c: "#ff9e64", d: "autumn amber — the local favorite" },
-        ].filter(function (t) { return t.n !== "termux" || plat === "android"; });
+        var phone = plat !== "desktop" ||
+          (window.matchMedia && window.matchMedia("(max-width: 640px)").matches);
+        return THEME_STORE
+          .filter(function (t) { return t.n !== "termux" || phone; })
+          .map(function (t) { return t.n; });
+      },
+      run: function (ctx, rest) {
+        /* termux is the phone skin — the real Termux default scheme, green on black.
+           it exists on android + ios (mobile skins); on a desktop it cannot be picked. */
+        var plat = (window.app && window.app.platform) || "desktop";
+        var phone = plat !== "desktop" ||
+          (window.matchMedia && window.matchMedia("(max-width: 640px)").matches);
+        var STORE = THEME_STORE.filter(function (t) { return t.n !== "termux" || phone; });
         var byName = {};
         STORE.forEach(function (t) { byName[t.n] = t; });
 
@@ -563,13 +592,14 @@
         try {
           current = localStorage.getItem("glgl-theme");
         } catch (e) { /* ignore */ }
-        if (!current) current = plat === "android" ? "termux" : "default";
+        if (!current) current = phone ? "termux" : "default";
 
         var apply = function (ctx2, t) {
           try {
             localStorage.setItem("glgl-theme", t.n);
           } catch (e) { /* ignore */ }
-          document.documentElement.setAttribute("data-theme", t.n);
+          if (t.n === "default") document.documentElement.removeAttribute("data-theme");
+          else document.documentElement.setAttribute("data-theme", t.n);
           ctx2.print("theme <b>" + esc(t.n) + "</b> applied — <b>" + esc(t.a) + "</b> <span class=\"dim\">· " +
             esc(t.d) + "</span>");
         };
@@ -757,6 +787,10 @@
     cowsay: {
       help: "(cow) your text — moods: -b -d -g -p -s -t -w -y",
       hash: null,
+      complete: function () {
+        return ["-b", "-d", "-g", "-p", "-s", "-t", "-w", "-y",
+          "--borg", "--dead", "--greedy", "--paranoid", "--stoned", "--tired", "--wired", "--young"];
+      },
       run: function (ctx, rest) {
         /* real cowsay moods: the flag swaps the eyes (and -d hangs a tongue) */
         var MOODS = { b: "==", d: "xx", g: "$$", p: "@@", s: "**", t: "--", w: "OO", y: ".." };
@@ -802,6 +836,7 @@
     ls: {
       help: "list the files of this terminal — try: ls projects",
       hash: "ls", // shareable: <site>/#ls
+      complete: function () { return ["projects", "experience", "projects/", "experience/", "-a", "--all"]; },
       run: function (ctx, rest) {
         var dir = rest.trim().toLowerCase();
         if (dir === "-a" || dir === "--all") {
@@ -867,18 +902,10 @@
     cat: {
       help: "read a terminal file — try: cat README.txt",
       hash: "cat", // shareable: <site>/#cat
+      complete: function () { return Object.keys(CAT_FILES).concat([".secret"]); },
       run: function (ctx, rest) {
-        var files = {
-          "README.txt": "glgl terminal — a résumé disguised as cmd.exe. run <b>help</b> for the manual.",
-          "cv.pdf": "a binary file — browsers handle it better than we do. run <b>cv</b> to open it.",
-          "skills.txt": "node.js · express · nestjs · redis · postgres · docker · aws",
-          "education.txt": "B.Sc. computer science — Mansoura University, class of 2025.",
-          "experience.txt": "three chapters of backend shipping — run <b>experience</b> for the log.",
-          "projects.txt": "two builds, repos included — run <b>projects</b> to walk through them.",
-          "contact.txt": "ahmed4bdelgelel@gmail.com — run <b>contact</b> for linkedin, github & more.",
-        };
         var name = rest.trim().toLowerCase();
-        var content = files[name];
+        var content = CAT_FILES[name];
         if (name === ".secret") {
           if (!window.app.admin) {
             ctx.print("cat: .secret: permission denied — you are not root. yet.");
@@ -966,7 +993,7 @@
       help: "brew a virtual coffee",
       hash: null,
       run: function (ctx) {
-        ctx.print("<span class='dim'>brewing… [▓▓▓▓▓▓▓▓▓▓] done.</span>");
+        ctx.print('<span class="dim">brewing…</span> <span class="load__bar">[▓▓▓▓▓▓▓▓▓▓]</span> <span class="dim">done.</span>');
         ctx.print("   ( ( ");
         ctx.print("    ) )");
         ctx.print("   _____");

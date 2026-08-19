@@ -12,15 +12,6 @@
   var doc = document;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* apply the saved theme before first paint — the palette must survive reloads.
-     on android the factory default is termux (real green-on-black), no save needed */
-  try {
-    var savedTheme = localStorage.getItem("glgl-theme");
-    if (!savedTheme && /Android/i.test(navigator.userAgent)) savedTheme = "termux";
-    if (savedTheme && (savedTheme !== "termux" || /Android/i.test(navigator.userAgent)))
-      doc.documentElement.setAttribute("data-theme", savedTheme);
-  } catch (e) { /* ignore */ }
-
   /* ---------- skin: Windows terminal (desktop) / Termux (Android) / zsh (iOS) ---------- */
   var mql = window.matchMedia("(max-width: 640px)");
   var mobile = mql.matches;
@@ -30,6 +21,17 @@
   var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   var isAndroid = /Android/i.test(navigator.userAgent);
+  var phone = mobile || isIOS || isAndroid;   /* the phone skins: termux lives here */
+
+  /* apply the saved theme before first paint — the palette must survive reloads.
+     termux is the mobile factory look (green-on-black), android AND ios — no save needed.
+     "default" = the native look: no theme attribute at all */
+  try {
+    var savedTheme = localStorage.getItem("glgl-theme");
+    if (!savedTheme && phone) savedTheme = "termux";
+    if (savedTheme && savedTheme !== "default" && (savedTheme !== "termux" || phone))
+      doc.documentElement.setAttribute("data-theme", savedTheme);
+  } catch (e) { /* ignore */ }
 
   var shellPrompt = function () {
     if (!mobile) return "C:\\Users\\glgl>";
@@ -506,7 +508,9 @@
     promptRow.scrollLeft = promptRow.scrollWidth;
   };
 
-  input.addEventListener("input", syncMirror);
+  var tabState = null;           // tab autocomplete: current hit list + cycle position
+
+  input.addEventListener("input", function () { tabState = null; syncMirror(); });
   syncMirror();
 
   input.addEventListener("keydown", function (e) {
@@ -534,18 +538,40 @@
       if (menuReturn) { menuReturn = false; openMenu(); return; }
     } else if (e.key === "Tab") {
       e.preventDefault();
-      if (input.value.indexOf(" ") === -1 && input.value.length) {
-        var pre = input.value.toLowerCase();
-        var hits = commandNames()
-          .filter(function (n) { return n.toLowerCase().indexOf(pre) === 0; })
-          .sort();
-        if (hits.length === 1) {
-          input.value = hits[0];
-          syncMirror();
-        } else if (hits.length > 1) {
-          appendLine("glgl: " + hits.join("  "), "echo");
+      if (!input.value) return;
+      var text = input.value;
+      var sp = text.indexOf(" ");
+      var prefix, hits;
+      if (tabState && input.value === tabState.lastFill) {
+        /* repeated tab — keep cycling the previous candidate set */
+        prefix = tabState.prefix;
+        hits = tabState.hits;
+      } else {
+        if (sp === -1) {
+          /* first token — a command or alias name */
+          prefix = text.toLowerCase();
+          hits = commandNames()
+            .filter(function (n) { return n.toLowerCase().indexOf(prefix) === 0; })
+            .sort();
+        } else {
+          /* argument — the resolved command may declare completions */
+          var cmd = text.slice(0, sp).trim().toLowerCase();
+          var target = window.app.resolve(cmd);
+          var comp = (target && target.complete) ? target.complete(text.slice(sp + 1)) : [];
+          prefix = text.slice(sp + 1).toLowerCase();
+          hits = comp
+            .filter(function (c) { return c.toLowerCase().indexOf(prefix) === 0; })
+            .sort();
         }
+        if (!hits.length) { tabState = null; return; }
+        tabState = { hits: hits, prefix: prefix, i: 0 };
+        if (hits.length > 1) appendLine("glgl: " + hits.join("  "), "echo");
       }
+      var fill = tabState.hits[tabState.i];
+      tabState.i = (tabState.i + 1) % tabState.hits.length;
+      input.value = sp === -1 ? fill : text.slice(0, sp + 1) + fill;
+      tabState.lastFill = input.value;
+      syncMirror();
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (menuOpen) { menuSel = (menuSel + MENU_ITEMS.length - 1) % MENU_ITEMS.length; renderMenu(); return; }
@@ -919,6 +945,7 @@
   window.app.commands.sound = {
     help: "keypress blips: on / off",
     hash: null,
+    complete: function () { return ["on", "off"]; },
     run: function (ctx2, rest) {
       var arg = (rest || "").trim().toLowerCase();
       if (arg === "on") {
@@ -940,6 +967,7 @@
   window.app.commands.speed = {
     help: "typing speed: slow / normal / fast",
     hash: null,
+    complete: function () { return ["slow", "normal", "fast"]; },
     run: function (ctx2, rest) {
       var arg = (rest || "").trim().toLowerCase();
       var RATES = { slow: 18, normal: 5, fast: 2 };
