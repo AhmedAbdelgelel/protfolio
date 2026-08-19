@@ -429,11 +429,11 @@
 
   var execute = function (raw) {
     var trimmed = raw.trim();
+    /* the rain dies on any Enter — even an empty one (the hint says so) */
+    if (matrixActive) stopMatrix();
     if (!trimmed) return;
 
     appendLine('<span class="echo-prompt">' + promptText() + "</span> " + esc(trimmed), "echo");
-
-    if (matrixActive) stopMatrix();
 
     if (gameActive) {
       if (trimmed.toLowerCase() === "quit") {
