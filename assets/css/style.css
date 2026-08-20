@@ -506,6 +506,12 @@ body.desktop-mode .desktop__note { display: block; }
 .menu-dock[hidden] { display: none; }
 .menu-dock:hover { border-color: var(--accent); color: var(--accent); }
 .menu-dock:active { transform: translateY(1px); }
+.menu-dock--pop { animation: dock-pop 0.25s ease; }
+@keyframes dock-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
 
 /* the real field â€” visually absent, functionally a full <input> */
 .term-input {
@@ -675,6 +681,7 @@ html.js.fallback-show .fallback { display: block; }
 .menu-block { margin: 18px 0 4px; }
 
 .menu-block__hint { font-size: 11px; color: var(--dim); margin-bottom: 10px; }
+.menu-block__hint b { color: var(--accent); }
 
 .menu-row {
   appearance: none;
@@ -692,7 +699,17 @@ html.js.fallback-show .fallback { display: block; }
   cursor: pointer;
 }
 .menu-row:last-child { border-bottom: 0; }
-/* selection colours the text only — no highlight block, no side bar, native cmd feel */
+/* keyboard selection lights the whole row — softer than hover, enough to follow ↑↓ */
+.menu-row--sel {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+@media (hover: hover) {
+  .menu-row:hover {
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    box-shadow: inset 2px 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+}
 .menu-row--sel .menu-row__title { color: var(--accent); }
 
 .menu-row__num {

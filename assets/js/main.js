@@ -250,6 +250,9 @@
 
   var boot = function () {
     bootLines().forEach(function (line) { appendLine(esc(line)); });
+    appendLine('<span class="dim">the index is live — ' +
+      (mobile ? "tap a row" : "pick a row (<b>1–7</b> / <b>↑↓</b>)") +
+      ' or type <b>help</b> · <b>‹ menu</b> toggles it</span>');
     appendLine("&nbsp;");
     if (reduced) { showPrompt(); return; }
     onDrained = showPrompt;
@@ -1018,9 +1021,15 @@
   if (menuDock) {
     menuDock.addEventListener("click", function (e) {
       e.stopPropagation();
+      menuDock.classList.remove("menu-dock--pop");
+      void menuDock.offsetWidth;          // restart the pop so every press pops
+      menuDock.classList.add("menu-dock--pop");
       if (menuOpen) closeMenu();
       else openMenu();
       scrollDown();
+    });
+    menuDock.addEventListener("animationend", function () {
+      menuDock.classList.remove("menu-dock--pop");
     });
   }
 
@@ -1034,6 +1043,7 @@
     { title: "contact", desc: "email, phone, linkedin, github", cmd: "contact" },
     { title: "hire me", desc: "open to roles — reach out", cmd: "hire" },
   ];
+  window.app.menuItems = MENU_ITEMS;   // help --menu renders the same list
 
   var renderMenu = function () {
     if (!menuRows) {
