@@ -250,9 +250,6 @@
 
   var boot = function () {
     bootLines().forEach(function (line) { appendLine(esc(line)); });
-    appendLine('<span class="dim">the index is live — ' +
-      (mobile ? "tap a row" : "pick a row (<b>1–7</b> / <b>↑↓</b>)") +
-      ' or type <b>help</b> · <b>‹ menu</b> toggles it</span>');
     appendLine("&nbsp;");
     if (reduced) { showPrompt(); return; }
     onDrained = showPrompt;
@@ -1002,8 +999,11 @@
   var menuReturn = false;     // a menu item was picked; esc returns
   var menuSel = 0;            // highlighted row
   var menuRows = null;        // element holding the menu rows
-  var menuDock = doc.getElementById("menu-dock");   // the toggle — always visible
+  var menuDock = doc.getElementById("menu-dock");   // mobile way home (null on old builds)
   var docked = false;         // a history entry for back-to-menu is pending
+
+  var hideDock = function () { if (menuDock) menuDock.hidden = true; };
+  var showDock = function () { if (menuDock) menuDock.hidden = false; };
 
   /* Android back button / browser back — pickMenu pushes one entry;
      popping it reopens the menu (the esc key of the phone).
@@ -1016,20 +1016,14 @@
     openMenu();
   });
 
-  /* the dock pill toggles the index: open when closed, close when open.
-     it never hides — the menu is the home screen on every platform */
+  /* the dock pill is a real button: tapping it comes home to the menu.
+     (it lives in the header of this section so it exists even if the
+     menu never opened at boot, e.g. deep links like /#cv) */
   if (menuDock) {
     menuDock.addEventListener("click", function (e) {
       e.stopPropagation();
-      menuDock.classList.remove("menu-dock--pop");
-      void menuDock.offsetWidth;          // restart the pop so every press pops
-      menuDock.classList.add("menu-dock--pop");
-      if (menuOpen) closeMenu();
-      else openMenu();
+      openMenu();
       scrollDown();
-    });
-    menuDock.addEventListener("animationend", function () {
-      menuDock.classList.remove("menu-dock--pop");
     });
   }
 
@@ -1041,9 +1035,8 @@
     { title: "skills & stack", desc: "languages, backend, devops, testing", cmd: "stack" },
     { title: "education", desc: "the degree, the university, the year", cmd: "education" },
     { title: "contact", desc: "email, phone, linkedin, github", cmd: "contact" },
-    { title: "hire me", desc: "open to roles — reach out", cmd: "hire" },
+    { title: "hire me", desc: "open to roles — reach out", cmd: "contact" },
   ];
-  window.app.menuItems = MENU_ITEMS;   // help --menu renders the same list
 
   var renderMenu = function () {
     if (!menuRows) {
@@ -1054,8 +1047,8 @@
     var h = [
       '<div class="menu-block__hint"><span class="dim">' +
         (window.innerWidth <= 640
-          ? "tap a row to open it — <b>‹ menu</b> toggles this index · or type <b>menu</b>"
-          : "use <b>↑↓</b> / <b>1–7</b> to pick — <b>enter</b> opens — <b>‹ menu</b> toggles this index") +
+          ? "tap a row to open it — <b>‹ menu</b> below brings you back · or type <b>menu</b>"
+          : "use <b>↑↓</b> / <b>1–7</b> to pick — <b>enter</b> opens — <b>esc</b> closes — type <b>menu</b> to reopen") +
         "</span></div>",
     ];
     MENU_ITEMS.forEach(function (it, i) {
@@ -1089,6 +1082,7 @@
     menuReturn = false;
     menuSel = 0;
     docked = false;          // the back-entry was (or will be) consumed
+    hideDock();
     var token = ++openMenuToken;
     var show = function () {
       if (!menuOpen || token !== openMenuToken) return;  // esc'd away / superseded
@@ -1117,6 +1111,7 @@
       if (menuRows.parentNode) menuRows.parentNode.removeChild(menuRows);
       menuRows = null;
     }
+    showDock();
   };
 
   var pickMenuItem = function (i) {
@@ -1130,16 +1125,22 @@
       try { history.pushState({ glgl: "back-to-menu" }, ""); } catch (err) { docked = false; }
     }
     execute(it.cmd);
-    /* the index is home: after the content renders, the menu comes back
-       on its own so picking never strands the user (openMenu waits for
-       any running stream / the cv loader before re-rendering) */
-    openMenu();
+    /* one button only: the dock pill is the way home (phones).
+       on desktop the keyboard hint stays — esc or `menu` works. */
+    if (window.innerWidth > 640) {
+      var hint = doc.createElement("div");
+      hint.className = "dim";
+      hint.innerHTML = "— <b>esc</b> back to the menu · or type <b>menu</b> —";
+      output.appendChild(hint);
+      scrollDown();
+    }
   };
 
   window.app.menuDidClear = function () {
     menuOpen = false;
     menuReturn = false;
     menuRows = null;
+    showDock();
   };
 
   /* the always-available way back in: `menu` (alias: `list`,
@@ -1153,6 +1154,7 @@
   /* the index opens by default at boot — deep links skip straight to work */
   setTimeout(function () {
     if (!(location.hash.length > 1)) openMenu();
+    else showDock();   // deep-linked (menu closed) — show the mobile way home
   }, 320);
 
   /* ---------- go ---------- */

@@ -287,18 +287,6 @@
       hash: "help",
       complete: function () { return Object.keys(commands).concat(Object.keys(ALIASES)); },
       run: function (ctx, rest) {
-        if (rest.trim() === "--menu" || rest.trim() === "menu") {
-          var items = (window.app && window.app.menuItems) || [];
-          ctx.print('<span class="dim">─ the index as commands · pick any of these anytime ─</span>');
-          items.forEach(function (it, i) {
-            var cell = pad((i + 1) + " " + it.cmd, 16);   // plain-text sizing — tags would inflate the pad
-            ctx.print("<b>" + esc(cell) + "</b>" +
-              esc(it.title) + ' <span class="dim">— ' + esc(it.desc) +
-              (it.cmd === "cv" ? " · shareable /#cv" : "") + "</span>");
-          });
-          ctx.print('<span class="dim">typing the command works while the index is closed too — <b>menu</b> brings the rows back</span>');
-          return;
-        }
         if (rest.trim()) {
           var target = window.app.resolve(rest.trim());
           if (target && target.help) {
@@ -346,8 +334,8 @@
         ctx.print(pad("<b>sound</b>", 15) + "— keypress blips: on / off");
         ctx.print(pad("<b>clear</b>", 15) + "— wipe the terminal");
         ctx.blank();
-        ctx.print('<span class="dim">aliases: ? · cls · dir · phantom —</span>');
-        ctx.print('<span class="dim">tip: press <b>tab</b> to autocomplete · <b>help --menu</b> prints the index as commands</span>');
+        ctx.print('<span class="dim">aliases: ? · cls · dir · phantom</span>');
+        ctx.print('<span class="dim">tip: press <b>tab</b> to autocomplete commands &amp; arguments</span>');
       },
     },
 
@@ -608,10 +596,7 @@
             ? "glgl default <span class=\"dim\">(the native terminal look)</span>"
             : current;
           ctx.print("current theme: <b>" + label + "</b>");
-          ctx.print('<span class="dim">shorthands: <b>' +
-            STORE.map(function (t) { return t.n; }).join(" · ") +
-            '</b></span>');
-          ctx.print('<span class="dim">usage: <b>theme list</b> — browse the store · <b>theme &lt;name&gt;</b> — apply &amp; remember</span>');
+          ctx.print('<span class="dim">usage: <b>theme list</b> — browse · <b>theme &lt;name&gt;</b> — apply instantly</span>');
           return;
         }
         if (arg === "list" || arg === "store" || arg === "browse") { list(ctx); return; }
