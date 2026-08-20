@@ -74,8 +74,19 @@
       .replace(/"/g, "&quot;");
   };
 
+  var scrollQueued = false;
   var scrollDown = function () {
-    output.scrollTop = output.scrollHeight;
+    if (scrollQueued) return;
+    scrollQueued = true;
+    if (window.requestAnimationFrame) {
+      window.requestAnimationFrame(function () {
+        scrollQueued = false;
+        output.scrollTop = output.scrollHeight;
+      });
+    } else {
+      scrollQueued = false;
+      output.scrollTop = output.scrollHeight;
+    }
   };
 
   /* ============================================================
@@ -83,7 +94,14 @@
      random jitter so output feels "printed" not pasted.
      ============================================================ */
   var QUEUE = [];
-  var SPEED = 5;                 // ms per character
+  /* the story commands render instantly — no typing, the wait is gone.
+     typing stays for boot, streams (cv) and the playful commands */
+  var INSTANT_COMMANDS = ["contact", "experience", "projects", "stack", "whoami", "penta", "hire", "education"];
+  var savedSpeed = null;
+  try { savedSpeed = localStorage.getItem("glgl-speed"); } catch (e) { /* ignore */ }
+  var RATES = { slow: 18, normal: 5, fast: 2 };
+  var SPEED = savedSpeed === "slow" || savedSpeed === "normal" || savedSpeed === "fast"
+    ? RATES[savedSpeed] : 5;     // ms per character
   var typeTimer = null;
   var typeLine = null;           // { el, tokens, ti, ci, target, textNode, stack }
   var onDrained = null;
@@ -201,16 +219,16 @@
     scrollDown();
   };
 
-  var appendLine = function (html, cls) {
+  var appendLine = function (html, cls, instant) {
     var div = doc.createElement("div");
     div.className = "line" + (cls ? " line--" + cls : "");
-    if (reduced) {
+    if (reduced || instant) {
       div.innerHTML = html;
       div.style.animationDelay = "0ms";
       output.appendChild(div);
       return;
     }
-    div.style.animationDelay = Math.floor(Math.random() * 70 + 10) + "ms";
+    div.style.animationDelay = "0ms";
     QUEUE.push({ el: div, html: html });
     if (!isTyping) startTimer();
   };
@@ -218,8 +236,9 @@
   /* ============================================================
      Renderer context for commands.js
      ============================================================ */
+  var ctxInstant = false;
   var ctx = {
-    print: function (html) { appendLine(html); },
+    print: function (html) { appendLine(html, "", ctxInstant); },
     blank: function () { appendLine("&nbsp;"); },
     clear: function () { finishAll(); output.innerHTML = ""; scrollDown(); },
     job: function (role, dates, bullets) {
@@ -499,7 +518,9 @@
       return;
     }
 
+    ctxInstant = INSTANT_COMMANDS.indexOf(token) !== -1;
     cmd.run(ctx, rest);
+    ctxInstant = false;
     renderedHash = cmd.hash;
     ctx.setHash(cmd.hash);
   };
@@ -671,7 +692,12 @@
           '<span class="dim">— your choice: view the pdf, or keep reading the copy below</span>';
         output.appendChild(openLink);
         scrollDown();
-        cvContent.forEach(function (html) { appendLine(html); });
+        cvContent.forEach(function (html, idx) {
+          appendLine(html);
+          if (idx === Math.floor(cvContent.length * 0.66)) {
+            appendLine('<span class="dim">— enter to skip the rest —</span>');
+          }
+        });
       }
     };
     paint();
@@ -955,16 +981,18 @@
     complete: function () { return ["on", "off"]; },
     run: function (ctx2, rest) {
       var arg = (rest || "").trim().toLowerCase();
-      if (arg === "on") {
-        soundOn = true;
-        try { localStorage.setItem("glgl-sound", "1"); } catch (e) { /* ignore */ }
-        ctx2.print("keypress blips: <b>on</b>");
-        blip(true);
-      } else if (arg === "off") {
-        soundOn = false;
-        try { localStorage.setItem("glgl-sound", "0"); } catch (e) { /* ignore */ }
-        ctx2.print("keypress blips: <b>off</b>");
-      } else {
+if (arg === "on") {
+          soundOn = true;
+          try { localStorage.setItem("glgl-sound", "1"); } catch (e) { /* ignore */ }
+          ctx2.print("keypress blips: <b>on</b>");
+          ctx2.print('<span class="dim">saved — blips come back next visit</span>');
+          blip(true);
+        } else if (arg === "off") {
+          soundOn = false;
+          try { localStorage.setItem("glgl-sound", "0"); } catch (e) { /* ignore */ }
+          ctx2.print("keypress blips: <b>off</b>");
+          ctx2.print('<span class="dim">saved — silence is remembered</span>');
+        } else {
         ctx2.print("keypress blips: currently <b>" + (soundOn ? "on" : "off") + "</b>");
         ctx2.print('<span class="dim">usage: sound on | sound off</span>');
       }
@@ -977,10 +1005,11 @@
     complete: function () { return ["slow", "normal", "fast"]; },
     run: function (ctx2, rest) {
       var arg = (rest || "").trim().toLowerCase();
-      var RATES = { slow: 18, normal: 5, fast: 2 };
-      if (RATES[arg]) {
+      if (arg === "slow" || arg === "normal" || arg === "fast") {
         SPEED = RATES[arg];
+        try { localStorage.setItem("glgl-speed", arg); } catch (e) { /* ignore */ }
         ctx2.print("typing speed: <b>" + arg + "</b>");
+        ctx2.print('<span class="dim">saved — it stays this fast next visit</span>');
         return;
       }
       var current = SPEED >= 18 ? "slow" : SPEED >= 5 ? "normal" : "fast";

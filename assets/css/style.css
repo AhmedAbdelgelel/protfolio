@@ -688,6 +688,8 @@ html.js.fallback-show .fallback { display: block; }
   margin-top: 1px;
 }
 .menu-row--sel .menu-row__num { border-color: var(--accent); color: var(--accent); }
+/* keyboard focus — tab through the rows, the ring marks where you are */
+.menu-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px; }
 
 .menu-row__body { flex: 0 1 auto; min-width: 0; }
 .menu-row__title { display: block; color: var(--bright); font-size: 13px; }
@@ -797,6 +799,9 @@ a.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
   }
   .menu-dock[hidden] { display: none; }
   .menu-dock:active { transform: translateY(1px); border-color: var(--accent); color: var(--accent); }
+
+  /* the résumé sits first — one obvious next step on phones */
+  .menu-row:first-child .menu-row__title { color: var(--accent); }
 
   .menu-row__keys { display: none; }
 }

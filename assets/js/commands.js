@@ -298,16 +298,20 @@
           return;
         }
         ctx.print('<span class="dim">sections are offline — type <b>help</b> to boot one:</span>');
-        ctx.print(pad("<b>help</b>", 15) + "— list every command · try <b>help &lt;cmd&gt;</b> for details");
-        ctx.print(pad("<b>projects</b>", 15) + "— selected builds");
-        ctx.print(pad("<b>stack</b>", 15) + "— print the stack");
         ctx.print(pad("<b>whoami</b>", 15) + "— identity");
         ctx.print(pad("<b>experience</b>", 15) + "— career log");
-        ctx.print(pad("<b>penta</b>", 15) + "— studio blurb");
-        ctx.print(pad("<b>hire</b>", 15) + "— availability card");
-        ctx.print(pad("<b>contact</b>", 15) + "— reach me");
-        ctx.print(pad("<b>info</b>", 15) + "— system overview (neofetch)");
+        ctx.print(pad("<b>projects</b>", 15) + "— selected builds");
+        ctx.print(pad("<b>stack</b>", 15) + "— print the stack");
         ctx.print(pad("<b>cv</b>", 15) + "— full résumé (opens cv.pdf)");
+        ctx.print(pad("<b>contact</b>", 15) + "— reach me");
+        ctx.print('<span class="dim">— enter to skip the listing —</span>');
+        ctx.blank();
+        ctx.print('<span class="dim">everything else — fun · tools · system:</span>');
+        ctx.print(pad("<b>help</b>", 15) + "— list every command · try <b>help &lt;cmd&gt;</b> for details");
+        ctx.print(pad("<b>education</b>", 15) + "— academic background");
+        ctx.print(pad("<b>hire</b>", 15) + "— availability card");
+        ctx.print(pad("<b>penta</b>", 15) + "— studio blurb");
+        ctx.print(pad("<b>info</b>", 15) + "— system overview (neofetch)");
         ctx.print(pad("<b>version</b>", 15) + "— build info");
         ctx.blank();
         ctx.print('<span class="dim">fun — because terminals need it:</span>');
@@ -335,7 +339,7 @@
         ctx.print(pad("<b>clear</b>", 15) + "— wipe the terminal");
         ctx.blank();
         ctx.print('<span class="dim">aliases: ? · cls · dir · phantom</span>');
-        ctx.print('<span class="dim">tip: press <b>tab</b> to autocomplete commands &amp; arguments</span>');
+        ctx.print('<span class="dim">tip: <b>tab</b> autocompletes · <b>enter</b> skips long listings</span>');
       },
     },
 
@@ -578,6 +582,7 @@
           else document.documentElement.setAttribute("data-theme", t.n);
           ctx2.print("theme <b>" + esc(t.n) + "</b> applied — <b>" + esc(t.a) + "</b> <span class=\"dim\">· " +
             esc(t.d) + "</span>");
+          ctx2.print('<span class="dim">saved — this theme comes back next visit</span>');
         };
 
         var list = function (ctx2) {
