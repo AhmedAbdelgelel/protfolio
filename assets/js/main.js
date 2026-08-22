@@ -289,6 +289,12 @@
        instead of replaying boot text (phones reload on app switch) */
     var snap = null;
     try { snap = sessionStorage.getItem("glgl-screen"); } catch (e) { /* ignore */ }
+    /* the rain can't be restored — its canvas repaints every frame,
+       so the snapshot comes back as a dead blank screen. boot fresh. */
+    if (snap && (snap.indexOf("matrix-canvas") !== -1 || snap.indexOf("matrix__hint") !== -1)) {
+      try { sessionStorage.removeItem("glgl-screen"); } catch (e) { /* ignore */ }
+      snap = null;
+    }
     if (snap) {
       output.innerHTML = snap;
       var rows = output.querySelector(".menu-block");
