@@ -76,6 +76,11 @@
 
   var scrollQueued = false;
   var scrollDown = function () {
+    /* settle-save must run BEFORE the rAF gate: a queued-but-never-fired
+       frame (hidden tabs throttle rAF to zero) used to swallow every
+       later scrollDown — the post-stream snapshot never got written,
+       leaving a stale screen + an undead resume marker behind */
+    if (settled()) saveScreen();
     if (scrollQueued) return;
     scrollQueued = true;
     if (window.requestAnimationFrame) {
@@ -87,8 +92,16 @@
       scrollQueued = false;
       output.scrollTop = output.scrollHeight;
     }
-    if (settled()) saveScreen();
   };
+
+  /* coming back to a tab that was hidden while output printed: rAF
+     was throttled, so the queued scroll never fired — drop it now */
+  doc.addEventListener("visibilitychange", function () {
+    if (doc.hidden) return;
+    scrollQueued = false;
+    output.scrollTop = output.scrollHeight;
+    if (settled()) saveScreen();
+  });
 
   /* ============================================================
      Screen memory — phones kill the tab when you switch apps and
@@ -99,6 +112,21 @@
      none (the pre-stream screen is what comes back instead).
      Cleared by `clear`.
      ============================================================ */
+  /* ---------- resume-after-reload ----------
+     While a command's output is still generating, its full command
+     line rides in sessionStorage under glgl-pending. A reload
+     mid-stream finds the marker and re-runs that one command on top
+     of the restored screen — generation continues instead of dying.
+     The marker is erased the moment the screen settles (same tick
+     the snapshot is saved), so a settled reload never replays. */
+  var PENDING_KEY = "glgl-pending";
+  var setPending = function (line) {
+    try {
+      if (line) sessionStorage.setItem(PENDING_KEY, line);
+      else sessionStorage.removeItem(PENDING_KEY);
+    } catch (e) { /* ignore */ }
+  };
+
   var saveTimer = null;
   var settled = function () {
     return !isTyping && !QUEUE.length &&
@@ -108,9 +136,14 @@
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       saveTimer = null;
+      /* re-check: a command may have started after this save was
+         scheduled (closeMenu defers one) — freezing a half-written
+         line would come back truncated after a reload */
+      if (!settled()) return;
       try {
         sessionStorage.setItem("glgl-screen",
-          JSON.stringify({ h: output.innerHTML, t: output.scrollTop }));
+          JSON.stringify({ v: 2, h: output.innerHTML, t: output.scrollTop }));
+        sessionStorage.removeItem(PENDING_KEY);
       } catch (e) { /* ignore */ }
     }, 300);
   };
@@ -191,6 +224,9 @@
   var doneTyping = function () {
     if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
     isTyping = false;
+    /* pending is NOT cleared here: the echo line draining would wipe
+       the marker while the command's own output is still rendering.
+       Only the settled save (same tick as the snapshot) retires it. */
     if (onDrained) { var cb = onDrained; onDrained = null; cb(); }
     scrollDown();
   };
@@ -241,6 +277,7 @@
       output.appendChild(it.el);
     }
     isTyping = false;
+    /* same as doneTyping — the settled save retires pending, not us */
     if (onDrained) { var cb = onDrained; onDrained = null; cb(); }
     scrollDown();
   };
@@ -267,7 +304,13 @@
   var ctx = {
     print: function (html) { appendLine(html, "", ctxInstant); },
     blank: function () { appendLine("&nbsp;"); },
-    clear: function () { finishAll(); output.innerHTML = ""; scrollDown(); },
+    clear: function () {
+      finishAll();
+      output.innerHTML = "";
+      try { sessionStorage.removeItem("glgl-screen"); } catch (e) { /* ignore */ }
+      setPending(null);
+      scrollDown();
+    },
     job: function (role, dates, bullets) {
       appendLine(
         '<span class="jobrow"><span>' + esc(role) + '</span><span class="jobrow__dates">' +
@@ -296,20 +339,49 @@
 
   var boot = function () {
     /* a saved screen means this session already lived — restore it
-       instead of replaying boot text (phones reload on app switch) */
+       instead of replaying boot text (phones reload on app switch).
+       v-guard: snapshots from older builds (e.g. one holding a half
+       done cv loader bar) are stale — throw them away. */
     var snap = null;
+    /* typed URL / new tab / off-site link = a NEW visit: sessionStorage
+       survives plain navigation, so without this the previous visit's
+       screen would leak into it. Only genuine reloads (and mobile
+       app-switch kills, also reported as reload) restore. */
+    if (!isReload()) {
+      try {
+        sessionStorage.removeItem("glgl-screen");
+        sessionStorage.removeItem(PENDING_KEY);
+      } catch (e) { /* ignore */ }
+    }
     try { snap = JSON.parse(sessionStorage.getItem("glgl-screen") || "null"); } catch (e) { snap = null; }
-    if (snap && typeof snap.h === "string") { /* ok */ }
-    else if (typeof snap === "string") snap = { h: snap };   // legacy format
-    else snap = null;
+    if (!snap || snap.v !== 2 || typeof snap.h !== "string") {
+      try { if (sessionStorage.getItem("glgl-screen")) sessionStorage.removeItem("glgl-screen"); } catch (e) { /* ignore */ }
+      snap = null;
+    }
+    /* a pending marker only pairs with a snapshot from the same
+       session — with no screen to restore it would replay onto a
+       blank page; drop both together */
+    var pendingLine = null;
+    try { pendingLine = sessionStorage.getItem(PENDING_KEY); } catch (e) { pendingLine = null; }
+    if (!snap && pendingLine) {
+      setPending(null);
+      pendingLine = null;
+    }
     /* the rain can't be restored — its canvas repaints every frame,
        so the snapshot comes back as a dead blank screen. boot fresh. */
     if (snap && (snap.h.indexOf("matrix-canvas") !== -1 || snap.h.indexOf("matrix__hint") !== -1)) {
       try { sessionStorage.removeItem("glgl-screen"); } catch (e) { /* ignore */ }
+      setPending(null);
+      pendingLine = null;
       snap = null;
     }
     if (snap && snap.h) {
       output.innerHTML = snap.h;
+      /* loader bars are transient UI — an interrupted one would sit
+         frozen forever; drop any that didn't finish before the save */
+      output.querySelectorAll(".line--load:not(.line--load-done)").forEach(function (el) {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      });
       var rows = output.querySelector(".menu-block");
       if (rows) {           // the index was open — put it back, bound and live
         menuOpen = true;
@@ -321,14 +393,47 @@
         showDock();
       }
       output.scrollTop = typeof snap.t === "number" ? snap.t : output.scrollHeight;
+      /* a reload landed mid-generation: the restored screen holds the
+         pre-stream view and glgl-pending holds the exact command line
+         that was still printing — re-run it so generation CONTINUES
+         instead of silently dying */
+      if (pendingLine) {
+        setPending(null);
+        if (menuOpen) closeMenu();   // the replayed output replaces the index view
+        replayedPending = true;
+        term.classList.add("ready");
+        focusInput();
+        execute(pendingLine);
+        return;
+      }
       term.classList.add("ready");
       focusInput();
       return;
     }
     bootLines().forEach(function (line) { appendLine(esc(line)); });
     appendLine("&nbsp;");
-    if (reduced) { showPrompt(); return; }
-    onDrained = showPrompt;
+    if (reduced) {
+      showPrompt();
+      if (pendingLine) {           // no animation to ride — run it outright
+        setPending(null);
+        replayedPending = true;
+        execute(pendingLine);
+      }
+      return;
+    }
+    /* a pending command replays after the boot banner drains — the
+       prompt reveal waits for THAT stream to finish instead */
+    if (pendingLine) {
+      setPending(null);
+      onDrained = function () {
+        replayedPending = true;
+        term.classList.add("ready");
+        focusInput();
+        execute(pendingLine);
+      };
+    } else {
+      onDrained = showPrompt;
+    }
     if (!isTyping) startTimer();
   };
 
@@ -344,6 +449,10 @@
       return false;
     }
   };
+
+  /* set while boot() re-ran an interrupted command — the auto-menu
+     timer stands down so the resumed output stays readable */
+  var replayedPending = false;
 
   var showPrompt = function () {
     term.classList.add("ready");
@@ -373,6 +482,10 @@
     renderedHash = name;
     appendLine('<span class="dim">glgl: opening \\' + esc(name) + " …</span>");
     cmd.run(ctx);
+    /* same resume protection as typed commands — a deep link that was
+       still streaming when the page died gets re-run by boot().
+       `clear` has no hash so it can never land here. */
+    if (INSTANT_COMMANDS.indexOf(name) === -1) setPending(name);
   };
 
   window.addEventListener("hashchange", onHashChange);
@@ -576,6 +689,13 @@
     }
 
     ctxInstant = INSTANT_COMMANDS.indexOf(token) !== -1;
+    /* remember what is generating: if the page dies mid-stream
+       (reload, app-switch kill), boot() replays exactly this line.
+       every typed non-instant command pends — even ones that finish
+       fast — because the echo line drains asynchronously and busyness
+       checks would race. the settled save retires the marker ~300ms
+       later; `clear` must never pend (it wipes its own evidence). */
+    if (!ctxInstant && token !== "clear") setPending(trimmed);
     cmd.run(ctx, rest);
     ctxInstant = false;
     renderedHash = cmd.hash;
@@ -686,7 +806,7 @@
       var act = e.target.closest("[data-action]");
       if (act) {
         e.preventDefault();
-        if (act.getAttribute("data-action") === "cv") window.app.cvLoad();
+        if (act.getAttribute("data-action") === "cv") execute("cv");
         return;
       }
       var c = e.target.closest("a.copy");
@@ -719,6 +839,11 @@
     if (!window.app.cvLines) return;
     if (loadTimer) return;              // already loading — ignore re-entry
     finishAll();
+    /* a frozen loader from an interrupted session must never survive
+       a new load — exactly one bar, always alive */
+    output.querySelectorAll(".line--load:not(.line--load-done)").forEach(function (el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
     var loadDiv = doc.createElement("div");
     loadDiv.className = "line line--load";
     loadDiv.setAttribute("role", "status");
@@ -905,6 +1030,7 @@
     powerOn = false;
     if (isTyping || QUEUE.length) finishAll();
     if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }  // no loading after power-off
+    setPending(null);   // the stream was flushed to the screen — nothing pending
     var echo = shellPrompt() + (mobile ? " poweroff" : " shutdown -s");
     var msg = GOODBYES[nextGoodbye % GOODBYES.length];
     nextGoodbye += 1;
@@ -1244,6 +1370,8 @@ if (arg === "on") {
 
   /* the index opens by default at boot — deep links skip straight to work */
   setTimeout(function () {
+    if (replayedPending || (window.app.cvBusy && window.app.cvBusy())) return;
+    // a pending replay is streaming — don't cover the resumed output with the menu
     if (!(location.hash.length > 1)) openMenu();
     else showDock();   // deep-linked (menu closed) — show the mobile way home
   }, 320);
