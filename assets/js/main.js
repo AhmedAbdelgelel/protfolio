@@ -87,6 +87,22 @@
       scrollQueued = false;
       output.scrollTop = output.scrollHeight;
     }
+    saveScreen();
+  };
+
+  /* ============================================================
+     Screen memory — phones kill the tab when you switch apps and
+     reload replays everything. Keep a snapshot of the screen in
+     sessionStorage; on return, restore it instead of rebooting.
+     Saved after every paint (debounced); cleared by `clear`.
+     ============================================================ */
+  var saveTimer = null;
+  var saveScreen = function () {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      saveTimer = null;
+      try { sessionStorage.setItem("glgl-screen", output.innerHTML); } catch (e) { /* ignore */ }
+    }, 300);
   };
 
   /* ============================================================
@@ -226,6 +242,7 @@
       div.innerHTML = html;
       div.style.animationDelay = "0ms";
       output.appendChild(div);
+      scrollDown();
       return;
     }
     div.style.animationDelay = "0ms";
@@ -268,6 +285,26 @@
   };
 
   var boot = function () {
+    /* a saved screen means this session already lived — restore it
+       instead of replaying boot text (phones reload on app switch) */
+    var snap = null;
+    try { snap = sessionStorage.getItem("glgl-screen"); } catch (e) { /* ignore */ }
+    if (snap) {
+      output.innerHTML = snap;
+      var rows = output.querySelector(".menu-block");
+      if (rows) {           // the index was open — put it back, bound and live
+        menuOpen = true;
+        menuRows = rows;
+        var selRow = rows.querySelector(".menu-row--sel");
+        if (selRow) menuSel = Number(selRow.getAttribute("data-i")) || 0;
+        hideDock();
+      } else {
+        showDock();
+      }
+      term.classList.add("ready");
+      focusInput();
+      return;
+    }
     bootLines().forEach(function (line) { appendLine(esc(line)); });
     appendLine("&nbsp;");
     if (reduced) { showPrompt(); return; }
@@ -1095,14 +1132,18 @@ if (arg === "on") {
     menuRows.querySelectorAll(".menu-row").forEach(function (row) {
       row.setAttribute("role", "option");
       row.setAttribute("aria-selected", String(row.getAttribute("data-i") === String(menuSel)));
-      row.addEventListener("click", function (e) {
-        e.stopPropagation();     // don't steal focus / fire term taps
-        if (!menuOpen) return;
-        pickMenuItem(Number(row.getAttribute("data-i")));
-      });
     });
     scrollDown();
   };
+
+  /* row taps are delegated on the output — the menu stays clickable even
+     when it comes back from a session restore (no per-render listeners) */
+  output.addEventListener("click", function (e) {
+    var row = e.target.closest(".menu-row");
+    if (!row || !menuOpen) return;
+    e.stopPropagation();       // don't steal focus / fire term taps
+    pickMenuItem(Number(row.getAttribute("data-i")));
+  });
 
   var openMenuToken = 0;
   var openMenu = function () {
