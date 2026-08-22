@@ -44,8 +44,10 @@
     return isIOS ? "glgl@iphone ~ %" : "glgl@phone:~$";
   };
   var shellTitle = function () {
-    if (!mobile) return "glgl — C:\\Windows\\system32\\cmd.exe";
-    return isIOS ? "glgl — zsh" : "glgl — Termux";
+    /* keep the real name in every tab title — recruiters search names,
+       not shell binaries (the shell skin stays as the flavour suffix) */
+    if (!mobile) return "Ahmed Abdelgelel — Backend Engineer · cmd.exe";
+    return isIOS ? "Ahmed Abdelgelel — zsh" : "Ahmed Abdelgelel — Termux";
   };
 
   var updateSkin = function () {

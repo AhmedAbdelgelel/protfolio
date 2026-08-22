@@ -273,7 +273,7 @@
   var CAT_FILES = {
     "README.txt": "glgl terminal — a résumé disguised as cmd.exe. run <b>help</b> for the manual.",
     "cv.pdf": "a binary file — browsers handle it better than we do. run <b>cv</b> to open it.",
-    "skills.txt": "node.js · express · nestjs · redis · postgres · docker · aws",
+    "skills.txt": "node.js · express · nestjs · kafka · rabbitmq · postgres · docker · azure",
     "education.txt": "B.Sc. computer science — Mansoura University, class of 2025.",
     "experience.txt": "three chapters of backend shipping — run <b>experience</b> for the log.",
     "projects.txt": "two builds, repos included — run <b>projects</b> to walk through them.",
@@ -844,15 +844,17 @@
         }
         if (dir === "projects" || dir === "projects/") {
           ctx.print('<span class="dim">projects/ — selected builds, repos included:</span>');
-          ctx.print(pad("<b>cache-engine</b>", 18) + "— high-throughput redis cache middleware");
-          ctx.print(pad("<b>epub-to-pdf</b>", 18) + "— in-browser epub to pdf converter");
+          ctx.print(pad("<b>cache-engine</b>", 18) + "— high-throughput redis-style cache engine");
+          ctx.print(pad("<b>epub-to-pdf</b>", 18) + "— fixed-layout epub → pdf pipeline");
           ctx.blank();
           ctx.print('<span class="dim">open one: <b>projects</b></span>');
           return;
         }
         if (dir === "experience" || dir === "experience/") {
           ctx.print('<span class="dim">experience/ — career log:</span>');
-          ctx.print(pad("<b>penta</b>", 18) + "— dev studio, node.js backend · since 2023");
+          ctx.print(pad("<b>penta studio</b>", 18) + "— co-founder · backend · dec 2025 – present");
+          ctx.print(pad("<b>amen stories</b>", 18) + "— story-commerce backend · feb 2025");
+          ctx.print(pad("<b>naqaa al-ain</b>", 18) + "— freelance backend · apr 2025");
           ctx.blank();
           ctx.print('<span class="dim">open it: <b>experience</b></span>');
           return;
@@ -946,12 +948,14 @@
         ctx.print("<span class='dim'>│   ├──</span> cache-engine");
         ctx.print("<span class='dim'>│   └──</span> epub-to-pdf");
         ctx.print("<span class='dim'>├──</span> experience/");
-        ctx.print("<span class='dim'>│   └──</span> penta /");
+        ctx.print("<span class='dim'>│   ├──</span> penta-studio");
+        ctx.print("<span class='dim'>│   ├──</span> amen-stories");
+        ctx.print("<span class='dim'>│   └──</span> naqaa-al-ain");
         ctx.print("<span class='dim'>├──</span> cv.pdf");
         ctx.print("<span class='dim'>├──</span> contact.txt");
         ctx.print("<span class='dim'>└──</span> README.txt");
         ctx.blank();
-        ctx.print('<span class="dim">1 directory, 2 builds, 0 broken promises.</span>');
+        ctx.print('<span class="dim">2 directories, 2 builds, 0 broken promises.</span>');
       },
     },
 
