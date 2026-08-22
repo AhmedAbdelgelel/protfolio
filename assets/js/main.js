@@ -87,21 +87,31 @@
       scrollQueued = false;
       output.scrollTop = output.scrollHeight;
     }
-    saveScreen();
+    if (settled()) saveScreen();
   };
 
   /* ============================================================
      Screen memory — phones kill the tab when you switch apps and
      reload replays everything. Keep a snapshot of the screen in
      sessionStorage; on return, restore it instead of rebooting.
-     Saved after every paint (debounced); cleared by `clear`.
+     Only settled screens are saved — a snapshot taken mid-stream
+     would come back truncated, and half a résumé reads worse than
+     none (the pre-stream screen is what comes back instead).
+     Cleared by `clear`.
      ============================================================ */
   var saveTimer = null;
+  var settled = function () {
+    return !isTyping && !QUEUE.length &&
+      !(window.app.cvBusy && window.app.cvBusy()) && !matrixActive;
+  };
   var saveScreen = function () {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       saveTimer = null;
-      try { sessionStorage.setItem("glgl-screen", output.innerHTML); } catch (e) { /* ignore */ }
+      try {
+        sessionStorage.setItem("glgl-screen",
+          JSON.stringify({ h: output.innerHTML, t: output.scrollTop }));
+      } catch (e) { /* ignore */ }
     }, 300);
   };
 
@@ -288,15 +298,18 @@
     /* a saved screen means this session already lived — restore it
        instead of replaying boot text (phones reload on app switch) */
     var snap = null;
-    try { snap = sessionStorage.getItem("glgl-screen"); } catch (e) { /* ignore */ }
+    try { snap = JSON.parse(sessionStorage.getItem("glgl-screen") || "null"); } catch (e) { snap = null; }
+    if (snap && typeof snap.h === "string") { /* ok */ }
+    else if (typeof snap === "string") snap = { h: snap };   // legacy format
+    else snap = null;
     /* the rain can't be restored — its canvas repaints every frame,
        so the snapshot comes back as a dead blank screen. boot fresh. */
-    if (snap && (snap.indexOf("matrix-canvas") !== -1 || snap.indexOf("matrix__hint") !== -1)) {
+    if (snap && (snap.h.indexOf("matrix-canvas") !== -1 || snap.h.indexOf("matrix__hint") !== -1)) {
       try { sessionStorage.removeItem("glgl-screen"); } catch (e) { /* ignore */ }
       snap = null;
     }
-    if (snap) {
-      output.innerHTML = snap;
+    if (snap && snap.h) {
+      output.innerHTML = snap.h;
       var rows = output.querySelector(".menu-block");
       if (rows) {           // the index was open — put it back, bound and live
         menuOpen = true;
@@ -307,6 +320,7 @@
       } else {
         showDock();
       }
+      output.scrollTop = typeof snap.t === "number" ? snap.t : output.scrollHeight;
       term.classList.add("ready");
       focusInput();
       return;
@@ -1188,6 +1202,7 @@ if (arg === "on") {
       menuRows = null;
     }
     showDock();
+    saveScreen();
   };
 
   var pickMenuItem = function (i) {
