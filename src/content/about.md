@@ -6,9 +6,14 @@
 
 ![Ahmed Abdelgelel](/assets/img/ahmed.jpg)
 
-I'm a backend engineer in Cairo. For the last two years I've been building the systems other people's
-businesses run on: client products at a studio I co-founded, a story-commerce backend for Amen
-Stories, an orders and invoicing system for a car-maintenance company in Saudi Arabia.
+I'm a backend engineer in Cairo, and the work I keep choosing is the part that gets harder as a
+system grows: caching and eviction, routing between providers, queues that stay correct under
+retries, and the difference between an API that works and one that survives its first thousand users.
+
+Most of that curiosity now points at model infrastructure. An agent is only as good as the plumbing
+under it, so I spend my time on gateways, retrieval, evaluation, and the caching that makes a loop
+affordable to run. Two years of shipping these systems into other people's businesses is where the
+interest comes from, and where it gets tested.
 
 ## Working inside a team
 

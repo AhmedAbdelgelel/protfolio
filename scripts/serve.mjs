@@ -36,7 +36,17 @@ function safe(pathname) {
   return file.startsWith(root) ? file : null;
 }
 
-const server = createServer(async (req, res) => {
+const server = createServer((req, res) => {
+  handle(req, res).catch(() => {
+    try {
+      res.writeHead(500, { 'content-type': TYPES['.txt'] }).end('server error');
+    } catch {
+      res.destroy();
+    }
+  });
+});
+
+async function handle(req, res) {
   let pathname;
   try {
     pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname);
@@ -68,13 +78,17 @@ const server = createServer(async (req, res) => {
     }
   }
 
+  // read the body first: writing the head before an await leaves the response
+  // half-sent if the file is missing (which happens while a build is running)
+  let body;
   try {
-    res.writeHead(404, { 'content-type': TYPES['.html'] });
-    res.end(await readFile(join(root, '404.html')));
+    body = await readFile(join(root, '404.html'));
   } catch {
-    res.writeHead(404).end('not found');
+    body = Buffer.from('not found');
   }
-});
+  res.writeHead(404, { 'content-type': TYPES['.html'] });
+  res.end(body);
+}
 
 server.listen(port, host, () => {
   console.log('  glgl.me  →  http://' + host + ':' + port);
