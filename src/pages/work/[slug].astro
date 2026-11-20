@@ -1,6 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
+import ArchFlow from '../../components/ArchFlow.astro';
+import { flows } from '../../data/flows';
 
 export async function getStaticPaths() {
   const entries = await getCollection('work');
@@ -9,6 +11,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const flow = flows[entry.id];
 ---
 
 <Base title={entry.data.title + ' — Ahmed Abdelgelel'} description={entry.data.title}>
@@ -17,6 +20,10 @@ const { Content } = await render(entry);
       <span>Ahmed Abdelgelel | {entry.data.summary}</span>
     </p>
     <h1>{entry.data.title}</h1>
+    <p class="post-lead">{entry.data.lead}</p>
+
+    {flow && <ArchFlow id={'flow-' + entry.id} flow={flow} />}
+
     <Content />
   </article>
 </Base>

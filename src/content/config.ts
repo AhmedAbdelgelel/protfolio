@@ -7,6 +7,7 @@ const work = defineCollection({
     title: z.string(),
     year: z.number(),
     date: z.string(),
+    lead: z.string(),
     metric: z.string(),
     metricNote: z.string(),
     summary: z.string(),

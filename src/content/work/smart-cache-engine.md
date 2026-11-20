@@ -1,5 +1,6 @@
 ---
 title: "Smart Cache Engine: a Redis-like cache from scratch"
+lead: "A cache engine written from scratch, benchmarked at 3M+ operations per second, with a stampede guard that keeps a hot key from taking the backend with it."
 year: 2025
 date: "2025-08-01"
 metric: "3M+"

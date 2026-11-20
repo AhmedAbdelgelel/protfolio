@@ -365,6 +365,118 @@ img { display: block; max-width: 100%; }
 .site-footer a:hover { border-bottom-color: var(--muted); }
 @media (prefers-color-scheme: dark) { .site-footer { color: var(--muted); } }
 
+/* ---------------------------- architecture flow ---------------------------- */
+.post-lead {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--article);
+  margin: 0.5rem 0 2rem;
+  max-width: 58ch;
+}
+
+.flow {
+  margin: 2.5rem 0 3rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+}
+.flow__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.flow__head h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--strong);
+  margin: 0;
+}
+.flow__hint { display: none; font-size: 0.75rem; color: var(--muted-2); }
+.flow.is-interactive .flow__hint { display: block; }
+
+.flow__track {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.4rem;
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.flow__track li { display: flex; align-items: center; gap: 0.5rem; }
+.flow__node {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.26rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted-2);
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+.flow__node:hover { color: var(--ink); border-color: var(--muted-3); }
+.flow__node[aria-current='step'] {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--pill);
+}
+.flow__num { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.5625rem; color: var(--muted-3); }
+.flow__node[aria-current='step'] .flow__num { color: var(--ink); }
+
+.flow__panels { border-left: 2px solid var(--rule); padding-left: 1.1rem; }
+.flow__panel h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--strong);
+  margin: 0 0 0.35rem;
+}
+.flow__panel p {
+  margin: 0.35rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--article);
+  max-width: 58ch;
+}
+.flow__notes { margin: 0.75rem 0 0; list-style: none; display: grid; gap: 0.25rem; }
+.flow__notes li {
+  position: relative;
+  padding-left: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.flow__notes li::before {
+  content: '–';
+  position: absolute;
+  margin-left: -1rem;
+  color: var(--muted-3);
+}
+
+/* without JavaScript every step is readable */
+.flow:not(.is-interactive) .flow__panel + .flow__panel {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.25rem;
+}
+/* with JavaScript it becomes a stepper */
+.flow.is-interactive .flow__panel { display: none; }
+.flow.is-interactive .flow__panel.is-active { display: block; animation: flow-in 200ms ease both; }
+@keyframes flow-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 560px) {
+  .flow__track { gap: 0.3rem; }
+  .flow__node { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+}
+
 /* ---------------------------------- print --------------------------------- */
 @media print {
   body { max-width: 100%; }

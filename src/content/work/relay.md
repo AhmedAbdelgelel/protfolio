@@ -1,5 +1,6 @@
 ---
 title: "Relay: a gateway that decides when a cached answer may be reused"
+lead: "Most LLM gateways cache on similarity. Relay caches on policy."
 year: 2026
 date: "2026-02-01"
 metric: "50 → 1"
@@ -7,8 +8,6 @@ metricNote: "calls → 1 request"
 summary: "50 concurrent identical calls collapse into one upstream request"
 order: 1
 ---
-
-Most LLM gateways cache on similarity. Relay caches on policy.
 
 ## The shortcut everyone takes
 

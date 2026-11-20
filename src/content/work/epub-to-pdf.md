@@ -1,5 +1,6 @@
 ---
 title: "EPUB to PDF: convert a fixed-layout book without losing the page"
+lead: "A fixed-layout EPUB is already a PDF that happens to be written in HTML. Most converters translate the layout, and the layout is the first thing to die."
 year: 2025
 date: "2025-05-01"
 metric: "1:1"
@@ -7,9 +8,6 @@ metricNote: "viewport"
 summary: "every page rendered at its exact viewport, not re-typeset"
 order: 3
 ---
-
-A fixed-layout EPUB is already a PDF that happens to be written in HTML. Most converters translate the
-layout, and the layout is the first thing to die.
 
 ## Why conversion usually breaks
 
