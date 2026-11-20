@@ -126,8 +126,8 @@ export const flows: Record<string, Flow> = {
         label: 'Cart',
         title: 'A customer picks a story and a format',
         body:
-          'The store sells personalised stories. A cart holds the book, the format and the personalisation choices, and it is the first place where the product rules live.',
-        notes: ['multilingual catalogue', 'format and personalisation carried through the order']
+          'The store sells personalized stories. A cart holds the book, the format and the personalization choices, and it is the first place where the product rules live.',
+        notes: ['multilingual catalog', 'format and personalization carried through the order']
       },
       {
         label: 'Payment',
@@ -147,14 +147,14 @@ export const flows: Record<string, Flow> = {
         label: 'Assign',
         title: 'An artist is assigned and the work is tracked',
         body:
-          'Personalised stories need a human. Artist assignment, workload and status live in the admin side, with role-based access so artists only see their queue and admins see everything.',
+          'Personalized stories need a human. Artist assignment, workload and status live in the admin side, with role-based access so artists only see their queue and admins see everything.',
         notes: ['artist queue and status', 'role-based access for admins, artists, customers']
       },
       {
         label: 'Build',
         title: 'The EPUB is generated from the order',
         body:
-          'A background job builds the book from the chosen story, language and personalisation, then stores the file against the order. Long work leaves the request path, so checkout stays fast.',
+          'A background job builds the book from the chosen story, language and personalization, then stores the file against the order. Long work leaves the request path, so checkout stays fast.',
         notes: ['generation off the request path', 'the file is attached to the order']
       },
       {

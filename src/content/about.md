@@ -74,7 +74,7 @@ retry against the provider is not.
 ## Experience
 
 - **Software Engineer, Penta Studio** (remote, Dec 2025 to present). Backend architecture for client products, several at once. The design, the APIs, the integrations, and the calls with the people paying for them.
-- **Backend Developer, Amen Stories** (Feb 2025 to Oct 2026, remote). Backend on the team that built a personalised story bookstore: cart, Stripe, the order pipeline, generated EPUBs, artist assignment, admin roles.
+- **Backend Developer, Amen Stories** (Feb 2025 to Oct 2026, remote). Backend on the team that built a personalized story bookstore: cart, Stripe, the order pipeline, generated EPUBs, artist assignment, admin roles.
 - **Freelance Backend Developer, Naqaa Al-Ain** (Apr to Aug 2025, Saudi Arabia). Orders, invoices, payments, auth and OCR receipts for a car-maintenance operator. One engineer, one client, four months.
 
 ## How I work

@@ -2,17 +2,17 @@
 title: "Amen Stories: the backend of a story bookstore"
 year: 2025
 date: "2025-02-01"
-lead: "A personalised story shop where a customer picks a story, an artist makes it theirs, and the book is generated from the order. I was the backend on the team that built it."
+lead: "A personalized story shop where a customer picks a story, an artist makes it theirs, and the book is generated from the order. I was the backend on the team that built it."
 metric: "end to end"
 metricNote: "cart to book"
-summary: "the whole backend of a personalised story store, from the cart to the generated book"
+summary: "the whole backend of a personalized story store, from the cart to the generated book"
 order: 4
 ---
 
 ## What the product was
 
 A bookstore where the books do not exist yet. A customer picks a story, chooses how it should be
-personalised, pays, and a real person writes and illustrates it. Admins run the queue, customers
+personalized, pays, and a real person writes and illustrates it. Admins run the queue, customers
 get a finished book, and the whole thing has to feel like buying something off a shelf.
 
 That shape decides the backend: money first, long work after it, and a lot of state that a person
@@ -26,7 +26,7 @@ touches by hand.
   what to build, who writes it, what to send.
 - **Artist assignment.** A queue and a status per order, with role-based access so artists see their
   own work and admins see the board.
-- **EPUB generation.** Personalised books built by a background job from the order, then stored
+- **EPUB generation.** Personalized books built by a background job from the order, then stored
   against it. The generation never runs on the request path, so checkout stays fast.
 - **Content models.** Multilingual stories, media uploads, and the role split between admins,
   artists and customers.
