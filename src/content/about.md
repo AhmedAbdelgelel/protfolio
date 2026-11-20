@@ -10,9 +10,6 @@ I'm a backend engineer in Cairo. For the last two years I've been building the s
 businesses run on: client products at a studio I co-founded, a story-commerce backend for Amen
 Stories, an orders and invoicing system for a car-maintenance company in Saudi Arabia.
 
-Most of it is Node.js and TypeScript. When something didn't exist, I wrote it: a cache engine, an
-EPUB to PDF renderer, an LLM gateway.
-
 ## Why forward deployed
 
 The work I remember is never the architecture diagram. It's the week after launch. The data doesn't
