@@ -10,14 +10,14 @@ I'm a backend engineer in Cairo. For the last two years I've been building the s
 businesses run on: client products at a studio I co-founded, a story-commerce backend for Amen
 Stories, an orders and invoicing system for a car-maintenance company in Saudi Arabia.
 
-## Why forward deployed
+## Working inside a team
 
 The work I remember is never the architecture diagram. It's the week after launch. The data doesn't
 look like the sample. A provider rate-limits you on a Friday. Someone calls because the invoice total
 is off by one cent and it has to be right before Monday.
 
-Forward deployed means being the engineer on that side of the table. You sit with the customer's team,
-you write the software against their data, and you're the one who gets called when it breaks. It's less glamorous than it sounds, which is probably why I'm good at it.
+It means being the engineer on that side of the table. You sit with the customer's team, you write
+the software against their data, and you're the one who gets called when it breaks. It's less glamorous than it sounds, which is probably why I'm good at it.
 
 I've done it under different titles. At Penta Studio I was the backend for several client products at
 once, and the person on the call when scope moved. At Amen Stories the product had no backend, so I
@@ -88,7 +88,7 @@ PostgreSQL, MongoDB, MySQL, pgvector, Redis. Docker, Azure, CI/CD, Linux, Git.
 
 ## Contact
 
-I'm looking for forward-deployed and backend roles, remote or in Cairo.
+I'm looking for backend roles, remote or in Cairo.
 
 - [ahmed4bdelgelel@gmail.com](mailto:ahmed4bdelgelel@gmail.com)
 - [+20 102 665 7839](tel:+201026657839)

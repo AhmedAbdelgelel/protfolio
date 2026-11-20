@@ -372,6 +372,11 @@ img { display: block; max-width: 100%; }
 .flow__hint { display: none; font-size: 0.75rem; color: var(--muted-2); }
 .flow.is-interactive .flow__hint { display: block; }
 
+.article .flow__track {
+  padding: 0;
+  margin: 0 0 1.5rem;
+  list-style: none;
+}
 .flow__track {
   display: flex;
   flex-wrap: wrap;
@@ -632,7 +637,23 @@ img { display: block; max-width: 100%; }
 @media (max-width: 640px) {
   .site-nav .nav-hide-sm { display: none; }
 }
+@media (max-width: 520px) {
+  .site-nav .nav-work,
+  .site-nav .nav-github { display: none; }
+}
 .nav-lang span { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.6875rem; }
+.nav-lang__short { display: none; }
+
+/* very narrow phones: tighten the header so nothing can push past the edge */
+@media (max-width: 400px) {
+  main.site { padding-inline: 1rem; }
+  .logo { font-size: 0.9375rem; }
+  .site-nav a { padding: 0.35rem 0.25rem; }
+  .site-nav a > span { padding-inline: 0.25rem; }
+  .theme { width: 1.75rem; height: 1.75rem; }
+  .nav-lang__full { display: none; }
+  .nav-lang__short { display: inline; }
+}
 .theme {
   display: inline-grid;
   place-items: center;

@@ -33,20 +33,11 @@ touches by hand.
 
 ## How the team worked
 
+
 Small team, early product, no backend to start from. I was the person who owned the backend end to
 end: schema, endpoints, the payment path, the jobs, and the admin surfaces the team used daily. That
 meant sitting in the product calls, arguing about what an order actually is before writing one, and
 shipping the parts the demo did not need but the first real customer did.
 
-## Why it is the clearest proof of the forward-deployed claim
-
-This is the case study I would show first. The product had no backend, no queue, no payment path
-and no admin tooling when I joined it, and it had all of them when I left: written against the
-team's real constraints, not against a template.
-
-## Why this belongs in a forward-deployed portfolio
-
-Every part of it was somebody else's business model. The interesting decisions were not "which
-framework" but "when does a customer own a book", "what happens if Stripe retries the webhook", and
-"who is allowed to see this artwork". That is the job: write the system inside the customer's world,
-and stay until the boring parts are boring.
+The product had no backend, queue, payment path or admin tooling when I joined it. It has all of them
+now, written against the team's real constraints rather than a template.

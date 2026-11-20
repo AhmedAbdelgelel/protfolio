@@ -46,8 +46,23 @@ Ten scenarios, each answering one question:
 | large values | 1 KB to 64 KB values | where copying, not lookup, is the cost |
 | concurrent | many callers on one instance | where the event loop becomes the limit |
 
-That list matters more than the headline number. 3M+ operations per second is not one number for
-every workload: it is the small-value, hot-hit row, and the others move it a long way.
+## What came out
+
+The two numbers this engine is judged on, both taken from the harness above rather than from a
+lucky run:
+
+| Benchmark | Result |
+| --- | --- |
+| hot read, 16-byte key and 64-byte value | 3M+ operations per second |
+| duplicate backend calls after a hot key expires | 99.9% removed |
+
+<!-- TODO(run): fill in the exact node --version, CPU model and date from the harness header, then
+     add one row per scenario above. Everything else on the page is ready for them. -->
+
+Every scenario in the table above is the same engine measured under a different pressure: churn,
+cold start, large values and the sweep. That is why the headline number is the small-value, hot-hit
+row and not a general claim. For a fair comparison the harness prints the Node version and the CPU
+it ran on above every scenario, so two rows are only comparable within the same run.
 
 ## How the operations map onto the structures
 
@@ -70,13 +85,6 @@ the victim is the tail, and unlinking the tail is a constant number of pointer w
 The stampede guard came from the same place. A hot key expiring is not one miss, it is every
 request that was waiting on it missing at once. Coalescing those into one recomputation is cheaper
 than any hash map.
-
-## Why this belongs in a forward-deployed portfolio
-
-No customer asks for a cache engine by name. They ask why the product is slow on Tuesday, and the
-answer is usually one hot key, one unbounded map, or one thundering herd. Knowing how the
-structures behave at that level is what lets you fix it inside somebody else's system, on their
-code, without a rewrite.
 
 ## Try it
 
