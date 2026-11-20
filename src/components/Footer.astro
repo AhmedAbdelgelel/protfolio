@@ -1,4 +1,12 @@
 ---
+import { dict, defaultLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang ?? defaultLang;
+const t = dict(lang);
 const year = new Date().getFullYear();
 ---
 
@@ -7,7 +15,7 @@ const year = new Date().getFullYear();
     Ahmed Abdelgelel (<a href="https://github.com/AhmedAbdelgelel" target="_blank" rel="noopener">@AhmedAbdelgelel</a>)
   </div>
   <div>
-    <a href="/assets/cv/AhmedAbdelgelel.pdf" target="_blank" rel="noopener">Résumé</a>
+    <a href="/assets/cv/AhmedAbdelgelel.pdf" target="_blank" rel="noopener">{t.resume}</a>
     <span> · {year}</span>
   </div>
 </footer>

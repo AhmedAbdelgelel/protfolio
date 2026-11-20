@@ -2,24 +2,33 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { locales, localesInfo, localePath, stripLocale, defaultLang, type Lang } from '../i18n/ui';
 
 interface Props {
   title: string;
   description: string;
+  lang?: Lang;
   /** 404 and other non-indexable pages: no canonical, and tell crawlers to stay out. */
   noindex?: boolean;
 }
 
-const { title, description, noindex = false } = Astro.props;
+const { title, description, lang = defaultLang, noindex = false } = Astro.props;
 const site = 'https://glgl.me';
+const info = localesInfo[lang];
 
-// every page canonicalises to itself, not to the home page
-const canonicalPath = Astro.url.pathname.replace(/index\.html$/, '');
-const canonical = new URL(canonicalPath, site).href;
+const currentPath = Astro.url.pathname.replace(/index\.html$/, '');
+const canonical = new URL(currentPath, site).href;
+
+// every page advertises its translations
+const barePath = stripLocale(currentPath) || '/';
+const alternates = locales.map((locale) => ({
+  hreflang: localesInfo[locale].htmlLang,
+  href: new URL(localePath(locale, barePath), site).href
+}));
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={info.htmlLang} dir={info.dir}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -27,6 +36,10 @@ const canonical = new URL(canonicalPath, site).href;
     <meta name="description" content={description} />
     <meta name="author" content="Ahmed Abdelgelel" />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={new URL(barePath, site).href} />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="transparent" />
 
@@ -35,6 +48,7 @@ const canonical = new URL(canonicalPath, site).href;
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={site + '/assets/img/og.png'} />
+    <meta property="og:locale" content={info.htmlLang} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -45,11 +59,19 @@ const canonical = new URL(canonicalPath, site).href;
     <link rel="preload" href="/assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/geistmono-latin.woff2" as="font" type="font/woff2" crossorigin />
 
+    <script is:inline>
+      // apply a saved theme before the first paint, so nothing flashes
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch (error) {}
+    </script>
+
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Person',
       name: 'Ahmed Abdelgelel',
-      jobTitle: 'Forward-deployed engineer',
+      jobTitle: 'Backend engineer',
       url: site,
       image: site + '/assets/img/ahmed.jpg',
       email: 'mailto:ahmed4bdelgelel@gmail.com',
@@ -59,9 +81,9 @@ const canonical = new URL(canonicalPath, site).href;
   </head>
   <body>
     <main class="site">
-      <Header />
+      <Header lang={lang} />
       <slot />
     </main>
-    <Footer />
+    <Footer lang={lang} />
   </body>
 </html>

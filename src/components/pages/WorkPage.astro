@@ -1,0 +1,43 @@
+---
+import Base from '../../layouts/Base.astro';
+import ArchFlow from '../ArchFlow.astro';
+import CacheLab from '../CacheLab.astro';
+import { render } from 'astro:content';
+import { dict, type Lang } from '../../i18n/ui';
+import { flows } from '../../data/flows';
+
+interface Props {
+  lang: Lang;
+  entry: any;
+}
+
+const { lang, entry } = Astro.props;
+const t = dict(lang);
+const { Content } = await render(entry);
+const flow = flows[entry.id];
+---
+
+<Base
+  lang={lang}
+  title={entry.data.title + ' — Ahmed Abdelgelel'}
+  description={entry.data.summary}
+>
+  <article class="article" dir={lang === 'en' ? undefined : 'ltr'}>
+    <p class="post-meta">
+      <span>Ahmed Abdelgelel | {entry.data.summary}</span>
+    </p>
+
+    <h1>{entry.data.title}</h1>
+    <p class="post-lead">{entry.data.lead}</p>
+
+    {lang !== 'en' && (
+      <p class="post-language-note" dir="rtl" lang="ar">{t.caseStudyLanguageNote}</p>
+    )}
+
+    {flow && <ArchFlow id={'flow-' + lang + '-' + entry.id} flow={flow} />}
+
+    <Content />
+
+    {entry.id === 'smart-cache-engine' && <CacheLab />}
+  </article>
+</Base>

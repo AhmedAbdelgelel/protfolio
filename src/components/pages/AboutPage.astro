@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactRail from '../ContactRail.astro';
+import { readFileSync, existsSync } from 'node:fs';
+import { marked } from 'marked';
+import { dict, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = dict(lang);
+
+// about.md for English, about.<lang>.md for the others, and a fallback if a
+// translation does not exist yet.
+const fallback = 'src/content/about.md';
+const localized = 'src/content/about.' + lang + '.md';
+const source = readFileSync(existsSync(localized) ? localized : fallback, 'utf8');
+
+const metaMatch = source.match(/<!--[\s\S]*?meta:\s*(\{[\s\S]*?\})[\s\S]*?-->/);
+const meta = metaMatch ? (JSON.parse(metaMatch[1]) as { title?: string; description?: string }) : null;
+
+const body = source.replace(/<!--[\s\S]*?-->/g, '').replace(/^#\s+.*$/m, '');
+
+const slug = (value: string): string =>
+  value
+    .replace(/&[#a-z0-9]+;/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '');
+
+let html = marked.parse(body, { gfm: true }) as string;
+html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
+  return '<h2 id="' + slug(text) + '">' + text + '</h2>';
+});
+
+// the rail is built from the page itself, so it works in any language
+const sections = [...html.matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)]
+  .map((match) => ({ id: match[1], label: match[2].replace(/<[^>]+>/g, '').trim() }))
+  .filter((section) => section.label.length > 0)
+  .slice(0, 4);
+---
+
+<Base
+  lang={lang}
+  title={meta?.title ?? t.aboutTitle}
+  description={meta?.description ?? t.aboutDescription}
+>
+  <ContactRail lang={lang} sections={sections} />
+
+  <article class="article article--about">
+    <h1>{t.aboutHeading}</h1>
+    <div set:html={html} />
+  </article>
+</Base>

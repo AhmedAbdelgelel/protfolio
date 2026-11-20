@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { dict, localePath, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = dict(lang);
+
+const entries = (await getCollection('work')).sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+const rows: Array<{ year?: number; title: string; metric: string; note: string; summary: string; href: string }> = [];
+entries.forEach((entry, index) => {
+  const year = entry.data.year;
+  const firstOfYear = !entries[index - 1] || entries[index - 1].data.year !== year;
+  rows.push({
+    year: firstOfYear ? year : undefined,
+    title: entry.data.title,
+    metric: entry.data.metric,
+    note: entry.data.metricNote,
+    summary: entry.data.summary,
+    href: localePath(lang, '/work/' + entry.id + '/')
+  });
+});
+---
+
+<Base lang={lang} title={t.homeTitle} description={t.homeDescription}>
+  <main class="index">
+    <p class="index__intro">
+      {t.homeIntro} <a class="about-link" href={localePath(lang, '/about/')}>{t.homeMore}</a>.
+    </p>
+
+    <ul>
+      {rows.map((row) => (
+        <li>
+          <a href={row.href}>
+            <span class="index__row">
+              {row.year ? <span class="index__year">{row.year}</span> : <span class="index__year"></span>}
+              <span class="index__title"><span>{row.title}</span></span>
+              <span class="index__meta" title={row.summary}>
+                <b>{row.metric}</b>
+                <small>{row.note}</small>
+              </span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</Base>

@@ -1,9 +1,6 @@
 ---
-import Base from '../../layouts/Base.astro';
-import { getCollection, render } from 'astro:content';
-import ArchFlow from '../../components/ArchFlow.astro';
-import CacheLab from '../../components/CacheLab.astro';
-import { flows } from '../../data/flows';
+import WorkPage from '../../components/pages/WorkPage.astro';
+import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const entries = await getCollection('work');
@@ -11,22 +8,6 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
-const flow = flows[entry.id];
 ---
 
-<Base title={entry.data.title + ' — Ahmed Abdelgelel'} description={entry.data.title}>
-  <article class="article">
-    <p class="post-meta">
-      <span>Ahmed Abdelgelel | {entry.data.summary}</span>
-    </p>
-    <h1>{entry.data.title}</h1>
-    <p class="post-lead">{entry.data.lead}</p>
-
-    {flow && <ArchFlow id={'flow-' + entry.id} flow={flow} />}
-
-    <Content />
-
-    {entry.id === 'smart-cache-engine' && <CacheLab />}
-  </article>
-</Base>
+<WorkPage lang="en" entry={entry} />

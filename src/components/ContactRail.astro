@@ -1,35 +1,42 @@
 ---
-/**
- * A quiet rail beside the long pages: where you are, and how to reach me.
- * Desktop only — on narrow screens the page's own Contact section does the job.
- */
-const sections = [
-  { id: 'why-forward-deployed', label: 'Why forward deployed' },
-  { id: 'what-ive-built', label: "What I've built" },
-  { id: 'experience', label: 'Experience' },
-  { id: 'how-i-work', label: 'How I work' }
-];
+import { dict, defaultLang, type Lang } from '../i18n/ui';
+
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  lang?: Lang;
+  sections?: Section[];
+}
+
+const lang = Astro.props.lang ?? defaultLang;
+const t = dict(lang);
+const sections = Astro.props.sections ?? [];
 
 const contacts = [
-  { label: 'Email', href: 'mailto:ahmed4bdelgelel@gmail.com', note: 'ahmed4bdelgelel@gmail.com' },
+  { label: t.email, href: 'mailto:ahmed4bdelgelel@gmail.com', note: 'ahmed4bdelgelel@gmail.com' },
   { label: 'GitHub', href: 'https://github.com/AhmedAbdelgelel', note: '@AhmedAbdelgelel', external: true },
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/ahmed-abdelgelel-6aa523283/', note: 'in/ahmed-abdelgelel', external: true },
-  { label: 'Résumé', href: '/assets/cv/AhmedAbdelgelel.pdf', note: 'PDF', external: true }
+  { label: t.resume, href: '/assets/cv/AhmedAbdelgelel.pdf', note: 'PDF', external: true }
 ];
 ---
 
-<aside class="rail" aria-label="On this page and contact">
-  <div class="rail__group">
-    <p class="rail__label">On this page</p>
-    <ul class="rail__list">
-      {sections.map((section) => (
-        <li><a href={'#' + section.id}>{section.label}</a></li>
-      ))}
-    </ul>
-  </div>
+<aside class="rail" aria-label={t.onThisPage}>
+  {sections.length > 0 && (
+    <div class="rail__group">
+      <p class="rail__label">{t.onThisPage}</p>
+      <ul class="rail__list">
+        {sections.map((section) => (
+          <li><a href={'#' + section.id}>{section.label}</a></li>
+        ))}
+      </ul>
+    </div>
+  )}
 
   <div class="rail__group">
-    <p class="rail__label">Contact</p>
+    <p class="rail__label">{t.contact}</p>
     <ul class="rail__list">
       {contacts.map((contact) => (
         <li>
