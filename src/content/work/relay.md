@@ -71,4 +71,12 @@ An agent loop retries. It re-asks the same prompt, or one that is trivially diff
 minute. A gateway that cannot tell a retry from a new request turns a bad minute into a bill. A gateway
 that can tell them apart is the difference between an agent that is cheap to run and one that is not.
 
+## Why this belongs in a forward-deployed portfolio
+
+Every customer I have worked with in the last year has a model in the loop and a bill attached to
+it. The questions they actually ask are concrete: why is this call slow, why is this answer
+different from yesterday, what happens when the provider goes down on a Friday. Relay exists
+because I kept answering those questions by hand. A forward-deployed engineer is the person who
+notices the third time the same question is asked and writes the thing that answers it.
+
 [Repository](https://github.com/AhmedAbdelgelel/Relay)

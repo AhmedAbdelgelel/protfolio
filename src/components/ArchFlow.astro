@@ -42,7 +42,10 @@ const steps = flow.steps;
   <div class="flow__panels">
     {steps.map((step, index) => (
       <article class="flow__panel" id={id + '-panel-' + index} data-panel={index}>
-        <h3>{step.title}</h3>
+        <h3>
+          {step.title}
+          {step.metric && <span class="flow__metric">{step.metric}</span>}
+        </h3>
         <p>{step.body}</p>
         {step.notes && (
           <ul class="flow__notes">

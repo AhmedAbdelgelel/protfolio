@@ -3,6 +3,8 @@ export interface FlowStep {
   title: string;
   body: string;
   notes?: string[];
+  /** An optional number or fact pinned to the step, shown as a chip. */
+  metric?: string;
 }
 
 export interface Flow {
@@ -59,9 +61,108 @@ export const flows: Record<string, Flow> = {
       {
         label: 'Upstream',
         title: 'One call upstream, streamed back with its evidence',
+        metric: '50 → 1',
         body:
           'Concurrent identical requests are coalesced into a single in-flight call. Providers are tried in order behind retries and a breaker. The answer streams to the caller while the decision is written back for the control plane.',
         notes: ['single-flight, 50 concurrent calls into one', 'fallback with retries and a circuit breaker', 'per-reply evidence: decision, policy, similarity, cost']
+      }
+    ]
+  },
+  'smart-cache-engine': {
+    title: 'How a key moves through the cache',
+    hint: 'Click a step',
+    steps: [
+      {
+        label: 'Set',
+        title: 'A write touches two structures at once',
+        body:
+          'A new entry goes into the hash map for the O(1) lookup and into the head of the linked list for the ordering. One of them alone gives you a cache that is fast but cannot evict, or one that evicts but must scan to find a key.',
+        metric: 'O(1)',
+        notes: ['hash map: key to node', 'linked list: recency order', 'both are updated in the same operation']
+      },
+      {
+        label: 'Order',
+        title: 'The list is the age of the data',
+        body:
+          'The node at the head is the most recently used, the node at the tail is next to go. Every read or write moves a node to the head, which is a handful of pointer assignments and never a search.',
+        notes: ['head = most recently used', 'tail = least recently used', 'promotion is pointer work, not a sort']
+      },
+      {
+        label: 'Account',
+        title: 'Every entry is charged before it is stored',
+        body:
+          'Keys, values and overhead are counted in bytes. When a write would cross the memory cap, the cache does not throw: it makes room. That is the difference between a cache and a dictionary.',
+        notes: ['byte-level accounting, not entry counts', 'the cap is enforced on write', 'the caller sees a normal put']
+      },
+      {
+        label: 'Evict',
+        title: 'A full cache drops the tail',
+        body:
+          'The least recently used node is unlinked from both ends of the list in constant time and its bucket entry is deleted in the same step. Nothing is scanned, so eviction does not get slower as the cache fills.',
+        metric: 'O(1)',
+        notes: ['unlink tail, delete bucket', 'no scan, no sort', 'the evicted key is reported so the caller can tell']
+      },
+      {
+        label: 'Read',
+        title: 'A read is a lookup plus a promotion',
+        body:
+          'The bucket points straight at the node. On a hit the node moves to the head and the value is returned. On a miss there is nothing to promote and the caller decides what to do next.',
+        notes: ['hit: O(1) lookup, move node', 'miss: returns nothing, never a wrong value']
+      },
+      {
+        label: 'Expire',
+        title: 'TTL is checked lazily, and swept in the background',
+        body:
+          'Each node carries an expiry timestamp. Reads treat an expired node as a miss and unlink it there and then. A background sweep walks part of the list on an interval so expired entries do not occupy memory until someone asks for them.',
+        notes: ['lazy expiry on read', 'active sweep in the background', 'expired is a miss, never a stale answer']
+      }
+    ]
+  },
+  'amen-stories': {
+    title: 'How an order becomes a book',
+    hint: 'Click a step',
+    steps: [
+      {
+        label: 'Cart',
+        title: 'A customer picks a story and a format',
+        body:
+          'The store sells personalised stories. A cart holds the book, the format and the personalisation choices, and it is the first place where the product rules live.',
+        notes: ['multilingual catalogue', 'format and personalisation carried through the order']
+      },
+      {
+        label: 'Payment',
+        title: 'Stripe takes the money, the webhook closes the loop',
+        body:
+          'Checkout runs in Stripe. The backend treats the webhook as the source of truth, so a refresh or a double click cannot create a second order.',
+        notes: ['Stripe Checkout', 'webhook-driven state, not client callbacks']
+      },
+      {
+        label: 'Order',
+        title: 'The order is the record the rest of the system reads',
+        body:
+          'Once paid, the order becomes the object that every background job works from: what to build, who writes it, what to send. Idempotency lives here, not in the UI.',
+        notes: ['one order per payment', 'status transitions drive the jobs']
+      },
+      {
+        label: 'Assign',
+        title: 'An artist is assigned and the work is tracked',
+        body:
+          'Personalised stories need a human. Artist assignment, workload and status live in the admin side, with role-based access so artists only see their queue and admins see everything.',
+        notes: ['artist queue and status', 'role-based access for admins, artists, customers']
+      },
+      {
+        label: 'Build',
+        title: 'The EPUB is generated from the order',
+        body:
+          'A background job builds the book from the chosen story, language and personalisation, then stores the file against the order. Long work leaves the request path, so checkout stays fast.',
+        notes: ['generation off the request path', 'the file is attached to the order']
+      },
+      {
+        label: 'Deliver',
+        title: 'The book is delivered and the session is kept alive',
+        body:
+          'The customer gets the finished book, and the same background layer keeps sessions and order state healthy afterwards, which is the part nobody sees until it stops working.',
+        notes: ['delivery tied to the order', 'background jobs for session upkeep']
       }
     ]
   },

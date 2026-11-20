@@ -477,6 +477,195 @@ img { display: block; max-width: 100%; }
   .flow__node { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 }
 
+/* ------------------------------ contact rail ------------------------------ */
+.rail {
+  display: none;
+  position: fixed;
+  top: 7.5rem;
+  left: calc(50% - 35rem);
+  width: 12.5rem;
+  flex-direction: column;
+  gap: 1.9rem;
+  padding-right: 1.4rem;
+  border-right: 1px solid var(--rule);
+}
+@media (min-width: 1180px) {
+  .rail { display: flex; }
+}
+.rail__label {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  margin-bottom: 0.45rem;
+}
+.rail__list { display: grid; gap: 0.05rem; }
+.rail__list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.16rem 0.4rem;
+  margin-left: -0.4rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: var(--muted-2);
+  transition: color 140ms ease, background-color 140ms ease;
+}
+.rail__list a:hover { color: var(--ink); background: var(--pill); }
+.rail__arrow { font-size: 0.625rem; color: var(--muted-3); }
+.rail__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  color: var(--muted-3);
+}
+.rail__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
+}
+
+/* -------------------------------- cache lab -------------------------------- */
+.lab {
+  margin: 2.75rem 0 0;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+}
+.lab__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+.lab__head h2 { font-size: 1.125rem; font-weight: 700; color: var(--strong); margin: 0; }
+.lab__hint { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.6875rem; color: var(--muted-2); }
+@media (max-width: 560px) {
+  .lab__head { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+}
+
+.lab__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; margin-bottom: 1.1rem; }
+@media (max-width: 560px) { .lab__grid { grid-template-columns: 1fr; gap: 1.25rem; } }
+.lab__panel-title {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  margin-bottom: 0.5rem;
+}
+
+.lab__map { display: grid; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
+.lab__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  padding: 0.14rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.lab__row--empty, .lab__row--expired { color: var(--muted-3); }
+.lab__key { color: var(--ink); }
+.lab__value { color: var(--article); }
+.lab__arrow { color: var(--muted-3); }
+.lab__ttl { margin-left: auto; font-size: 0.625rem; color: var(--muted-3); }
+
+.lab__lru { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.lab__node {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9rem;
+  padding: 0.16rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--muted-2);
+}
+.lab__node--head { border-color: var(--ink); color: var(--ink); }
+.lab__node--tail { border-style: dashed; }
+.lab__lru-arrow { color: var(--muted-3); font-size: 0.6875rem; }
+
+.lab__log {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0 0 1rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--rule);
+  list-style: none;
+  min-height: 2.6rem;
+}
+.lab__log li { font-size: 0.8125rem; line-height: 1.45; color: var(--muted); }
+.lab__log li:first-child { color: var(--article); }
+
+.lab__cmd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+}
+.lab__ps { font-family: 'Geist Mono', ui-monospace, monospace; color: var(--muted-2); font-size: 0.8125rem; }
+.lab__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--ink);
+}
+.lab__input::placeholder { color: var(--muted-3); }
+.lab__run {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted-2);
+  cursor: pointer;
+}
+.lab__run:hover { color: var(--ink); border-color: var(--muted-3); }
+
+.lab__quick { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.lab__quick button {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+.lab__quick button:hover { color: var(--ink); border-color: var(--muted-3); background: var(--pill); }
+
+/* ------------------------------ flow metric chip --------------------------- */
+.flow__metric {
+  display: inline-block;
+  vertical-align: 2px;
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--pill);
+}
+
 /* ---------------------------------- print --------------------------------- */
 @media print {
   body { max-width: 100%; }

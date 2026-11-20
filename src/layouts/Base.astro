@@ -6,10 +6,16 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description: string;
+  /** 404 and other non-indexable pages: no canonical, and tell crawlers to stay out. */
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, noindex = false } = Astro.props;
 const site = 'https://glgl.me';
+
+// every page canonicalises to itself, not to the home page
+const canonicalPath = Astro.url.pathname.replace(/index\.html$/, '');
+const canonical = new URL(canonicalPath, site).href;
 ---
 
 <!doctype html>
@@ -20,12 +26,12 @@ const site = 'https://glgl.me';
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="author" content="Ahmed Abdelgelel" />
-    <link rel="canonical" href={site + '/'} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="transparent" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={site + '/'} />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={site + '/assets/img/og.png'} />

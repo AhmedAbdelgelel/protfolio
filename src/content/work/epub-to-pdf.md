@@ -9,6 +9,10 @@ summary: "every page rendered at its exact viewport, not re-typeset"
 order: 3
 ---
 
+**Repository:** [github.com/Mo7ammedd/epub-to-pdf](https://github.com/Mo7ammedd/epub-to-pdf). Built
+with my collaborator Mo7ammedd, whose GitHub account hosts it; this page describes the conversion
+pipeline as I built it.
+
 ## Why conversion usually breaks
 
 Fixed-layout books position everything absolutely. Every page has a declared size, and the art, the text

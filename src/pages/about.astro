@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { readFileSync } from 'node:fs';
 import { marked } from 'marked';
+import ContactRail from '../components/ContactRail.astro';
 
 // The About page is one markdown file: photo, bio, experience, stack, contact.
 const source = readFileSync('src/content/about.md', 'utf8');
@@ -32,6 +33,8 @@ html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
   title={meta?.title ?? 'Ahmed Abdelgelel'}
   description={meta?.description ?? 'Forward-deployed engineer in Cairo: Node.js and TypeScript backends, LLM gateways, and agentic systems.'}
 >
+  <ContactRail />
+
   <article class="article article--about">
     <h1>About</h1>
     <div set:html={html} />

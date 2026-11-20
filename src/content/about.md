@@ -55,11 +55,13 @@ book declares, load that page's XHTML and its stylesheet, swap in the fonts the 
 capture. Pages are assembled in spine order into a single document, and the working directory is
 removed whether the run succeeded or failed.
 
-Client work sits next to those. At Amen Stories the product had no backend, so I built the whole
-thing: cart, Stripe payments, order flows, automated EPUB generation, artist workflows and admin
-roles. At Naqaa Al-Ain I wrote the orders, invoices, payments and OCR receipts for a car-maintenance
-operator in Saudi Arabia. At Penta Studio I ran backend architecture for several client products at
-once, and the client calls that came with them.
+Client work sits next to those. At [Amen Stories](/work/amen-stories/) I was the backend half of the small team that built
+a story bookstore: customers pick a story, artists make it theirs, and the shop charges them and
+hands over a book. I built everything behind that: cart, Stripe payments, the order pipeline,
+automated EPUB generation, artist assignment and the admin roles the team ran it with. At Naqaa
+Al-Ain I wrote the orders, invoices, payments and OCR receipts for a car-maintenance operator in
+Saudi Arabia. At Penta Studio I ran backend architecture for several client products at once, and
+the client calls that came with them.
 
 ## Agents, briefly
 
@@ -70,7 +72,7 @@ retry against the provider is not.
 ## Experience
 
 - **Software Engineer, Penta Studio** (remote, Dec 2025 to Nov 2026). Backend architecture for client products, several at once. The design, the APIs, the integrations, and the calls with the people paying for them.
-- **Backend Developer, Amen Stories** (Feb 2025 to present, remote). Built the backend of a story-commerce platform from the first endpoint: cart, Stripe, orders, EPUB generation, artist workflows, admin roles.
+- **Backend Developer, Amen Stories** (Feb 2025 to present, remote). Backend on the team that built a personalised story bookstore: cart, Stripe, the order pipeline, generated EPUBs, artist assignment, admin roles.
 - **Freelance Backend Developer, Naqaa Al-Ain** (Apr to Aug 2025, Saudi Arabia). Orders, invoices, payments, auth and OCR receipts for a car-maintenance operator. One engineer, one client, four months.
 
 ## How I work

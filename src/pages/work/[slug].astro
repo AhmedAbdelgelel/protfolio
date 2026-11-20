@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
 import ArchFlow from '../../components/ArchFlow.astro';
+import CacheLab from '../../components/CacheLab.astro';
 import { flows } from '../../data/flows';
 
 export async function getStaticPaths() {
@@ -25,5 +26,7 @@ const flow = flows[entry.id];
     {flow && <ArchFlow id={'flow-' + entry.id} flow={flow} />}
 
     <Content />
+
+    {entry.id === 'smart-cache-engine' && <CacheLab />}
   </article>
 </Base>
