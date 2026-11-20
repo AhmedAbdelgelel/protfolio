@@ -1,0 +1,61 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const site = 'https://glgl.me';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Ahmed Abdelgelel" />
+    <link rel="canonical" href={site + '/'} />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="transparent" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={site + '/'} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={site + '/assets/img/og.png'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={site + '/assets/img/og.png'} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/assets/img/ahmed.jpg" />
+    <link rel="preload" href="/assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/geistmono-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: 'Ahmed Abdelgelel',
+      jobTitle: 'Forward-deployed engineer',
+      url: site,
+      image: site + '/assets/img/ahmed.jpg',
+      email: 'mailto:ahmed4bdelgelel@gmail.com',
+      address: { '@type': 'PostalAddress', addressLocality: 'Cairo', addressCountry: 'EG' },
+      sameAs: ['https://github.com/AhmedAbdelgelel', 'https://www.linkedin.com/in/ahmed-abdelgelel-6aa523283/']
+    })} />
+  </head>
+  <body>
+    <main class="site">
+      <Header />
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

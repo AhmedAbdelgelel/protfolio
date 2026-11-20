@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const entries = (await getCollection('work')).sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+const rows: Array<{ year?: number; title: string; metric: string; note: string; summary: string; href: string }> = [];
+entries.forEach((entry, i) => {
+  const year = entry.data.year;
+  const firstOfYear = !entries[i - 1] || entries[i - 1].data.year !== year;
+  rows.push({
+    year: firstOfYear ? year : undefined,
+    title: entry.data.title,
+    metric: entry.data.metric,
+    note: entry.data.metricNote,
+    summary: entry.data.summary,
+    href: '/work/' + entry.id + '/'
+  });
+});
+---
+
+<Base
+  title="Ahmed Abdelgelel — Forward-deployed engineer"
+  description="Forward-deployed engineer in Cairo. Node.js and TypeScript backends, LLM gateways, and agentic systems."
+>
+  <main class="index">
+    <p class="index__intro">
+      Forward-deployed engineer in Cairo. I join a team, take the backend from the first sketch to
+      production, and stay until it runs without me. <a class="about-link" href="/about">More about me</a>.
+    </p>
+
+    <ul>
+      {rows.map((row) => (
+        <li>
+          <a href={row.href}>
+            <span class="index__row">
+              {row.year ? <span class="index__year">{row.year}</span> : <span class="index__year"></span>}
+              <span class="index__title"><span>{row.title}</span></span>
+              <span class="index__meta" title={row.summary}>
+                <b>{row.metric}</b>
+                <small>{row.note}</small>
+              </span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</Base>

@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import { readFileSync } from 'node:fs';
+import { marked } from 'marked';
+
+// The About page is README.md: photo, bio, experience, stack, contact.
+const source = readFileSync('README.md', 'utf8');
+const body = source.replace(/<!--[\s\S]*?-->/g, '').replace(/^#\s+.*$/m, '');
+const html = marked.parse(body, { gfm: true }) as string;
+---
+
+<Base
+  title="Ahmed Abdelgelel"
+  description="Forward-deployed engineer in Cairo — Node.js and TypeScript backends, LLM gateways, and agentic systems."
+>
+  <article class="article">
+    <h1>About</h1>
+    <div set:html={html} />
+  </article>
+</Base>
