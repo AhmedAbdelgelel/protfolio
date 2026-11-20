@@ -514,21 +514,6 @@ img { display: block; max-width: 100%; }
 }
 .rail__list a:hover { color: var(--ink); background: var(--pill); }
 .rail__arrow { font-size: 0.625rem; color: var(--muted-3); }
-.rail__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 0.625rem;
-  color: var(--muted-3);
-}
-.rail__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
-}
 
 /* -------------------------------- cache lab -------------------------------- */
 .lab {
