@@ -37,8 +37,16 @@ html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
 });
 
 // the rail is built from the page itself, so it works in any language
+const decode = (value: string): string =>
+  value
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"');
+
 const sections = [...html.matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)]
-  .map((match) => ({ id: match[1], label: match[2].replace(/<[^>]+>/g, '').trim() }))
+  .map((match) => ({ id: match[1], label: decode(match[2].replace(/<[^>]+>/g, '')).trim() }))
   .filter((section) => section.label.length > 0)
   .slice(0, 4);
 ---
