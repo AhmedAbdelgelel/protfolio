@@ -1,5 +1,7 @@
 <!--
-  About page source. "npm run build" renders this file into /about.
+  This file is the About page. "npm run build" renders it into /about.
+
+  meta: {"title":"Ahmed Abdelgelel","description":"Forward-deployed engineer in Cairo. Node.js and TypeScript backends, LLM gateways, and agentic systems that hold up in production."}
 -->
 
 ![Ahmed Abdelgelel](/assets/img/ahmed.jpg)

@@ -5,6 +5,12 @@ import { marked } from 'marked';
 
 // The About page is README.md: photo, bio, experience, stack, contact.
 const source = readFileSync('README.md', 'utf8');
+
+// optional: the first HTML comment in README.md can carry the page metadata
+const metaMatch = source.match(/<!--[\s\S]*?meta:\s*(\{[\s\S]*?\})[\s\S]*?-->/);
+const meta = metaMatch
+  ? (JSON.parse(metaMatch[1]) as { title?: string; description?: string })
+  : null;
 const body = source.replace(/<!--[\s\S]*?-->/g, '').replace(/^#\s+.*$/m, '');
 let html = marked.parse(body, { gfm: true }) as string;
 
@@ -23,10 +29,10 @@ html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
 ---
 
 <Base
-  title="Ahmed Abdelgelel"
-  description="Forward-deployed engineer in Cairo — Node.js and TypeScript backends, LLM gateways, and agentic systems."
+  title={meta?.title ?? 'Ahmed Abdelgelel'}
+  description={meta?.description ?? 'Forward-deployed engineer in Cairo: Node.js and TypeScript backends, LLM gateways, and agentic systems.'}
 >
-  <article class="article">
+  <article class="article article--about">
     <h1>About</h1>
     <div set:html={html} />
   </article>

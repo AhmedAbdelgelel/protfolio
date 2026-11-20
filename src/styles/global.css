@@ -238,8 +238,17 @@ img { display: block; max-width: 100%; }
   font-size: 0.875rem;
 }
 
-/* the portrait, exactly like the about page: w-48 h-48 rounded-full */
+/* any image inside a write-up: full width, no circle */
 .article img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 1.75rem 0;
+}
+
+/* the portrait, exactly like the about page: w-48 h-48 rounded-full */
+.article--about img {
   border-radius: 9999px;
   background: #f3f4f6;
   width: 12rem;
@@ -250,7 +259,7 @@ img { display: block; max-width: 100%; }
   margin: 0.5rem auto 1.25rem;
 }
 @media (min-width: 640px) {
-  .article img {
+  .article--about img {
     float: right;
     margin: 0.5rem 0 1.25rem 1.25rem;
   }
