@@ -3,10 +3,10 @@ import Base from '../layouts/Base.astro';
 import { readFileSync } from 'node:fs';
 import { marked } from 'marked';
 
-// The About page is README.md: photo, bio, experience, stack, contact.
-const source = readFileSync('README.md', 'utf8');
+// The About page is one markdown file: photo, bio, experience, stack, contact.
+const source = readFileSync('src/content/about.md', 'utf8');
 
-// optional: the first HTML comment in README.md can carry the page metadata
+// optional: the opening HTML comment can carry the page metadata
 const metaMatch = source.match(/<!--[\s\S]*?meta:\s*(\{[\s\S]*?\})[\s\S]*?-->/);
 const meta = metaMatch
   ? (JSON.parse(metaMatch[1]) as { title?: string; description?: string })
