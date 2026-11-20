@@ -68,7 +68,7 @@
 
 ## الخبرة
 
-- **مهندس برمجيات، Penta Studio** (عن بُعد، ديسمبر 2025 إلى نوفمبر 2026). معمارية الـ backend لمنتجات عملاء، عدة منتجات في الوقت نفسه. التصميم، والواجهات، والتكاملات، والمكالمات مع من يدفع ثمنها.
+- **مهندس برمجيات، Penta Studio** (عن بُعد، ديسمبر 2025 حتى الآن). معمارية الـ backend لمنتجات عملاء، عدة منتجات في الوقت نفسه. التصميم، والواجهات، والتكاملات، والمكالمات مع من يدفع ثمنها.
 - **مطوّر باك إند، Amen Stories** (فبراير 2025 إلى أكتوبر 2026، عن بُعد). الـ backend في الفريق الذي بنى متجر قصص مخصّصة: السلة، Stripe، مسار الطلب، توليد ملفات EPUB، إسناد الفنانين، صلاحيات الإدارة.
 - **مطوّر باك إند مستقل، Naqaa Al-Ain** (أبريل إلى أغسطس 2025، السعودية). طلبات وفواتير ومدفوعات وصلاحيات وقراءة إيصالات بالـ OCR لشركة صيانة سيارات. مهندس واحد، عميل واحد، أربعة أشهر.
 
@@ -83,8 +83,9 @@
 
 ## التقنيات
 
-TypeScript، JavaScript، Go، C++، Python، Java. Node.js، Express، NestJS، Fastify. Kafka، RabbitMQ.
-PostgreSQL، MongoDB، MySQL، pgvector، Redis. Docker، Azure، CI/CD، Linux، Git.
+TypeScript، JavaScript، Go، C++، Python، Java، C. Node.js، Express، NestJS، Fastify. Kafka، RabbitMQ.
+PostgreSQL، MongoDB، MySQL، pgvector، Redis. Docker، Azure، Cloud Storage، CI/CD، Linux، Git.
+Jest، Mocha. React، HTML، CSS.
 
 ## تواصل
 
