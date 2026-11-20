@@ -6,7 +6,20 @@ import { marked } from 'marked';
 // The About page is README.md: photo, bio, experience, stack, contact.
 const source = readFileSync('README.md', 'utf8');
 const body = source.replace(/<!--[\s\S]*?-->/g, '').replace(/^#\s+.*$/m, '');
-const html = marked.parse(body, { gfm: true }) as string;
+let html = marked.parse(body, { gfm: true }) as string;
+
+// give every h2 a stable id so the page can be linked to a section
+const slug = (value: string): string =>
+  value
+    .replace(/&[#a-z0-9]+;/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
+  return '<h2 id="' + slug(text) + '">' + text + '</h2>';
+});
 ---
 
 <Base

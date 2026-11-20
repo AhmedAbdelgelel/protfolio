@@ -30,7 +30,7 @@ the questions about them afterwards.
 The AI work is the same job with less predictable dependencies. Relay caches and routes model calls,
 so a provider going slow doesn't take a product offline on a Friday. That's the work I want to keep doing, on the hook when it breaks.
 
-## What I've shipped
+## What I've built
 
 [Relay](/work/relay/) sits in front of model providers, and every request is normalised and hashed
 before it goes anywhere. An identical call never reaches a model. A miss is turned into a vector
@@ -52,6 +52,12 @@ author's own page order, then works one spine item at a time: set the page viewp
 book declares, load that page's XHTML and its stylesheet, swap in the fonts the book needs, render,
 capture. Pages are assembled in spine order into a single document, and the working directory is
 removed whether the run succeeded or failed.
+
+Client work sits next to those. At Amen Stories the product had no backend, so I built the whole
+thing: cart, Stripe payments, order flows, automated EPUB generation, artist workflows and admin
+roles. At Naqaa Al-Ain I wrote the orders, invoices, payments and OCR receipts for a car-maintenance
+operator in Saudi Arabia. At Penta Studio I ran backend architecture for several client products at
+once, and the client calls that came with them.
 
 ## Agents, briefly
 
