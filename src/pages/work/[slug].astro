@@ -1,10 +1,10 @@
 ---
 import WorkPage from '../../components/pages/WorkPage.astro';
-import { getCollection } from 'astro:content';
+import { workEntries, workSlug } from '../../i18n/content';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('work');
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  const entries = await workEntries('en');
+  return entries.map((entry) => ({ params: { slug: workSlug(entry.id) }, props: { entry } }));
 }
 
 const { entry } = Astro.props;

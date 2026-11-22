@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { locales, localesInfo, localePath, stripLocale, defaultLang, type Lang } from '../i18n/ui';
+import { dict, locales, localesInfo, localePath, stripLocale, defaultLang, type Lang } from '../i18n/ui';
 
 interface Props {
   title: string;
@@ -10,11 +10,14 @@ interface Props {
   lang?: Lang;
   /** 404 and other non-indexable pages: no canonical, and tell crawlers to stay out. */
   noindex?: boolean;
+  /** For pages with no translated twin, where the language switch should go instead. */
+  switchPath?: string;
 }
 
-const { title, description, lang = defaultLang, noindex = false } = Astro.props;
+const { title, description, lang = defaultLang, noindex = false, switchPath } = Astro.props;
 const site = 'https://glgl.me';
 const info = localesInfo[lang];
+const t = dict(lang);
 
 const currentPath = Astro.url.pathname.replace(/index\.html$/, '');
 const canonical = new URL(currentPath, site).href;
@@ -34,12 +37,12 @@ const alternates = locales.map((locale) => ({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="author" content="Ahmed Abdelgelel" />
+    <meta name="author" content={t.personName} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
-    {alternates.map((alternate) => (
+    {!noindex && alternates.map((alternate) => (
       <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
     ))}
-    <link rel="alternate" hreflang="x-default" href={new URL(barePath, site).href} />
+    {!noindex && <link rel="alternate" hreflang="x-default" href={new URL(barePath, site).href} />}
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="transparent" />
 
@@ -70,8 +73,8 @@ const alternates = locales.map((locale) => ({
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Person',
-      name: 'Ahmed Abdelgelel',
-      jobTitle: 'Backend engineer',
+      name: t.personName,
+      jobTitle: t.jobTitle,
       url: site,
       image: site + '/assets/img/ahmed.jpg',
       email: 'mailto:ahmed4bdelgelel@gmail.com',
@@ -81,7 +84,7 @@ const alternates = locales.map((locale) => ({
   </head>
   <body>
     <main class="site">
-      <Header lang={lang} />
+      <Header lang={lang} switchPath={switchPath} />
       <slot />
     </main>
     <Footer lang={lang} />

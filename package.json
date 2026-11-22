@@ -15,7 +15,8 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "marked": "^18.2.1"
+    "marked": "^18.2.1",
+    "motion": "^14.14.0"
   },
   "devDependencies": {
     "astro": "^5.18.2"

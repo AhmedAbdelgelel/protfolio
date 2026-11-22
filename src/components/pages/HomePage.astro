@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { workEntries, workSlug } from '../../i18n/content';
 import { dict, localePath, type Lang } from '../../i18n/ui';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = dict(lang);
 
-const entries = (await getCollection('work')).sort((a, b) => b.data.date.localeCompare(a.data.date));
+const entries = await workEntries(lang);
 
 const rows: Array<{ year?: number; title: string; metric: string; note: string; summary: string; href: string }> = [];
 entries.forEach((entry, index) => {
@@ -22,7 +22,7 @@ entries.forEach((entry, index) => {
     metric: entry.data.metric,
     note: entry.data.metricNote,
     summary: entry.data.summary,
-    href: localePath(lang, '/work/' + entry.id + '/')
+    href: localePath(lang, '/work/' + workSlug(entry.id) + '/')
   });
 });
 ---

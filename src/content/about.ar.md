@@ -89,7 +89,7 @@ LRU بزمن O(1) عبر قائمة مترابطة وجدول تجزئة، وTTL
 TypeScript، JavaScript، Go، C++، Python، Java. Node.js، Express، NestJS، Fastify. Kafka، RabbitMQ.
 PostgreSQL، MongoDB، MySQL، pgvector، Redis. Docker، Azure، CI/CD، Linux، Git.
 
-## تواصل
+## <a id="contact"></a>تواصل
 
 أبحث عن أدوار باك إند، عن بُعد أو في القاهرة.
 

@@ -1,12 +1,12 @@
 ---
 import AboutPage from '../../components/pages/AboutPage.astro';
-import { locales, defaultLang } from '../../i18n/ui';
+import { locales, defaultLang, type Lang } from '../../i18n/ui';
 
 export function getStaticPaths() {
   return locales.filter((lang) => lang !== defaultLang).map((lang) => ({ params: { lang } }));
 }
 
-const { lang } = Astro.params;
+const lang = Astro.params.lang as Lang;
 ---
 
-<AboutPage lang={lang as 'ar'} />
+<AboutPage lang={lang} />

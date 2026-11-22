@@ -3,6 +3,8 @@ import { dict, localePath, localesInfo, stripLocale, defaultLang, type Lang } fr
 
 interface Props {
   lang?: Lang;
+  /** Where the language switch should land, when the matching page does not exist (404). */
+  switchPath?: string;
 }
 
 const lang = Astro.props.lang ?? defaultLang;
@@ -10,16 +12,18 @@ const t = dict(lang);
 const path = stripLocale(Astro.url.pathname);
 const home = path === '/' || path === '/index.html';
 const other: Lang = lang === 'en' ? 'ar' : 'en';
-const switchHref = localePath(other, path === '/' ? '/' : path);
+const switchHref = Astro.props.switchPath
+  ? localePath(other, Astro.props.switchPath)
+  : localePath(other, path === '/' ? '/' : path);
 const aboutPath = localePath(lang, '/about/');
 ---
 
 <header class="site-header">
   <span class="logo">
     {home ? (
-      <span class="cursor-default pr-2">Ahmed Abdelgelel</span>
+      <span class="cursor-default pr-2">{t.personName}</span>
     ) : (
-      <a href={localePath(lang, '/')} class="logo--link">Ahmed Abdelgelel</a>
+      <a href={localePath(lang, '/')} class="logo--link">{t.personName}</a>
     )}
   </span>
 

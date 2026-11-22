@@ -18,3 +18,7 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# local QA artifacts
+/qa/
+/.shots/

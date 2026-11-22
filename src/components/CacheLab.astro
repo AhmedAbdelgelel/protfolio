@@ -3,27 +3,39 @@
  * A small, honest simulator for the three structures the cache is built from.
  *
  * The markup ships with a seeded state (a, b, c at capacity 4), so the section is readable with
- * JavaScript off. The script seeds the same state and takes over from there.
+ * JavaScript off. The script seeds the same state and takes over from there. Every label and log
+ * line comes from cacheLabCopy, so the widget speaks the language of the page it sits on.
  */
+import { cacheLabCopy } from '../data/cacheLab';
+import { defaultLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang ?? defaultLang;
+const t = cacheLabCopy[lang];
+// keep '<' out of the attribute: JSON.parse on the client turns \u003c back into '<'
+const copyAttribute = JSON.stringify(t).replace(/</g, '\\u003c');
 ---
 
-<section class="lab" data-lab aria-labelledby="lab-title">
+<section class="lab" data-lab data-copy={copyAttribute} aria-labelledby="lab-title">
   <header class="lab__head">
-    <h2 id="lab-title">Try the operations</h2>
-    <p class="lab__hint">set · get · ttl · del · sweep</p>
+    <h2 id="lab-title">{t.title}</h2>
+    <p class="lab__hint">{t.hint}</p>
   </header>
 
   <div class="lab__grid">
     <div class="lab__col">
-      <p class="lab__panel-title">hash map</p>
+      <p class="lab__panel-title">{t.mapTitle}</p>
       <ul class="lab__map" data-lab-map>
-        <li class="lab__row"><span class="lab__key">a</span><span class="lab__arrow">→</span><span class="lab__value">A</span><span class="lab__ttl">no ttl</span></li>
-        <li class="lab__row"><span class="lab__key">b</span><span class="lab__arrow">→</span><span class="lab__value">B</span><span class="lab__ttl">no ttl</span></li>
-        <li class="lab__row"><span class="lab__key">c</span><span class="lab__arrow">→</span><span class="lab__value">C</span><span class="lab__ttl">no ttl</span></li>
+        <li class="lab__row"><span class="lab__key">a</span><span class="lab__arrow">→</span><span class="lab__value">A</span><span class="lab__ttl">{t.noTtl}</span></li>
+        <li class="lab__row"><span class="lab__key">b</span><span class="lab__arrow">→</span><span class="lab__value">B</span><span class="lab__ttl">{t.noTtl}</span></li>
+        <li class="lab__row"><span class="lab__key">c</span><span class="lab__arrow">→</span><span class="lab__value">C</span><span class="lab__ttl">{t.noTtl}</span></li>
       </ul>
     </div>
     <div class="lab__col">
-      <p class="lab__panel-title">lru order · head to tail</p>
+      <p class="lab__panel-title">{t.lruTitle}</p>
       <div class="lab__lru" data-lab-lru>
         <span class="lab__node lab__node--head">a</span>
         <span class="lab__lru-arrow">→</span>
@@ -34,9 +46,9 @@
     </div>
   </div>
 
-  <div class="lab__log" data-lab-log aria-live="polite">
-    <li>the cache is seeded with a, b, c</li>
-  </div>
+  <ul class="lab__log" data-lab-log aria-live="polite">
+    <li dir="auto">{t.seed}</li>
+  </ul>
 
   <form class="lab__cmd" data-lab-form>
     <span class="lab__ps" aria-hidden="true">&gt;</span>
@@ -47,10 +59,10 @@
       autocomplete="off"
       autocapitalize="off"
       spellcheck="false"
-      aria-label="Cache command"
-      placeholder="set d · get a · ttl b 3 · sweep"
+      aria-label={t.inputLabel}
+      placeholder={t.placeholder}
     />
-    <button type="submit" class="lab__run">run</button>
+    <button type="submit" class="lab__run">{t.run}</button>
   </form>
 
   <div class="lab__quick">
@@ -79,6 +91,11 @@
     const form = lab.querySelector<HTMLFormElement>('[data-lab-form]');
     const input = lab.querySelector<HTMLInputElement>('[data-lab-input]');
 
+    // the server already spoke this page's language; keep using its words
+    const copy = JSON.parse(lab.dataset.copy ?? '{}') as Record<string, string>;
+    const fill = (template: string, values: Record<string, string | number>): string =>
+      template.replace(/\{(\w+)\}/g, (_match, name: string) => String(values[name] ?? ''));
+
     const CAPACITY = 4;
     let order: string[] = [];
     let entries = new Map<string, Entry>();
@@ -91,7 +108,7 @@
         ['b', { key: 'b', value: 'B', ttl: null, expired: false }],
         ['c', { key: 'c', value: 'C', ttl: null, expired: false }]
       ]);
-      log = ['the cache is seeded with a, b, c'];
+      log = [copy.seed];
     };
 
     const note = (line: string): void => {
@@ -114,17 +131,27 @@
           .sort((left, right) => left.key.localeCompare(right.key))
           .forEach((entry) => {
             const item = document.createElement('li');
-            const ttl = entry.ttl !== null ? 'ttl ' + entry.ttl + 's' : 'no ttl';
+            const ttl = entry.ttl !== null ? fill(copy.ttlShort, { seconds: entry.ttl }) : copy.noTtl;
             item.className = 'lab__row' + (entry.expired ? ' lab__row--expired' : '');
-            item.innerHTML =
-              '<span class="lab__key">' + entry.key + '</span>' +
-              '<span class="lab__arrow">→</span>' +
-              '<span class="lab__value">' + entry.value + '</span>' +
-              '<span class="lab__ttl">' + ttl + '</span>';
+            const cell = (className: string, text: string): HTMLSpanElement => {
+              const span = document.createElement('span');
+              span.className = className;
+              span.textContent = text;
+              return span;
+            };
+            item.append(
+              cell('lab__key', entry.key),
+              cell('lab__arrow', '→'),
+              cell('lab__value', entry.value),
+              cell('lab__ttl', ttl)
+            );
             mapList.appendChild(item);
           });
         if (entries.size === 0) {
-          mapList.innerHTML = '<li class="lab__row lab__row--empty">empty</li>';
+          const item = document.createElement('li');
+          item.className = 'lab__row lab__row--empty';
+          item.textContent = copy.empty;
+          mapList.appendChild(item);
         }
       }
 
@@ -146,7 +173,7 @@
           lruList.appendChild(node);
         });
         if (order.length === 0) {
-          lruList.innerHTML = '<span class="lab__node lab__node--head">empty</span>';
+          lruList.innerHTML = '<span class="lab__node lab__node--head">' + copy.empty + '</span>';
         }
       }
 
@@ -154,6 +181,7 @@
         logList.innerHTML = '';
         log.forEach((line) => {
           const item = document.createElement('li');
+          item.dir = 'auto';
           item.textContent = line;
           logList.appendChild(item);
         });
@@ -165,9 +193,9 @@
       if (!entries.has(key) && order.length >= CAPACITY) {
         const victim = order[order.length - 1];
         remove(victim);
-        note('set ' + key + ': memory full, evicted ' + victim + ' from the tail, ' + key + ' is at the head');
+        note(fill(copy.setEvicted, { key, victim }));
       } else {
-        note('set ' + key + ': stored in the map and moved to the head of the list');
+        note(fill(copy.setStored, { key }));
       }
       entries.set(key, { key, value: key.toUpperCase(), ttl: null, expired: false });
       promote(key);
@@ -176,36 +204,40 @@
     const get = (key: string): void => {
       const entry = entries.get(key);
       if (!entry) {
-        note('get ' + key + ': miss, nothing to promote');
+        note(fill(copy.getMiss, { key }));
         return;
       }
       if (entry.expired) {
         remove(key);
-        note('get ' + key + ': expired, removed lazily on read, miss');
+        note(fill(copy.getExpired, { key }));
         return;
       }
       promote(key);
-      note('get ' + key + ': hit, node moved to the head');
+      note(fill(copy.getHit, { key }));
     };
 
     const ttl = (key: string, seconds: number): void => {
       const entry = entries.get(key);
       if (!entry) {
-        note('ttl ' + key + ': no such key');
+        note(fill(copy.ttlMissing, { key }));
+        return;
+      }
+      if (!Number.isFinite(seconds)) {
+        note(fill(copy.badSeconds, { key }));
         return;
       }
       entry.ttl = Math.max(1, Math.min(9, seconds));
       entry.expired = false;
-      note('ttl ' + key + ': expires in ' + entry.ttl + 's, reads will treat it as a miss');
+      note(fill(copy.ttlSet, { key, seconds: entry.ttl }));
     };
 
     const del = (key: string): void => {
       if (!entries.has(key)) {
-        note('del ' + key + ': no such key');
+        note(fill(copy.delMissing, { key }));
         return;
       }
       remove(key);
-      note('del ' + key + ': unlinked from the list and removed from the map');
+      note(fill(copy.delRemoved, { key }));
     };
 
     const sweep = (): void => {
@@ -213,13 +245,18 @@
       doomed.forEach((entry) => remove(entry.key));
       note(
         doomed.length
-          ? 'sweep: removed ' + doomed.map((entry) => entry.key).join(', ') + ' in the background'
-          : 'sweep: nothing expired to collect'
+          ? fill(copy.sweepRemoved, { keys: doomed.map((entry) => entry.key).join('، ') })
+          : copy.sweepNothing
       );
     };
 
     const run = (raw: string): void => {
       const [command, key, argument] = raw.trim().toLowerCase().split(/\s+/);
+      if (['set', 'get', 'del', 'ttl'].includes(command) && !key) {
+        note(copy.missingKey);
+        render();
+        return;
+      }
       switch (command) {
         case 'set':
           set(key);
@@ -238,10 +275,10 @@
           break;
         case 'reset':
           seed();
-          note('reset: back to a, b, c');
+          note(copy.reset);
           break;
         default:
-          note('commands: set <key>, get <key>, ttl <key> <seconds>, del <key>, sweep, reset');
+          note(copy.unknown);
       }
       render();
     };
@@ -266,7 +303,7 @@
             entry.ttl = 0;
             entry.expired = true;
             changed = true;
-            note(entry.key + ' reached its ttl. it is still in memory until a read or a sweep');
+            note(fill(copy.expired, { key: entry.key }));
           }
         }
       });

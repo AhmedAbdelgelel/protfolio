@@ -1,6 +1,9 @@
 /**
  * One dictionary per language. Add a language by adding an entry here, a content
- * file (about.<lang>.md) and letting the routes pick it up.
+ * file (about.<lang>.md, work/<lang>/<slug>.md) and letting the routes pick it up.
+ *
+ * The Arabic here is written as Arabic, not as English in Arabic letters: same
+ * meaning, same dry voice, natural sentence order.
  */
 export const locales = ['en', 'ar'] as const;
 export type Lang = (typeof locales)[number];
@@ -12,6 +15,8 @@ export const localesInfo = {
 } satisfies Record<Lang, { label: string; htmlLang: string; dir: 'ltr' | 'rtl' }>;
 
 const en = {
+  personName: 'Ahmed Abdelgelel',
+  jobTitle: 'Backend engineer',
   navWork: 'Work',
   navAbout: 'About',
   navContact: 'Contact',
@@ -32,18 +37,19 @@ const en = {
   aboutTitle: 'Ahmed Abdelgelel',
   aboutDescription:
     'Backend engineer in Cairo, forward deployed on client teams: Node.js and TypeScript backends, LLM gateways, and agentic systems that hold up in production.',
-  workTitle: 'Ahmed Abdelgelel — Work',
   onThisPage: 'On this page',
+  playFlow: 'Play the flow',
+  pauseFlow: 'Pause',
   contact: 'Contact',
   email: 'Email',
-  resume: 'Résumé',
-  caseStudyLanguageNote: '',
-  repository: 'Repository'
+  resume: 'Résumé'
 } as const;
 
 const ar = {
-  navWork: 'الأعمال',
-  navAbout: 'نبذة',
+  personName: 'أحمد عبد الجليل',
+  jobTitle: 'مهندس باك إند',
+  navWork: 'أعمالي',
+  navAbout: 'عني',
   navContact: 'تواصل',
   navGithub: 'GitHub',
   otherLanguage: 'English',
@@ -54,25 +60,25 @@ const ar = {
   themeDark: 'غامق',
   homeTitle: 'أحمد عبد الجليل — مهندس باك إند',
   homeDescription:
-    'مهندس باك إند في القاهرة. أبني أنظمة خلفية بـ Node.js وTypeScript، وبوابات لمناذج اللغة، وأنظمة وكلاء تعمل في الإنتاج.',
+    'مهندس باك إند في القاهرة. أبني أنظمة خلفية بـ Node.js وTypeScript، وبوابات لنماذج اللغة، وأنظمة وكلاء تصمد في الإنتاج.',
   homeIntro:
-    'مهندس باك إند في القاهرة. أنضم إلى الفريق، وأتولى الـ backend من أول رسم إلى الإنتاج، وأبقى حتى يعمل من دوني.',
+    'مهندس باك إند في القاهرة. أنضم إلى الفريق وأتولى الباك إند من أول رسمة على الورق حتى الإنتاج، وأبقى معه إلى أن يعمل من دوني.',
   homeMore: 'المزيد عني',
-  aboutHeading: 'نبذة',
+  aboutHeading: 'نبذة عني',
   aboutTitle: 'أحمد عبد الجليل',
   aboutDescription:
-    'مهندس باك إند في القاهرة، أعمل داخل فرق العملاء: أنظمة خلفية بـ Node.js وTypeScript، وبوابات لمناذج اللغة، وأنظمة وكلاء تعمل في الإنتاج.',
-  workTitle: 'أحمد عبد الجليل — الأعمال',
+    'مهندس باك إند في القاهرة، أعمل داخل فرق العملاء: أنظمة خلفية بـ Node.js وTypeScript، وبوابات لنماذج اللغة، وأنظمة وكلاء تصمد في الإنتاج.',
   onThisPage: 'في هذه الصفحة',
+  playFlow: 'شغّل المسار',
+  pauseFlow: 'إيقاف',
   contact: 'تواصل',
   email: 'البريد',
-  resume: 'السيرة الذاتية',
-  caseStudyLanguageNote: 'دراسة الحالة مكتوبة بالإنجليزية.',
-  repository: 'المستودع'
+  resume: 'السيرة الذاتية'
 } as const;
 
-export type Dict = typeof en;
-export const ui = { en, ar } as Record<Lang, Dict>;
+/** The shape of a dictionary, widened so every language can hold its own words. */
+export type Dict = { readonly [K in keyof typeof en]: string };
+export const ui: Record<Lang, Dict> = { en, ar };
 export const dict = (lang: Lang): Dict => ui[lang] ?? ui[defaultLang];
 
 export const isLang = (value: string): value is Lang => (locales as readonly string[]).includes(value);

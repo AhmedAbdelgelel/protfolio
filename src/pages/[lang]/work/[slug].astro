@@ -1,18 +1,21 @@
 ---
 import WorkPage from '../../../components/pages/WorkPage.astro';
-import { getCollection } from 'astro:content';
-import { locales, defaultLang } from '../../../i18n/ui';
+import { workEntries, workSlug } from '../../../i18n/content';
+import { locales, defaultLang, type Lang } from '../../../i18n/ui';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('work');
   const langs = locales.filter((lang) => lang !== defaultLang);
-  return langs.flatMap((lang) =>
-    entries.map((entry) => ({ params: { lang, slug: entry.id }, props: { entry } }))
-  );
+  const paths = [];
+  for (const lang of langs) {
+    for (const entry of await workEntries(lang)) {
+      paths.push({ params: { lang, slug: workSlug(entry.id) }, props: { entry } });
+    }
+  }
+  return paths;
 }
 
-const { lang } = Astro.params;
+const lang = Astro.params.lang as Lang;
 const { entry } = Astro.props;
 ---
 
-<WorkPage lang={lang as 'ar'} entry={entry} />
+<WorkPage lang={lang} entry={entry} />
