@@ -19,7 +19,7 @@ const t = cacheLabCopy[lang];
 const copyAttribute = JSON.stringify(t).replace(/</g, '\\u003c');
 ---
 
-<section class="lab" data-lab data-copy={copyAttribute} aria-labelledby="lab-title">
+<section class="lab" data-lab data-accent="amber" data-copy={copyAttribute} aria-labelledby="lab-title">
   <header class="lab__head">
     <h2 id="lab-title">{t.title}</h2>
     <p class="lab__hint">{t.hint}</p>

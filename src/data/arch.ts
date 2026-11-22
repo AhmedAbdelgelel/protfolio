@@ -30,9 +30,12 @@ export interface ArchEdge {
   dashed?: boolean;
 }
 
+export type Accent = 'blue' | 'amber' | 'emerald' | 'rose';
+
 export interface ArchGraph {
   width: number;
   height: number;
+  accent: Accent;
   frames?: ArchFrame[];
   nodes: ArchNode[];
   edges: ArchEdge[];
@@ -44,6 +47,7 @@ const NODE_H = 58;
 const relay: ArchGraph = {
   width: 760,
   height: 292,
+  accent: 'blue',
   frames: [{ x: 152, y: 44, w: 378, h: 246, label: 'relay gateway' }],
   nodes: [
     { id: 'client', label: 'Client', sub: 'OpenAI SDK', x: 70, y: 92, w: 112 },
@@ -69,6 +73,7 @@ const relay: ArchGraph = {
 const cache: ArchGraph = {
   width: 760,
   height: 292,
+  accent: 'amber',
   frames: [{ x: 150, y: 44, w: 556, h: 246, label: 'cache engine' }],
   nodes: [
     { id: 'http', label: 'HTTP', sub: 'POST /cache', x: 68, y: 92, w: 112 },
@@ -95,6 +100,7 @@ const cache: ArchGraph = {
 const epub: ArchGraph = {
   width: 760,
   height: 300,
+  accent: 'emerald',
   nodes: [
     { id: 'epub', label: 'EPUB', sub: 'zip archive', x: 75, y: 95, w: 130 },
     { id: 'container', label: 'Container', sub: 'OPF path', x: 220, y: 95, w: 140 },
@@ -122,6 +128,7 @@ const epub: ArchGraph = {
 const amen: ArchGraph = {
   width: 760,
   height: 300,
+  accent: 'rose',
   nodes: [
     { id: 'cart', label: 'Cart', sub: 'story + format', x: 75, y: 95, w: 130 },
     { id: 'stripe', label: 'Stripe', sub: 'checkout', x: 220, y: 95, w: 120, kind: 'external' },
