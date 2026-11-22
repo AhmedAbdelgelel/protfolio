@@ -91,21 +91,6 @@ const edges = graph.edges.flatMap((edge) => {
   }];
 });
 
-const centers = new Map(graph.nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
-
-const stepPaths = flow.steps.map((_, index) => {
-  const current = graph.stepNodes[index];
-  const previous = graph.stepNodes[index - 1];
-  if (!current) return [];
-  if (!previous || previous === current) return [centers.get(current) ?? { x: 0, y: 0 }];
-  const from = centers.get(previous);
-  const to = centers.get(current);
-  if (!from || !to) return [to ?? { x: 0, y: 0 }];
-  if (Math.abs(from.y - to.y) < 1 || Math.abs(from.x - to.x) < 1) return [from, to];
-  const mid = (from.y + to.y) / 2;
-  return [from, { x: from.x, y: mid }, { x: to.x, y: mid }, to];
-});
-
 const badges = new Map<string, number>();
 graph.stepNodes.forEach((nodeId, index) => {
   if (!badges.has(nodeId)) badges.set(nodeId, index + 1);
@@ -171,8 +156,6 @@ graph.stepNodes.forEach((nodeId, index) => {
           );
         })}
       </g>
-
-      <circle class="arch__pulse" data-pulse r="5" cx="0" cy="0" opacity="0" />
     </svg>
   </div>
 
@@ -204,54 +187,24 @@ graph.stepNodes.forEach((nodeId, index) => {
     ))}
   </div>
 
-  <script type="application/json" data-arch-data set:html={JSON.stringify({ stepPaths, stepNodes: graph.stepNodes })} />
+  <script type="application/json" data-arch-data set:html={JSON.stringify({ stepNodes: graph.stepNodes })} />
 </section>
 
 <script>
   import { animate } from 'motion/mini';
 
   interface StepData {
-    stepPaths: Array<Array<{ x: number; y: number }>>;
     stepNodes: string[];
   }
 
-  const length = (points: Array<{ x: number; y: number }>): number => {
-    let total = 0;
-    for (let i = 1; i < points.length; i += 1) {
-      total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
-    }
-    return total;
-  };
-
-  const pointAt = (points: Array<{ x: number; y: number }>, t: number): { x: number; y: number } => {
-    if (points.length === 1) return points[0];
-    const total = length(points);
-    let walked = 0;
-    const target = total * t;
-    for (let i = 1; i < points.length; i += 1) {
-      const segment = Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
-      if (walked + segment >= target || i === points.length - 1) {
-        const local = segment === 0 ? 0 : (target - walked) / segment;
-        return {
-          x: points[i - 1].x + (points[i].x - points[i - 1].x) * local,
-          y: points[i - 1].y + (points[i].y - points[i - 1].y) * local
-        };
-      }
-      walked += segment;
-    }
-    return points[points.length - 1];
-  };
-
   document.querySelectorAll<HTMLElement>('[data-arch]').forEach((section) => {
     const dataEl = section.querySelector<HTMLScriptElement>('[data-arch-data]');
-    const svg = section.querySelector<SVGSVGElement>('svg');
-    if (!dataEl?.textContent || !svg) return;
+    if (!dataEl?.textContent) return;
     const data = JSON.parse(dataEl.textContent) as StepData;
 
     const nodes = Array.from(section.querySelectorAll<SVGGElement>('[data-node]'));
     const edges = Array.from(section.querySelectorAll<SVGGElement>('.arch__edge'));
     const panels = Array.from(section.querySelectorAll<HTMLElement>('[data-panel]'));
-    const pulse = section.querySelector<SVGCircleElement>('[data-pulse]');
     const count = section.querySelector<HTMLElement>('[data-arch-count]');
     const playText = section.querySelector<HTMLElement>('[data-arch-play-label]');
     const playButton = section.querySelector<HTMLButtonElement>('[data-arch-play]');
@@ -263,13 +216,46 @@ graph.stepNodes.forEach((nodeId, index) => {
     let current = 0;
     let playing = false;
     let timer: number | undefined;
-    let travel: { stop: () => void } | undefined;
+    let drawing: { stop: () => void } | undefined;
+    let drawnPath: SVGPathElement | null = null;
 
     const pad = (value: number): string => String(value).padStart(2, '0');
 
-    const show = (index: number, travelFromPrevious: boolean): void => {
+    /** Stop the route animation and hand the path back to the stylesheet. */
+    const stopDrawing = (): void => {
+      drawing?.stop();
+      drawing = undefined;
+      if (drawnPath) {
+        drawnPath.style.strokeDasharray = '';
+        drawnPath.style.strokeDashoffset = '';
+        drawnPath = null;
+      }
+    };
+
+    /** Draw the incoming route from its source to its target. */
+    const drawRoute = (): void => {
+      const path = section.querySelector<SVGPathElement>('.arch__edge.is-path .arch__edge-path');
+      if (!path) return;
+      const length = path.getTotalLength();
+      if (!length) return;
+      drawnPath = path;
+      path.style.strokeDasharray = String(length);
+      path.style.strokeDashoffset = String(length);
+      drawing = animate(0, 1, {
+        duration: 0.65,
+        ease: [0.32, 0.72, 0, 1],
+        onUpdate: (value: number) => {
+          path.style.strokeDashoffset = String(length * (1 - value));
+        },
+        onComplete: () => stopDrawing()
+      }) as unknown as { stop: () => void };
+    };
+
+    const show = (index: number, animateRoute: boolean): void => {
       const activeId = data.stepNodes[index];
       const previousId = data.stepNodes[index - 1];
+
+      stopDrawing();
 
       nodes.forEach((node) => {
         node.classList.toggle('is-active', node.dataset.node === activeId);
@@ -285,36 +271,13 @@ graph.stepNodes.forEach((nodeId, index) => {
       panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
       if (count) count.textContent = pad(index + 1) + ' / ' + pad(panels.length);
 
-      travel?.stop();
-      travel = undefined;
-      if (!pulse) return;
-
-      const path = data.stepPaths[index] ?? [];
-      pulse.setAttribute('opacity', '0');
-      if (!travelFromPrevious || path.length === 0) return;
-
-      const start = pointAt(path, 0);
-      pulse.setAttribute('cx', String(start.x));
-      pulse.setAttribute('cy', String(start.y));
-      pulse.setAttribute('opacity', '1');
-
-      travel = animate(0, 1, {
-        duration: 0.75,
-        ease: [0.32, 0.72, 0, 1],
-        onUpdate: (value: number) => {
-          const point = pointAt(path, value);
-          pulse.setAttribute('cx', String(point.x));
-          pulse.setAttribute('cy', String(point.y));
-        },
-        onComplete: () => {
-          pulse.setAttribute('opacity', '0');
-        }
-      }) as unknown as { stop: () => void };
+      if (animateRoute) drawRoute();
     };
 
     const stopPlay = (): void => {
       playing = false;
       window.clearTimeout(timer);
+      stopDrawing();
       playButton?.classList.remove('is-playing');
       if (playText) playText.textContent = playLabel;
     };
@@ -339,14 +302,14 @@ graph.stepNodes.forEach((nodeId, index) => {
       const tick = (): void => {
         if (!playing) return;
         if (current >= panels.length - 1) {
-          timer = window.setTimeout(stopPlay, 1400);
+          timer = window.setTimeout(stopPlay, 1600);
           return;
         }
         current += 1;
         show(current, true);
-        timer = window.setTimeout(tick, 1500);
+        timer = window.setTimeout(tick, 1550);
       };
-      timer = window.setTimeout(tick, 950);
+      timer = window.setTimeout(tick, 900);
     };
 
     section.querySelector('[data-arch-prev]')?.addEventListener('click', () => select(current - 1));
