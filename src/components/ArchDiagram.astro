@@ -2,10 +2,9 @@
 /**
  * Interactive architecture map for a case study.
  *
- * The SVG is rendered on the server, so the diagram exists without JavaScript. The script adds
- * the step machine: click a node (or use the controls) and the map highlights what that stage
- * touches, while a request pulse travels the last edge. Steps come from flows.ts, geometry from
- * arch.ts, so both languages share one drawing.
+ * The SVG is server rendered, so the map is there without JavaScript: frames, orthogonal routes,
+ * numbered stages. The script adds the step machine: click a node or use the controls, the focused
+ * stage inverts, its incoming route darkens, and a request token travels the route.
  */
 import type { Flow } from '../data/flows';
 import type { ArchGraph } from '../data/arch';
@@ -22,63 +21,94 @@ const { id, flow, graph, playLabel, pauseLabel } = Astro.props;
 const titleId = id + '-title';
 const markerId = id + '-arrow';
 
-const NODE_H = 52;
-const nodes = new Map(graph.nodes.map((node) => [node.id, { ...node, w: node.w ?? 120, h: NODE_H }]));
+const H = 58;
+const nodes = new Map(graph.nodes.map((node) => [node.id, { ...node, w: node.w ?? 140, h: H }]));
 
-interface Point { x: number; y: number }
-const anchor = (node: { x: number; y: number; w: number; h: number }, side: 'l' | 'r' | 't' | 'b'): Point => {
+interface P { x: number; y: number }
+type Side = 'l' | 'r' | 't' | 'b';
+
+const at = (node: { x: number; y: number; w: number; h: number }, side: Side): P => {
   if (side === 'l') return { x: node.x - node.w / 2, y: node.y };
   if (side === 'r') return { x: node.x + node.w / 2, y: node.y };
   if (side === 't') return { x: node.x, y: node.y - node.h / 2 };
   return { x: node.x, y: node.y + node.h / 2 };
 };
 
-const path = (from: Point, to: Point, horizontal: boolean): string => {
-  if (horizontal) {
-    const bend = Math.max(28, Math.abs(to.x - from.x) * 0.45);
-    return 'M ' + from.x + ' ' + from.y + ' C ' + (from.x + bend) + ' ' + from.y + ', ' + (to.x - bend) + ' ' + to.y + ', ' + to.x + ' ' + to.y;
+/** A left-to-right, top-to-bottom orthogonal route between two boxes. */
+const route = (a: NonNullable<ReturnType<typeof nodes.get>>, b: NonNullable<ReturnType<typeof nodes.get>>): P[] => {
+  const sameRow = Math.abs(a.y - b.y) < 1;
+  const sameCol = Math.abs(a.x - b.x) < 1;
+
+  if (sameRow) {
+    return b.x > a.x ? [at(a, 'r'), at(b, 'l')] : [at(a, 'l'), at(b, 'r')];
   }
-  const bend = Math.max(24, Math.abs(to.y - from.y) * 0.5);
-  return 'M ' + from.x + ' ' + from.y + ' C ' + from.x + ' ' + (from.y + bend) + ', ' + to.x + ' ' + (to.y - bend) + ', ' + to.x + ' ' + to.y;
+  if (sameCol) {
+    return b.y > a.y ? [at(a, 'b'), at(b, 't')] : [at(a, 't'), at(b, 'b')];
+  }
+
+  const down = b.y > a.y;
+  const start = at(a, down ? 'b' : 't');
+  const end = at(b, down ? 't' : 'b');
+  const mid = (start.y + end.y) / 2;
+  return [start, { x: start.x, y: mid }, { x: end.x, y: mid }, end];
 };
 
-const edges = graph.edges.map((edge) => {
-  const source = nodes.get(edge.from);
-  const target = nodes.get(edge.to);
-  if (!source || !target) return null;
+/** Rounded polyline. */
+const rounded = (points: P[], radius = 10): string => {
+  if (points.length === 0) return '';
+  if (points.length === 1) return 'M ' + points[0].x + ' ' + points[0].y;
 
-  const dx = target.x - source.x;
-  const dy = target.y - source.y;
-  let fromSide: 'l' | 'r' | 't' | 'b' = 'r';
-  let toSide: 'l' | 'r' | 't' | 'b' = 'l';
-  let horizontal = true;
-
-  if (Math.abs(dy) > Math.abs(dx)) {
-    horizontal = false;
-    fromSide = dy > 0 ? 'b' : 't';
-    toSide = dy > 0 ? 't' : 'b';
-  } else if (dx < 0) {
-    fromSide = 'l';
-    toSide = 'r';
+  let d = 'M ' + points[0].x + ' ' + points[0].y;
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const prev = points[i - 1];
+    const corner = points[i];
+    const next = points[i + 1];
+    const inLength = Math.hypot(corner.x - prev.x, corner.y - prev.y);
+    const outLength = Math.hypot(next.x - corner.x, next.y - corner.y);
+    const r = Math.min(radius, inLength / 2, outLength / 2);
+    const before = { x: corner.x - ((corner.x - prev.x) / inLength || 0) * r, y: corner.y - ((corner.y - prev.y) / inLength || 0) * r };
+    const after = { x: corner.x + ((next.x - corner.x) / outLength || 0) * r, y: corner.y + ((next.y - corner.y) / outLength || 0) * r };
+    d += ' L ' + before.x + ' ' + before.y + ' Q ' + corner.x + ' ' + corner.y + ' ' + after.x + ' ' + after.y;
   }
+  const last = points[points.length - 1];
+  d += ' L ' + last.x + ' ' + last.y;
+  return d;
+};
 
-  const from = anchor(source, fromSide);
-  const to = anchor(target, toSide);
-  const midX = (from.x + to.x) / 2;
-  const midY = (from.y + to.y) / 2;
-
-  return {
+const edges = graph.edges.flatMap((edge) => {
+  const from = nodes.get(edge.from);
+  const to = nodes.get(edge.to);
+  if (!from || !to) return [];
+  const points = route(from, to);
+  const midIndex = Math.floor((points.length - 1) / 2);
+  const a = points[midIndex];
+  const b = points[midIndex + 1] ?? points[midIndex];
+  return [{
     ...edge,
-    d: path(from, to, horizontal),
-    labelX: horizontal ? midX : midX + 10,
-    labelY: horizontal ? midY - 8 : midY
-  };
+    d: rounded(points),
+    labelX: (a.x + b.x) / 2,
+    labelY: (a.y + b.y) / 2 - 7
+  }];
 });
 
-const stepNodes = flow.steps.map((_, index) => graph.stepNodes[index] ?? graph.stepNodes[graph.stepNodes.length - 1] ?? '');
-const positions = graph.stepNodes.map((nodeId) => {
-  const node = nodes.get(nodeId);
-  return node ? { x: node.x, y: node.y } : { x: 0, y: 0 };
+const centers = new Map(graph.nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
+
+const stepPaths = flow.steps.map((_, index) => {
+  const current = graph.stepNodes[index];
+  const previous = graph.stepNodes[index - 1];
+  if (!current) return [];
+  if (!previous || previous === current) return [centers.get(current) ?? { x: 0, y: 0 }];
+  const from = centers.get(previous);
+  const to = centers.get(current);
+  if (!from || !to) return [to ?? { x: 0, y: 0 }];
+  if (Math.abs(from.y - to.y) < 1 || Math.abs(from.x - to.x) < 1) return [from, to];
+  const mid = (from.y + to.y) / 2;
+  return [from, { x: from.x, y: mid }, { x: to.x, y: mid }, to];
+});
+
+const badges = new Map<string, number>();
+graph.stepNodes.forEach((nodeId, index) => {
+  if (!badges.has(nodeId)) badges.set(nodeId, index + 1);
 });
 ---
 
@@ -96,42 +126,53 @@ const positions = graph.stepNodes.map((nodeId) => {
   </header>
 
   <div class="arch__stage" dir="ltr">
-    <svg
-      viewBox={'0 0 ' + graph.width + ' ' + graph.height}
-      role="img"
-      aria-label={flow.title}
-    >
+    <svg viewBox={'0 0 ' + graph.width + ' ' + graph.height} role="img" aria-label={flow.title}>
       <defs>
-        <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" class="arch__head-arrow" />
+        <marker id={markerId} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow" />
         </marker>
       </defs>
 
+      {(graph.frames ?? []).map((frame) => (
+        <g class="arch__frame">
+          <rect x={frame.x} y={frame.y} width={frame.w} height={frame.h} rx="18" />
+          <g class="arch__frame-tag" transform={'translate(' + (frame.x + 16) + ' ' + frame.y + ')'}>
+            <rect x="0" y="-9" width={frame.label.length * 6.4 + 16} height="18" rx="9" />
+            <text x="8" y="0" dominant-baseline="central">{frame.label}</text>
+          </g>
+        </g>
+      ))}
+
       <g class="arch__edges">
-        {edges.map((edge) => edge && (
+        {edges.map((edge) => (
           <g class="arch__edge" data-from={edge.from} data-to={edge.to}>
             <path d={edge.d} class:list={{ 'arch__edge-path': true, 'is-dashed': edge.dashed }} marker-end={'url(#' + markerId + ')'} />
-            {edge.label && (
-              <text class="arch__edge-label" x={edge.labelX} y={edge.labelY}>{edge.label}</text>
-            )}
+            {edge.label && <text class="arch__edge-label" x={edge.labelX} y={edge.labelY}>{edge.label}</text>}
           </g>
         ))}
       </g>
 
       <g class="arch__nodes">
         {graph.nodes.map((node) => {
-          const width = node.w ?? 120;
+          const width = node.w ?? 140;
+          const badge = badges.get(node.id);
           return (
-            <g class="arch__node" data-node={node.id} transform={'translate(' + (node.x - width / 2) + ' ' + (node.y - NODE_H / 2) + ')'}>
-              <rect class:list={{ 'arch__node-box': true, 'is-store': node.kind === 'store', 'is-external': node.kind === 'external' }} width={width} height={NODE_H} rx="9" />
-              <text class="arch__node-label" x={width / 2} y={node.sub ? 22 : 30}>{node.label}</text>
-              {node.sub && <text class="arch__node-sub" x={width / 2} y={37}>{node.sub}</text>}
+            <g class="arch__node" data-node={node.id} transform={'translate(' + (node.x - width / 2) + ' ' + (node.y - H / 2) + ')'}>
+              <rect class:list={{ 'arch__node-box': true, 'is-store': node.kind === 'store', 'is-external': node.kind === 'external' }} width={width} height={H} rx="13" />
+              {badge && (
+                <g class="arch__badge">
+                  <circle cx="15" cy="15" r="7.5" />
+                  <text x="15" y="15">{badge}</text>
+                </g>
+              )}
+              <text class="arch__node-label" x={width / 2} y={node.sub ? 27 : 34}>{node.label}</text>
+              {node.sub && <text class="arch__node-sub" x={width / 2} y={43}>{node.sub}</text>}
             </g>
           );
         })}
       </g>
 
-      <circle class="arch__pulse" data-pulse r="4" cx="0" cy="0" opacity="0" />
+      <circle class="arch__pulse" data-pulse r="5" cx="0" cy="0" opacity="0" />
     </svg>
   </div>
 
@@ -147,8 +188,9 @@ const positions = graph.stepNodes.map((nodeId) => {
 
   <div class="arch__panels">
     {flow.steps.map((step, index) => (
-      <article class="arch__panel" data-panel={index} id={id + '-panel-' + index}>
+      <article class="arch__panel" data-panel={index}>
         <h3>
+          <span class="arch__step">{String(index + 1).padStart(2, '0')}</span>
           {step.title}
           {step.metric && <span class="arch__metric">{step.metric}</span>}
         </h3>
@@ -162,133 +204,149 @@ const positions = graph.stepNodes.map((nodeId) => {
     ))}
   </div>
 
-  <script type="application/json" data-arch-data set:html={JSON.stringify({ stepNodes, positions })} />
+  <script type="application/json" data-arch-data set:html={JSON.stringify({ stepPaths, stepNodes: graph.stepNodes })} />
 </section>
 
 <script>
   import { animate } from 'motion/mini';
 
-  interface ArchData {
+  interface StepData {
+    stepPaths: Array<Array<{ x: number; y: number }>>;
     stepNodes: string[];
-    positions: Array<{ x: number; y: number }>;
   }
+
+  const length = (points: Array<{ x: number; y: number }>): number => {
+    let total = 0;
+    for (let i = 1; i < points.length; i += 1) {
+      total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+    }
+    return total;
+  };
+
+  const pointAt = (points: Array<{ x: number; y: number }>, t: number): { x: number; y: number } => {
+    if (points.length === 1) return points[0];
+    const total = length(points);
+    let walked = 0;
+    const target = total * t;
+    for (let i = 1; i < points.length; i += 1) {
+      const segment = Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+      if (walked + segment >= target || i === points.length - 1) {
+        const local = segment === 0 ? 0 : (target - walked) / segment;
+        return {
+          x: points[i - 1].x + (points[i].x - points[i - 1].x) * local,
+          y: points[i - 1].y + (points[i].y - points[i - 1].y) * local
+        };
+      }
+      walked += segment;
+    }
+    return points[points.length - 1];
+  };
 
   document.querySelectorAll<HTMLElement>('[data-arch]').forEach((section) => {
     const dataEl = section.querySelector<HTMLScriptElement>('[data-arch-data]');
-    if (!dataEl?.textContent) return;
-    const data = JSON.parse(dataEl.textContent) as ArchData;
+    const svg = section.querySelector<SVGSVGElement>('svg');
+    if (!dataEl?.textContent || !svg) return;
+    const data = JSON.parse(dataEl.textContent) as StepData;
 
-    const sectionId = section.dataset.id ?? '';
     const nodes = Array.from(section.querySelectorAll<SVGGElement>('[data-node]'));
     const edges = Array.from(section.querySelectorAll<SVGGElement>('.arch__edge'));
     const panels = Array.from(section.querySelectorAll<HTMLElement>('[data-panel]'));
     const pulse = section.querySelector<SVGCircleElement>('[data-pulse]');
     const count = section.querySelector<HTMLElement>('[data-arch-count]');
     const playText = section.querySelector<HTMLElement>('[data-arch-play-label]');
+    const playButton = section.querySelector<HTMLButtonElement>('[data-arch-play]');
     const playLabel = section.dataset.playLabel ?? 'Play';
     const pauseLabel = section.dataset.pauseLabel ?? 'Pause';
-    const playButton = section.querySelector<HTMLButtonElement>('[data-arch-play]');
-
     if (!nodes.length || !panels.length) return;
-    section.classList.add('is-interactive');
 
+    section.classList.add('is-interactive');
     let current = 0;
     let playing = false;
     let timer: number | undefined;
+    let travel: { stop: () => void } | undefined;
 
     const pad = (value: number): string => String(value).padStart(2, '0');
 
-    const highlight = (index: number): void => {
-      const activeNode = data.stepNodes[index];
-      const previous = data.stepNodes[index - 1];
+    const show = (index: number, travelFromPrevious: boolean): void => {
+      const activeId = data.stepNodes[index];
+      const previousId = data.stepNodes[index - 1];
 
       nodes.forEach((node) => {
-        const isActive = node.dataset.node === activeNode;
-        node.classList.toggle('is-active', isActive);
-        node.classList.toggle('is-dim', !isActive && !playing);
+        node.classList.toggle('is-active', node.dataset.node === activeId);
       });
 
       edges.forEach((edge) => {
-        const from = edge.dataset.from;
-        const to = edge.dataset.to;
-        const onPath = from === previous && to === activeNode;
-        const touches = from === activeNode || to === activeNode;
-        edge.classList.toggle('is-path', onPath);
-        edge.classList.toggle('is-touch', touches && !onPath);
+        const isPath = edge.dataset.from === previousId && edge.dataset.to === activeId;
+        const touches = edge.dataset.from === activeId || edge.dataset.to === activeId;
+        edge.classList.toggle('is-path', isPath);
+        edge.classList.toggle('is-touch', touches && !isPath);
       });
 
-      panels.forEach((panel, panelIndex) => {
-        panel.classList.toggle('is-active', panelIndex === index);
-      });
-
+      panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
       if (count) count.textContent = pad(index + 1) + ' / ' + pad(panels.length);
 
-      if (pulse) {
-        const from = data.positions[index - 1];
-        const to = data.positions[index];
-        if (to) {
-          if (from && playing) {
-            pulse.setAttribute('cx', String(from.x));
-            pulse.setAttribute('cy', String(from.y));
-            animate(0, 1, {
-              duration: 0.55,
-              ease: 'easeInOut',
-              onUpdate: (t: number) => {
-                pulse.setAttribute('cx', String(from.x + (to.x - from.x) * t));
-                pulse.setAttribute('cy', String(from.y + (to.y - from.y) * t));
-              },
-              onComplete: () => pulse.setAttribute('opacity', '0')
-            });
-          } else {
-            pulse.setAttribute('cx', String(to.x));
-            pulse.setAttribute('cy', String(to.y));
-            pulse.setAttribute('opacity', '0');
-          }
+      travel?.stop();
+      travel = undefined;
+      if (!pulse) return;
+
+      const path = data.stepPaths[index] ?? [];
+      pulse.setAttribute('opacity', '0');
+      if (!travelFromPrevious || path.length === 0) return;
+
+      const start = pointAt(path, 0);
+      pulse.setAttribute('cx', String(start.x));
+      pulse.setAttribute('cy', String(start.y));
+      pulse.setAttribute('opacity', '1');
+
+      travel = animate(0, 1, {
+        duration: 0.75,
+        ease: [0.32, 0.72, 0, 1],
+        onUpdate: (value: number) => {
+          const point = pointAt(path, value);
+          pulse.setAttribute('cx', String(point.x));
+          pulse.setAttribute('cy', String(point.y));
+        },
+        onComplete: () => {
+          pulse.setAttribute('opacity', '0');
         }
-      }
+      }) as unknown as { stop: () => void };
     };
 
-    const select = (index: number, fromPlay = false): void => {
-      current = ((index % panels.length) + panels.length) % panels.length;
-      highlight(current);
-      if (!fromPlay && playing) stop();
-    };
-
-    const stop = (): void => {
+    const stopPlay = (): void => {
       playing = false;
       window.clearTimeout(timer);
-      if (playButton) playButton.classList.remove('is-playing');
+      playButton?.classList.remove('is-playing');
       if (playText) playText.textContent = playLabel;
-      nodes.forEach((node) => node.classList.remove('is-dim'));
+    };
+
+    const select = (index: number): void => {
+      if (playing) stopPlay();
+      current = ((index % panels.length) + panels.length) % panels.length;
+      show(current, false);
     };
 
     const play = (): void => {
       if (playing) {
-        stop();
+        stopPlay();
         return;
       }
       playing = true;
-      if (playButton) playButton.classList.add('is-playing');
+      playButton?.classList.add('is-playing');
       if (playText) playText.textContent = pauseLabel;
       current = 0;
-      highlight(0);
+      show(0, false);
 
       const tick = (): void => {
         if (!playing) return;
         if (current >= panels.length - 1) {
-          timer = window.setTimeout(() => {
-            const pulseEl = pulse;
-            if (pulseEl) pulseEl.setAttribute('opacity', '0');
-            stop();
-          }, 1500);
+          timer = window.setTimeout(stopPlay, 1400);
           return;
         }
         current += 1;
-        highlight(current);
+        show(current, true);
         timer = window.setTimeout(tick, 1500);
       };
-
-      timer = window.setTimeout(tick, 1000);
+      timer = window.setTimeout(tick, 950);
     };
 
     section.querySelector('[data-arch-prev]')?.addEventListener('click', () => select(current - 1));
@@ -298,10 +356,7 @@ const positions = graph.stepNodes.map((nodeId) => {
     nodes.forEach((node) => {
       node.addEventListener('click', () => {
         const index = data.stepNodes.indexOf(node.dataset.node ?? '');
-        if (index >= 0) {
-          stop();
-          select(index);
-        }
+        if (index >= 0) select(index);
       });
     });
 
@@ -316,6 +371,6 @@ const positions = graph.stepNodes.map((nodeId) => {
       }
     });
 
-    select(0);
+    show(0, false);
   });
 </script>
