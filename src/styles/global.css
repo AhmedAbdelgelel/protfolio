@@ -453,7 +453,7 @@ img { display: block; max-width: 100%; }
 }
 .arch__node-box.is-store { stroke-dasharray: 2.5 3.5; }
 .arch__node-box.is-external { fill: var(--pill); }
-.arch__node:hover .arch__node-box { stroke: var(--arch-accent); fill: var(--arch-accent-soft); stroke-width: 1.6; }
+.arch__node:hover .arch__node-box { stroke: var(--muted-2); stroke-width: 1.6; }
 .arch__node-label {
   font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
@@ -553,7 +553,7 @@ img { display: block; max-width: 100%; }
   font-size: 0.8rem;
   transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
 }
-.arch__btn:hover { color: var(--arch-accent); border-color: var(--arch-accent); background: var(--arch-accent-soft); }
+.arch__btn:hover { color: var(--ink); border-color: var(--muted-3); background: var(--pill); }
 .arch__play {
   display: inline-flex;
   align-items: center;
@@ -568,7 +568,7 @@ img { display: block; max-width: 100%; }
   cursor: pointer;
   transition: background-color 140ms ease, border-color 140ms ease;
 }
-.arch__play:hover { background: var(--arch-accent-soft); border-color: var(--arch-accent); color: var(--arch-accent); }
+.arch__play:hover { background: var(--pill); border-color: var(--muted-3); }
 .arch__play.is-playing { background: var(--arch-accent); border-color: var(--arch-accent); color: var(--arch-accent-on); }
 .arch__play.is-playing .arch__play-icon { color: var(--arch-accent-on); }
 .arch__play-icon { font-size: 0.55rem; color: var(--muted-2); }
@@ -732,19 +732,19 @@ html[lang='ar'] { line-height: 1.75; }
 [dir='rtl'] .arch__panel h3,
 [dir='rtl'] .article table { direction: ltr; }
 
-/* ------------------------- accent on interactive chrome -------------------- */
+/* ------------------------- hover states stay monochrome -------------------- */
 .site-nav a > span { transition: background-color 140ms ease, color 140ms ease; }
-.site-nav a:hover > span { background: var(--accent-soft); color: var(--accent); }
-.theme:hover { color: var(--accent); background: var(--accent-soft); }
-.rail__list a:hover { color: var(--accent); background: var(--accent-soft); }
-.index a:hover .index__title span { color: var(--accent); }
-.index a:hover .index__meta b { color: var(--accent); }
-.article a:hover { border-color: var(--accent); color: var(--accent); }
-.index__intro a:hover { border-color: var(--accent); color: var(--accent); }
-.about-link:hover { color: var(--accent); border-color: var(--accent); }
+.site-nav a:hover > span { background: var(--pill); }
+.theme:hover { color: var(--ink); background: var(--pill); }
+.rail__list a:hover { color: var(--ink); background: var(--pill); }
+.index a:hover .index__title span { color: var(--ink); }
+.index a:hover .index__meta b { color: var(--ink); }
+.article a:hover { border-color: var(--link-hover); color: var(--link-hover); }
+.index__intro a:hover { border-color: var(--link-hover); color: var(--link-hover); }
+.about-link:hover { color: var(--ink); border-color: var(--muted-2); }
 .lab__btn:hover,
 .lab__run:hover,
-.lab__quick button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.lab__quick button:hover { color: var(--ink); border-color: var(--muted-3); background: var(--pill); }
 
 /* -------------------------------- cache lab -------------------------------- */
 .lab {
@@ -869,7 +869,7 @@ html[lang='ar'] { line-height: 1.75; }
   cursor: pointer;
   transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
 }
-.lab__run:hover { color: var(--arch-accent, var(--accent)); border-color: var(--arch-accent, var(--accent)); background: var(--arch-accent-soft, var(--accent-soft)); }
+.lab__run:hover { color: var(--ink); border-color: var(--muted-3); background: var(--pill); }
 
 .lab__quick { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .lab__quick button {
@@ -884,9 +884,9 @@ html[lang='ar'] { line-height: 1.75; }
   transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
 }
 .lab__quick button:hover {
-  color: var(--arch-accent, var(--accent));
-  border-color: var(--arch-accent, var(--accent));
-  background: var(--arch-accent-soft, var(--accent-soft));
+  color: var(--ink);
+  border-color: var(--muted-3);
+  background: var(--pill);
 }
 
 /* -------------------------------- bench chart ------------------------------ */
@@ -954,7 +954,7 @@ html[lang='ar'] { line-height: 1.75; }
   cursor: pointer;
   transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
 }
-.bench__chip:hover { color: var(--arch-accent, var(--accent)); border-color: var(--arch-accent, var(--accent)); }
+.bench__chip:hover { color: var(--ink); border-color: var(--muted-3); background: var(--pill); }
 .bench__chip.is-on {
   color: var(--arch-accent, var(--accent));
   border-color: var(--arch-accent, var(--accent));
@@ -976,7 +976,7 @@ html[lang='ar'] { line-height: 1.75; }
   border-radius: 8px;
   transition: background-color 160ms ease;
 }
-.bench__row:hover { background: var(--arch-accent-soft, var(--accent-soft)); }
+.bench__row:hover { background: color-mix(in srgb, var(--pill) 55%, transparent); }
 .bench__label { display: flex; align-items: baseline; gap: 0.35rem; white-space: nowrap; }
 .bench__label b {
   font-family: 'Geist Mono', ui-monospace, monospace;
@@ -1147,8 +1147,8 @@ html[lang='ar'] { line-height: 1.75; }
 }
 .cache-map__bucket.is-lit rect,
 .cache-map__node.is-lit rect {
-  stroke: var(--arch-accent, var(--accent));
-  fill: var(--arch-accent-soft, var(--accent-soft));
+  stroke: var(--muted-2);
+  fill: var(--pill);
 }
 .cache-map__route {
   fill: none;
@@ -1158,7 +1158,7 @@ html[lang='ar'] { line-height: 1.75; }
   transition: stroke 170ms ease, stroke-width 170ms ease;
 }
 .cache-map__route.is-lit {
-  stroke: var(--arch-accent, var(--accent));
+  stroke: var(--ink);
   stroke-width: 1.9;
   stroke-dasharray: none;
 }
