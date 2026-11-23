@@ -431,7 +431,20 @@ img { display: block; max-width: 100%; }
 }
 
 /* nodes */
-.arch__node { cursor: pointer; }
+.arch__node {
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 420ms ease;
+}
+.arch:not(.is-revealed) .arch__node { opacity: 0; }
+.arch__node:nth-child(2) { transition-delay: 40ms; }
+.arch__node:nth-child(3) { transition-delay: 80ms; }
+.arch__node:nth-child(4) { transition-delay: 120ms; }
+.arch__node:nth-child(5) { transition-delay: 160ms; }
+.arch__node:nth-child(6) { transition-delay: 200ms; }
+.arch__node:nth-child(7) { transition-delay: 240ms; }
+.arch__node:nth-child(8) { transition-delay: 280ms; }
+.arch__node:nth-child(9) { transition-delay: 320ms; }
 .arch__node-box {
   fill: var(--bg);
   stroke: var(--rule);
@@ -511,6 +524,21 @@ img { display: block; max-width: 100%; }
 
 /* controls */
 .arch__bar { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.95rem; }
+.arch__progress {
+  height: 2px;
+  margin-top: 0.75rem;
+  border-radius: 999px;
+  background: var(--rule);
+  overflow: hidden;
+}
+.arch__progress i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--arch-accent);
+  transition: width 380ms cubic-bezier(0.32, 0.72, 0, 1);
+}
 .arch:not(.is-interactive) .arch__bar { display: none; }
 .arch__btn {
   width: 1.9rem;
@@ -859,6 +887,188 @@ html[lang='ar'] { line-height: 1.75; }
   color: var(--arch-accent, var(--accent));
   border-color: var(--arch-accent, var(--accent));
   background: var(--arch-accent-soft, var(--accent-soft));
+}
+
+/* -------------------------------- bench chart ------------------------------ */
+.bench {
+  --bench-w: min(1000px, calc(100vw - 3rem));
+  width: var(--bench-w);
+  margin: 2.25rem calc((100% - var(--bench-w)) / 2) 2.75rem;
+  padding: 1.4rem 1.5rem 1.15rem;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--arch-accent-soft, var(--accent-soft)) 55%, transparent), transparent 55%),
+    var(--bg);
+}
+.bench__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+}
+.bench__head h3 { font-size: 1rem; font-weight: 600; color: var(--strong); margin: 0; }
+.bench__hint {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--muted-3);
+}
+
+.bench__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.6rem; }
+@media (max-width: 640px) {
+  .bench { padding: 1.1rem 1rem 0.9rem; border-radius: 12px; }
+  .bench__head { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+  .bench__stats { grid-template-columns: 1fr 1fr; gap: 0.9rem 1rem; }
+  .bench__stat b { font-size: 1.3rem; }
+  .bench__legend { flex-wrap: wrap; }
+  .bench__legend-note { display: none; }
+  .bench__sub { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+  .bench__row { grid-template-columns: 4.7rem 1fr; gap: 0.55rem; }
+  .bench__label { gap: 0.25rem; }
+  .bench__axis { margin-inline-start: 5.3rem; }
+  .bench__size { grid-template-columns: 3.1rem 1fr 3.1rem; gap: 0.45rem; }
+  .bench__bar em { font-size: 0.5625rem; left: calc(var(--w, 0%) + 0.35rem); }
+}
+.bench__stat b {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.bench__unit { font-size: 0.8125rem; font-weight: 500; color: var(--muted-2); margin-inline-start: 0.12rem; }
+.bench__stat > span { display: block; margin-top: 0.15rem; font-size: 0.75rem; line-height: 1.35; color: var(--muted-2); }
+.bench__unit { display: inline; }
+
+.bench__legend { display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.95rem; }
+.bench__chip {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+.bench__chip:hover { color: var(--arch-accent, var(--accent)); border-color: var(--arch-accent, var(--accent)); }
+.bench__chip.is-on {
+  color: var(--arch-accent, var(--accent));
+  border-color: var(--arch-accent, var(--accent));
+  background: var(--arch-accent-soft, var(--accent-soft));
+}
+.bench__legend-note {
+  margin-inline-start: auto;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  color: var(--muted-3);
+}
+
+.bench__rows { display: grid; gap: 0.5rem; }
+.bench__row {
+  display: grid;
+  grid-template-columns: 6.4rem 1fr;
+  align-items: center;
+  gap: 0.9rem;
+  border-radius: 8px;
+  transition: background-color 160ms ease;
+}
+.bench__row:hover { background: var(--arch-accent-soft, var(--accent-soft)); }
+.bench__label { display: flex; align-items: baseline; gap: 0.35rem; white-space: nowrap; }
+.bench__label b {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.bench__label span {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  color: var(--muted-3);
+}
+.bench__bars { display: grid; gap: 3px; }
+.bench__bar { position: relative; height: 11px; }
+.bench__track { position: absolute; inset: 0; border-radius: 999px; }
+.bench__bar i {
+  display: block;
+  height: 100%;
+  width: var(--w, 0%);
+  border-radius: 999px;
+  background: var(--arch-accent, var(--accent));
+  opacity: 0.34;
+  transition: width 720ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease;
+}
+.bench__bar[data-p='p90'] i { opacity: 0.58; }
+.bench__bar[data-p='p95'] i { opacity: 0.78; }
+.bench__bar[data-p='p99'] i { opacity: 1; }
+.bench.is-primed .bench__bar i { width: 0; }
+.bench.is-primed.is-drawn .bench__bar i { width: var(--w); }
+.bench__bar em {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--w, 0%) + 0.5rem);
+  transform: translateY(-50%);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-2);
+  transition: opacity 160ms ease;
+}
+.bench[data-focus='p50'] .bench__bar:not([data-p='p50']) i,
+.bench[data-focus='p90'] .bench__bar:not([data-p='p90']) i,
+.bench[data-focus='p95'] .bench__bar:not([data-p='p95']) i,
+.bench[data-focus='p99'] .bench__bar:not([data-p='p99']) i { opacity: 0.08; }
+.bench[data-focus='p50'] .bench__bar:not([data-p='p50']) em,
+.bench[data-focus='p90'] .bench__bar:not([data-p='p90']) em,
+.bench[data-focus='p95'] .bench__bar:not([data-p='p95']) em,
+.bench[data-focus='p99'] .bench__bar:not([data-p='p99']) em { opacity: 0.35; }
+
+.bench__axis {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.4rem 0 1.9rem 7.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px dashed var(--rule);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  color: var(--muted-3);
+}
+
+.bench__sub { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.6rem; }
+.bench__sub h4 { font-size: 0.8125rem; font-weight: 600; color: var(--strong); margin: 0; }
+.bench__sizes { display: grid; gap: 0.32rem; }
+.bench__size {
+  display: grid;
+  grid-template-columns: 3.9rem 1fr 4rem;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+}
+.bench__size i {
+  display: block;
+  height: 8px;
+  width: var(--w, 0%);
+  border-radius: 999px;
+  background: var(--arch-accent, var(--accent));
+  opacity: 0.55;
+  transition: width 720ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.bench.is-primed .bench__size i { width: 0; }
+.bench.is-primed.is-drawn .bench__size i { width: var(--w); }
+.bench__size b { text-align: end; font-weight: 500; color: var(--muted-2); }
+.bench__size-label { color: var(--muted-3); }
+
+.bench__note {
+  margin: 1.1rem 0 0;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--muted-3);
 }
 
 /* ---------------------------------- print --------------------------------- */

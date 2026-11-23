@@ -169,6 +169,7 @@ graph.stepNodes.forEach((nodeId, index) => {
     <button type="button" class="arch__btn" data-arch-next aria-label="Next step">→</button>
     <span class="arch__count" data-arch-count>01 / {String(flow.steps.length).padStart(2, '0')}</span>
   </div>
+  <div class="arch__progress" aria-hidden="true"><i data-arch-progress></i></div>
 
   <div class="arch__panels">
     {flow.steps.map((step, index) => (
@@ -207,6 +208,7 @@ graph.stepNodes.forEach((nodeId, index) => {
     const edges = Array.from(section.querySelectorAll<SVGGElement>('.arch__edge'));
     const panels = Array.from(section.querySelectorAll<HTMLElement>('[data-panel]'));
     const count = section.querySelector<HTMLElement>('[data-arch-count]');
+    const progress = section.querySelector<HTMLElement>('[data-arch-progress]');
     const playText = section.querySelector<HTMLElement>('[data-arch-play-label]');
     const playButton = section.querySelector<HTMLButtonElement>('[data-arch-play]');
     const playLabel = section.dataset.playLabel ?? 'Play';
@@ -271,6 +273,7 @@ graph.stepNodes.forEach((nodeId, index) => {
 
       panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
       if (count) count.textContent = pad(index + 1) + ' / ' + pad(panels.length);
+      if (progress) progress.style.width = ((index + 1) / panels.length) * 100 + '%';
 
       if (animateRoute) drawRoute();
     };
@@ -336,5 +339,20 @@ graph.stepNodes.forEach((nodeId, index) => {
     });
 
     show(0, false);
+
+    // fade the stages in the first time the map scrolls into view
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            section.classList.add('is-revealed');
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.2 });
+      observer.observe(section);
+    } else {
+      section.classList.add('is-revealed');
+    }
   });
 </script>

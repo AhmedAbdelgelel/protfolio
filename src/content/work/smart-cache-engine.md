@@ -48,18 +48,12 @@ Ten scenarios, each answering one question:
 
 ## What came out
 
-The two numbers this engine is judged on, both taken from the harness above rather than from a
-lucky run:
+<!-- chart -->
 
-| Benchmark | Result |
-| --- | --- |
-| hot read, 16-byte key and 64-byte value | 3M+ operations per second |
-| duplicate backend calls after a hot key expires | 99.9% removed |
-
-Every scenario in the table above is the same engine measured under a different pressure: churn,
-cold start, large values and the sweep. That is why the headline number is the small-value, hot-hit
-row and not a general claim. For a fair comparison the harness prints the Node version and the CPU
-it ran on above every scenario, so two rows are only comparable within the same run.
+Every row is the same engine measured under a different pressure: churn, cold start, large values
+and the sweep. That is why the headline number is the small-value, hot-hit row and not a general
+claim. The harness prints the Node version and the platform above every scenario, so two numbers
+are only comparable within the same run.
 
 ## How the operations map onto the structures
 

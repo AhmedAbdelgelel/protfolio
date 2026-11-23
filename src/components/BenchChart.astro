@@ -1,0 +1,139 @@
+---
+/**
+ * The measured numbers, drawn.
+ *
+ * Percentiles come from a pass over the engine's public API with the same hrtime clock the
+ * project's harness uses; throughput and value sizes come from the harness itself.
+ */
+import { latency, throughput, valueSizes, environment } from '../data/latency';
+
+const percentiles = ['p50', 'p90', 'p95', 'p99'] as const;
+type P = (typeof percentiles)[number];
+
+const max = Math.max(...latency.flatMap((row) => percentiles.map((p) => row[p as P])));
+const scaleMax = Math.ceil(max * 1.15 * 10) / 10;
+
+const sizeMax = Math.max(...valueSizes.map((size) => size.ops));
+const sizeMin = Math.min(...valueSizes.map((size) => size.ops));
+const logScale = (ops: number): number => {
+  const min = Math.log10(sizeMin) - 0.6;
+  const maxLog = Math.log10(sizeMax) + 0.15;
+  return ((Math.log10(ops) - min) / (maxLog - min)) * 100;
+};
+
+const compact = (value: number): string => {
+  if (value >= 1_000_000) return (value / 1_000_000).toFixed(2) + 'M';
+  if (value >= 1_000) return Math.round(value / 1_000) + 'k';
+  return String(value);
+};
+---
+
+<section class="bench" data-bench data-accent="amber" aria-labelledby="bench-title">
+  <header class="bench__head">
+    <h3 id="bench-title">Measured latency</h3>
+    <p class="bench__hint">microseconds per operation</p>
+  </header>
+
+  <div class="bench__stats">
+    <div class="bench__stat">
+      <b>{compact(throughput.mixed)}</b>
+      <span>ops/sec · mixed 9:1 read/write</span>
+    </div>
+    <div class="bench__stat">
+      <b>1.5<span class="bench__unit">µs</span></b>
+      <span>p99 · get hit</span>
+    </div>
+    <div class="bench__stat">
+      <b>3.0<span class="bench__unit">M</span></b>
+      <span>ops/sec · zipfian hit pattern</span>
+    </div>
+  </div>
+
+  <div class="bench__legend" data-bench-legend>
+    {percentiles.map((p) => (
+      <button type="button" class="bench__chip is-on" data-p={p}>{p}</button>
+    ))}
+    <span class="bench__legend-note">click a percentile to isolate it</span>
+  </div>
+
+  <div class="bench__rows">
+    {latency.map((row) => (
+      <div class="bench__row" data-bench-row>
+        <div class="bench__label">
+          <b>{row.label}</b>
+          <span>{row.detail}</span>
+        </div>
+        <div class="bench__bars">
+          {percentiles.map((p) => {
+            const value = row[p as P];
+            return (
+              <div class="bench__bar" data-p={p} style={'--w:' + ((value / scaleMax) * 100).toFixed(2) + '%'}>
+                <span class="bench__track"><i></i></span>
+                <em>{value.toFixed(1)}</em>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="bench__axis" aria-hidden="true">
+    <span>0</span>
+    <span>{(scaleMax / 2).toFixed(1)}</span>
+    <span>{scaleMax.toFixed(1)} µs</span>
+  </div>
+
+  <div class="bench__sub">
+    <h4>Throughput by value size</h4>
+    <p class="bench__hint">operations per second, log scale</p>
+  </div>
+  <div class="bench__sizes">
+    {valueSizes.map((size) => (
+      <div class="bench__size">
+        <span class="bench__size-label">{size.label}</span>
+        <i style={'--w:' + logScale(size.ops).toFixed(1) + '%'}></i>
+        <b>{compact(size.ops)}</b>
+      </div>
+    ))}
+  </div>
+
+  <p class="bench__note">
+    Node {environment.node} · {environment.platform} · {environment.opsPerRow.toLocaleString('en-US')}
+    operations per row, timed with hrtime around each call.
+  </p>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-bench]').forEach((section) => {
+    const chips = Array.from(section.querySelectorAll<HTMLButtonElement>('.bench__chip'));
+    const set = (active: string | null): void => {
+      section.dataset.focus = active ?? '';
+      chips.forEach((chip) => chip.classList.toggle('is-on', chip.dataset.p === active || active === null));
+    };
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const focus = section.dataset.focus;
+        set(focus === chip.dataset.p ? null : (chip.dataset.p ?? null));
+      });
+    });
+
+    // grow the bars the first time the chart is on screen
+    const draw = (): void => section.classList.add('is-drawn');
+    section.classList.add('is-primed');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            draw();
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.25 });
+      observer.observe(section);
+    } else {
+      draw();
+    }
+  });
+</script>
