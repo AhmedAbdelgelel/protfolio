@@ -6,6 +6,31 @@
  * project's harness uses; throughput and value sizes come from the harness itself.
  */
 import { latency, throughput, valueSizes, environment } from '../data/latency';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const copy =
+  lang === 'ar'
+    ? {
+        title: 'الكمون المقاس',
+        hint: 'ميكروثانية لكل عملية',
+        legend: 'اضغط على نسبة لعزلها',
+        throughput: 'معدل العمليات حسب حجم القيمة',
+        throughputHint: 'عملية في الثانية، مقياس لوغاريتمي',
+        note: '60,000 عملية لكل صف، بقياس hrtime حول كل نداء.'
+      }
+    : {
+        title: 'Measured latency',
+        hint: 'microseconds per operation',
+        legend: 'click a percentile to isolate it',
+        throughput: 'Throughput by value size',
+        throughputHint: 'operations per second, log scale',
+        note: '60,000 operations per row, timed with hrtime around each call.'
+      };
 
 const percentiles = ['p50', 'p90', 'p95', 'p99'] as const;
 type P = (typeof percentiles)[number];
@@ -30,8 +55,8 @@ const compact = (value: number): string => {
 
 <section class="bench" data-bench data-accent="amber" aria-labelledby="bench-title">
   <header class="bench__head">
-    <h3 id="bench-title">Measured latency</h3>
-    <p class="bench__hint">microseconds per operation</p>
+    <h3 id="bench-title">{copy.title}</h3>
+    <p class="bench__hint">{copy.hint}</p>
   </header>
 
   <div class="bench__stats">
@@ -53,7 +78,7 @@ const compact = (value: number): string => {
     {percentiles.map((p) => (
       <button type="button" class="bench__chip is-on" data-p={p}>{p}</button>
     ))}
-    <span class="bench__legend-note">click a percentile to isolate it</span>
+    <span class="bench__legend-note">{copy.legend}</span>
   </div>
 
   <div class="bench__rows">
@@ -85,8 +110,8 @@ const compact = (value: number): string => {
   </div>
 
   <div class="bench__sub">
-    <h4>Throughput by value size</h4>
-    <p class="bench__hint">operations per second, log scale</p>
+    <h4>{copy.throughput}</h4>
+    <p class="bench__hint">{copy.throughputHint}</p>
   </div>
   <div class="bench__sizes">
     {valueSizes.map((size) => (

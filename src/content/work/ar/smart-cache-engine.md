@@ -19,7 +19,7 @@ order: 2
 عنصر يحمل موعد انتهائه. وكل ما بعد ذلك في المحرك (المجموعات المرتبة، وحاجز الاندفاع، وقياسات زمن
 الاستجابة) مبني على هذه الثلاث.
 
-<figure class="cache-diagram" role="img" aria-label="جدول تجزئة يشير إلى قائمة مترابطة مزدوجة مرتبة من الأكثر استخدامًا (المقدمة) إلى الأقل (الذيل)، مع مساري القراءة والكتابة" style="margin:1.75rem 0"><svg viewBox="0 0 640 240" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;height:auto;font-family:'Geist Mono',ui-monospace,SFMono-Regular,Consolas,monospace;overflow:visible"><text x="0" y="14" style="fill:var(--muted-2);font-size:10px;letter-spacing:1.4px">HASH MAP</text><text x="330" y="14" style="fill:var(--muted-2);font-size:10px;letter-spacing:1.4px">DOUBLY LINKED LIST / LRU ORDER</text><g fill="none" style="stroke:var(--muted-3);stroke-width:1.2"><rect x="0" y="28" width="70" height="26" rx="4"/><rect x="0" y="60" width="70" height="26" rx="4"/><rect x="0" y="92" width="70" height="26" rx="4"/><rect x="0" y="124" width="70" height="26" rx="4"/></g><g style="fill:var(--strong);font-size:11px"><text x="10" y="45">b0</text><text x="10" y="77">b1</text><text x="10" y="109">b2</text></g><text x="10" y="141" style="fill:var(--muted-2);font-size:11px">b3</text><g fill="none" style="stroke:var(--muted-3);stroke-width:1.2"><path d="M70 41 C130 41 150 60 176 70"/><path d="M70 105 C120 105 150 92 176 84"/></g><g style="fill:var(--ink)"><circle cx="70" cy="41" r="2.2"/><circle cx="70" cy="105" r="2.2"/><circle cx="176" cy="70" r="2.2"/><circle cx="176" cy="84" r="2.2"/></g><g fill="none" style="stroke:var(--muted-3);stroke-width:1.2"><rect x="180" y="56" width="96" height="42" rx="6"/><rect x="302" y="56" width="96" height="42" rx="6"/><rect x="424" y="56" width="96" height="42" rx="6"/></g><g style="fill:var(--strong);font-size:12px"><text x="192" y="74">"a"</text><text x="314" y="74">"c"</text><text x="436" y="74">"b"</text></g><g style="fill:var(--muted-2);font-size:9px"><text x="192" y="89">ttl 4s</text><text x="314" y="89">no ttl</text><text x="436" y="89">ttl 12s</text></g><g fill="none" style="stroke:var(--ink);stroke-width:1.4"><path d="M276 70 h22"/><path d="M294 66 l4 4 -4 4"/><path d="M398 70 h22"/><path d="M416 66 l4 4 -4 4"/><path d="M276 84 h-22"/><path d="M258 80 l-4 4 4 4"/><path d="M398 84 h-22"/><path d="M380 80 l-4 4 4 4"/><path d="M180 112 v10"/><path d="M424 112 v10"/></g><g style="fill:var(--ink);font-size:10px"><text x="180" y="126">head · most recent</text><text x="424" y="126">tail · next to evict</text></g><text x="0" y="176" style="fill:var(--muted-2);font-size:10px;letter-spacing:1.4px">READ PATH</text><text x="0" y="196" style="fill:var(--article);font-size:11px">hash(key) → bucket → node (O(1)) → move node to head → return value</text><text x="0" y="216" style="fill:var(--muted-2);font-size:10px;letter-spacing:1.4px">WRITE PATH</text><text x="0" y="236" style="fill:var(--article);font-size:11px">new node at head → if count &gt; capacity, unlink tail → delete its bucket entry</text></svg></figure>
+<!-- structure -->
 
 ## كيف جرى القياس
 
@@ -49,17 +49,11 @@ order: 2
 
 ## ما خرجنا به
 
-الرقمان اللذان يُحكم بهما على هذا المحرك، وكلاهما من أداة القياس أعلاه لا من جولة محظوظة:
+<!-- chart -->
 
-| القياس | النتيجة |
-| --- | --- |
-| قراءة ساخنة، مفتاح 16 بايت وقيمة 64 بايت | أكثر من ثلاثة ملايين عملية في الثانية |
-| استدعاءات مكررة بعد انتهاء مفتاح ساخن | 99.9% أقل |
-
-كل سيناريو في الجدول أعلاه هو المحرك نفسه تحت ضغط مختلف: دوران المفاتيح، والبدء البارد، والقيم
-الكبيرة، والمسح. لهذا يكون الرقم الرئيسي هو صف الإصابة الساخنة بالقيم الصغيرة، وليس ادعاءً عامًّا.
-وللمقارنة العادلة تطبع أداة القياس إصدار Node والمعالج الذي جرت عليه فوق كل سيناريو، فلا يُقارن
-صفان إلا داخل الجولة نفسها.
+كل صف هو المحرك نفسه تحت ضغط مختلف: دوران المفاتيح، والبدء البارد، والقيم الكبيرة، والمسح. لهذا
+يكون الرقم الرئيسي هو صف الإصابة الساخنة بالقيم الصغيرة، وليس ادعاءً عامًّا. وأداة القياس تطبع إصدار
+Node والمنصة فوق كل سيناريو، فلا يُقارن رقمان إلا داخل الجولة نفسها.
 
 ## كيف تقع العمليات على البنى
 

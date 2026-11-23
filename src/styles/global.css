@@ -1071,6 +1071,118 @@ html[lang='ar'] { line-height: 1.75; }
   color: var(--muted-3);
 }
 
+/* ------------------------------- cache structure --------------------------- */
+.cache-map {
+  margin: 2.25rem 0 2.75rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.4rem;
+}
+.cache-map__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.cache-map__head h3 { font-size: 1rem; font-weight: 600; color: var(--strong); margin: 0; }
+.cache-map__hint {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--muted-3);
+}
+.cache-map__stage {
+  --cache-w: min(1000px, calc(100vw - 3rem));
+  width: var(--cache-w);
+  margin-inline: calc((100% - var(--cache-w)) / 2);
+  padding: 0.9rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  overflow-x: auto;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 22% 30%, color-mix(in srgb, var(--arch-accent-soft, var(--accent-soft)) 55%, transparent), transparent 55%),
+    radial-gradient(var(--rule) 1px, transparent 1px);
+  background-size: 100% 100%, 18px 18px;
+  background-position: center, -1px -1px;
+}
+.cache-map__stage svg { display: block; width: 100%; height: auto; min-width: 640px; }
+
+.cache-map__label {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: var(--muted-3);
+}
+.cache-map__bucket rect,
+.cache-map__node rect {
+  fill: var(--bg);
+  stroke: var(--rule);
+  stroke-width: 1.15;
+  transition: fill 170ms ease, stroke 170ms ease;
+}
+.cache-map__bucket-key {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  fill: var(--ink);
+}
+.cache-map__bucket-ttl {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 8.5px;
+  fill: var(--muted-3);
+  text-anchor: end;
+}
+.cache-map__node-label {
+  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink);
+  text-anchor: middle;
+}
+.cache-map__node-ttl {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  fill: var(--muted-3);
+  text-anchor: middle;
+}
+.cache-map__bucket.is-lit rect,
+.cache-map__node.is-lit rect {
+  stroke: var(--arch-accent, var(--accent));
+  fill: var(--arch-accent-soft, var(--accent-soft));
+}
+.cache-map__route {
+  fill: none;
+  stroke: var(--muted-3);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 4;
+  transition: stroke 170ms ease, stroke-width 170ms ease;
+}
+.cache-map__route.is-lit {
+  stroke: var(--arch-accent, var(--accent));
+  stroke-width: 1.9;
+  stroke-dasharray: none;
+}
+.cache-map__links path { fill: none; stroke: var(--muted-2); stroke-width: 1.15; }
+.cache-map__arrow { fill: var(--muted-3); }
+.cache-map__tick { stroke: var(--rule); stroke-width: 1.2; }
+.cache-map__note {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 8.5px;
+  fill: var(--muted-3);
+  text-anchor: middle;
+}
+.cache-map__path {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  fill: var(--muted-2);
+}
+.cache-map__path-key { fill: var(--arch-accent, var(--accent)); font-weight: 600; }
+
+@media (max-width: 640px) {
+  .cache-map__head { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .cache-map__stage { padding: 0.7rem 0.35rem; border-radius: 12px; }
+}
+
 /* ---------------------------------- print --------------------------------- */
 @media print {
   body { max-width: 100%; }

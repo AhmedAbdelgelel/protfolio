@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import ArchDiagram from '../ArchDiagram.astro';
 import CacheLab from '../CacheLab.astro';
 import BenchChart from '../BenchChart.astro';
+import CacheStructure from '../CacheStructure.astro';
 import { marked } from 'marked';
 import { render } from 'astro:content';
 import { dict, type Lang } from '../../i18n/ui';
@@ -20,10 +21,10 @@ const t = dict(lang);
 const { Content } = await render(entry);
 const slug = workSlug(entry.id);
 const flow = getFlow(lang, slug);
+const graph = getGraph(slug);
 
-// the cache case study places the benchmark chart inside a section, so that page
-// renders its markdown here and splits it at the marker
-const CHART_MARKER = '<!-- chart -->';
+// markers let a case study place a component mid-article
+const MARKS: Record<string, string> = { '<!-- chart -->': 'chart', '<!-- structure -->': 'structure' };
 const slugify = (value: string): string =>
   value
     .replace(/&[#a-z0-9]+;/gi, '')
@@ -32,14 +33,18 @@ const slugify = (value: string): string =>
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
 
-const rendered = entry.id === slug && entry.body ? (marked.parse(entry.body, { gfm: true }) as string) : '';
-const markedHtml = rendered
-  .replace(/<h2>([\s\S]*?)<\/h2>/g, (_m, text: string) => '<h2 id="' + slugify(text) + '">' + text + '</h2>')
-  .replace(/<h3>([\s\S]*?)<\/h3>/g, (_m, text: string) => '<h3 id="' + slugify(text) + '">' + text + '</h3>');
-const markerAt = markedHtml.indexOf(CHART_MARKER);
-const htmlBefore = markerAt >= 0 ? markedHtml.slice(0, markerAt) : markedHtml;
-const htmlAfter = markerAt >= 0 ? markedHtml.slice(markerAt + CHART_MARKER.length) : '';
-const graph = getGraph(slug);
+const markedHtml = entry.body
+  ? (marked.parse(entry.body, { gfm: true }) as string)
+      .replace(/<h2>([\s\S]*?)<\/h2>/g, (_m, text: string) => '<h2 id="' + slugify(text) + '">' + text + '</h2>')
+      .replace(/<h3>([\s\S]*?)<\/h3>/g, (_m, text: string) => '<h3 id="' + slugify(text) + '">' + text + '</h3>')
+  : '';
+
+const pieces = markedHtml.split(/(<!-- (?:chart|structure) -->)/g).map((piece) => ({
+  kind: MARKS[piece] ?? 'html',
+  html: piece
+}));
+const hasMarkers = pieces.some((piece) => piece.kind !== 'html');
+
 ---
 
 <Base
@@ -65,15 +70,13 @@ const graph = getGraph(slug);
       />
     )}
 
-    {markerAt >= 0 ? (
-      <>
-        <div set:html={htmlBefore} />
-        <BenchChart />
-        <div set:html={htmlAfter} />
-      </>
-    ) : (
-      <Content />
-    )}
+    {hasMarkers
+      ? pieces.map((piece) =>
+          piece.kind === 'chart' ? <BenchChart lang={lang} /> :
+          piece.kind === 'structure' ? <CacheStructure lang={lang} /> :
+          <div set:html={piece.html} />
+        )
+      : <Content />}
 
     {slug === 'smart-cache-engine' && <CacheLab lang={lang} />}
   </article>
