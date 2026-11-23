@@ -3,8 +3,10 @@
  * The cache's internals, drawn in the site's own style.
  *
  * A hash map on the left pointing into a doubly linked list on the right: buckets resolve a key
- * in O(1), the list keeps recency, and the tail is the next entry to evict. Hovering links the
- * two sides so the mapping is obvious.
+ * in O(1), the list keeps recency, and the tail is the next entry to evict. Every bucket maps to
+ * exactly one node on the same row, so the connectors are straight and never cross; the list is
+ * linked with a next and a prev pointer between rows. Hovering, tapping or focusing a bucket or a
+ * node links the two sides so the mapping is obvious.
  */
 import type { Lang } from '../i18n/ui';
 
@@ -13,23 +15,56 @@ interface Props {
 }
 
 const { lang = 'en' } = Astro.props;
+const rtl = lang === 'ar';
 const copy =
   lang === 'ar'
-    ? { title: 'كيف يُخزَّن المفتاح', hint: 'مرّر على خانة أو عقدة' }
-    : { title: 'How a key is stored', hint: 'hover a bucket or a node' };
+    ? {
+        title: 'كيف يُخزَّن المفتاح',
+        hint: 'مرّر أو اضغط على خانة أو عقدة',
+        mapLabel: 'جدول التجزئة · hash map',
+        listLabel: 'قائمة مترابطة مزدوجة · ترتيب LRU',
+        linksNote: 'التالي ↓ · السابق ↑',
+        headNote: 'المقدمة · الأحدث استخدامًا',
+        tailNote: 'الذيل · التالي للاستبعاد',
+        readKey: 'القراءة',
+        readPath: 'hash(key) ← الخانة ← العقدة بزمن O(1) ← انقل العقدة للمقدمة ← أعد القيمة',
+        writeKey: 'الكتابة',
+        writePath: 'عقدة جديدة في المقدمة ← عند تجاوز سقف البايتات، افصل الذيل واحذف خانته',
+        ttlNone: 'بلا TTL'
+      }
+    : {
+        title: 'How a key is stored',
+        hint: 'hover or tap a bucket or a node',
+        mapLabel: 'hash map',
+        listLabel: 'doubly linked list · LRU order',
+        linksNote: 'next ↓ · prev ↑',
+        headNote: 'head · most recent',
+        tailNote: 'tail · next to evict',
+        readKey: 'read',
+        readPath: 'hash(key) → bucket → node, O(1) → move node to head → return value',
+        writeKey: 'write',
+        writePath: 'new node at head → if bytes exceed the cap, unlink the tail and delete its bucket',
+        ttlNone: 'no ttl'
+      };
 
 const buckets = [
-  { id: 'b0', target: 'a', key: 'key:a', value: '"a"', ttl: 'ttl 4s' },
-  { id: 'b1', target: 'c', key: 'key:c', value: '"c"', ttl: 'no ttl' },
-  { id: 'b2', target: 'b', key: 'key:b', value: '"b"', ttl: 'ttl 12s' },
-  { id: 'b3', target: null, key: 'empty', value: '', ttl: '' }
+  { id: 'b0', target: 'a', key: 'key:a', ttl: 'ttl 4s' },
+  { id: 'b1', target: 'c', key: 'key:c', ttl: copy.ttlNone },
+  { id: 'b2', target: 'b', key: 'key:b', ttl: 'ttl 12s' }
 ];
 
 const nodes = [
-  { id: 'a', x: 300, label: '"a"', ttl: 'ttl 4s', bucket: 'b0' },
-  { id: 'c', x: 470, label: '"c"', ttl: 'no ttl', bucket: 'b1' },
-  { id: 'b', x: 640, label: '"b"', ttl: 'ttl 12s', bucket: 'b2' }
+  { id: 'a', label: '"a"', ttl: 'ttl 4s', bucket: 'b0' },
+  { id: 'c', label: '"c"', ttl: copy.ttlNone, bucket: 'b1' },
+  { id: 'b', label: '"b"', ttl: 'ttl 12s', bucket: 'b2' }
 ];
+
+// rows are shared by the map and the list, so every connector is a straight line
+const ROW_Y = [84, 162, 240];
+const LIST_X = 456;
+const LIST_W = 132;
+const LIST_H = 48;
+const BUCKET_H = 32;
 ---
 
 <section class="cache-map" data-cache-map data-accent="amber" aria-labelledby="cache-map-title">
@@ -39,77 +74,107 @@ const nodes = [
   </header>
 
   <div class="cache-map__stage" dir="ltr">
-    <svg viewBox="0 0 760 300" role="img" aria-label="A hash map pointing into a doubly linked list ordered from most to least recently used">
+    <svg viewBox="0 0 760 340" role="img" aria-label={copy.title}>
       <defs>
         <marker id="cache-map-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" class="cache-map__arrow" />
         </marker>
+        <marker id="cache-map-arrow-active" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="cache-map__arrow cache-map__arrow--active" />
+        </marker>
       </defs>
 
-      <text class="cache-map__label" x="24" y="26">hash map</text>
-      <text class="cache-map__label" x="300" y="26">doubly linked list · lru order</text>
+      <text class="cache-map__label" x="24" y="26">{copy.mapLabel}</text>
+      <text class="cache-map__label" x="430" y="26">{copy.listLabel}</text>
+      <text class="cache-map__links-note" x="430" y="44">{copy.linksNote}</text>
 
-      {buckets.map((bucket, index) => (
-        <g
-          class="cache-map__bucket"
-          data-bucket={bucket.id}
-          data-target={bucket.target ?? ''}
-          transform={'translate(24 ' + (44 + index * 40) + ')'}
-        >
-          <rect width="176" height="30" rx="8" />
-          <text class="cache-map__bucket-key" x="12" y="19">{bucket.key}</text>
-          <text class="cache-map__bucket-ttl" x="164" y="19">{bucket.ttl}</text>
-        </g>
-      ))}
+      {buckets.map((bucket, index) => {
+        const y = ROW_Y[index];
+        return (
+          <g
+            class="cache-map__bucket"
+            data-bucket={bucket.id}
+            data-target={bucket.target}
+            transform={'translate(24 ' + (y - BUCKET_H / 2) + ')'}
+            role="button"
+            tabindex="0"
+            aria-label={bucket.key + ' ' + bucket.ttl + ' → ' + bucket.target}
+          >
+            <rect width="176" height={BUCKET_H} rx="8" />
+            <text class="cache-map__bucket-key" x="12" y="20">{bucket.key}</text>
+            <text class="cache-map__bucket-ttl" x="164" y="20">{bucket.ttl}</text>
+          </g>
+        );
+      })}
 
-      <!-- bucket to node routes -->
+      <!-- one straight route per bucket, landing on the node in the same row -->
       <g class="cache-map__routes">
-        {buckets.filter((bucket) => bucket.target).map((bucket) => {
-          const fromY = 44 + buckets.indexOf(bucket) * 40 + 15;
-          const node = nodes.find((entry) => entry.id === bucket.target)!;
-          const midX = (200 + node.x - 65) / 2;
-          const d = 'M 200 ' + fromY + ' C ' + (midX + 10) + ' ' + fromY + ', ' + (midX - 10) + ' 140, ' + (node.x - 65) + ' 140';
+        {buckets.map((bucket, index) => {
+          const d = 'M 200 ' + ROW_Y[index] + ' H ' + LIST_X;
           return (
-            <path
-              class="cache-map__route"
-              data-route={bucket.id}
-              d={d}
-              marker-end="url(#cache-map-arrow)"
-            />
+            <g class="cache-map__edge" data-edge={bucket.id}>
+              <path class="cache-map__glow" d={d} aria-hidden="true" />
+              <path
+                class="cache-map__route"
+                data-route={bucket.id}
+                d={d}
+                marker-end="url(#cache-map-arrow)"
+              />
+              <path class="cache-map__flow" d={d} pathLength="100" aria-hidden="true" />
+            </g>
           );
         })}
       </g>
 
-      <!-- linked list nodes -->
-      {nodes.map((node) => (
-        <g class="cache-map__node" data-node={node.id} data-bucket={node.bucket} transform={'translate(' + (node.x - 65) + ' 111)'}>
-          <rect width="130" height="58" rx="12" />
-          <text class="cache-map__node-label" x="65" y="26">{node.label}</text>
-          <text class="cache-map__node-ttl" x="65" y="43">{node.ttl}</text>
-        </g>
-      ))}
+      <!-- linked list nodes, head first -->
+      {nodes.map((node, index) => {
+        const y = ROW_Y[index];
+        return (
+          <g
+            class="cache-map__node"
+            data-node={node.id}
+            data-bucket={node.bucket}
+            transform={'translate(' + LIST_X + ' ' + (y - LIST_H / 2) + ')'}
+            role="button"
+            tabindex="0"
+            aria-label={node.label + ' ' + node.ttl}
+          >
+            <rect width={LIST_W} height={LIST_H} rx="12" />
+            <text class="cache-map__node-label" x={LIST_W / 2} y="21">{node.label}</text>
+            <text class="cache-map__node-ttl" x={LIST_W / 2} y="36">{node.ttl}</text>
+          </g>
+        );
+      })}
 
-      <!-- next / prev arrows -->
+      <!-- next / prev pointers between the rows -->
       <g class="cache-map__links">
-        <path d="M 366 140 H 396" marker-end="url(#cache-map-arrow)" />
-        <path d="M 404 128 H 374" marker-end="url(#cache-map-arrow)" />
-        <path d="M 536 140 H 566" marker-end="url(#cache-map-arrow)" />
-        <path d="M 574 128 H 544" marker-end="url(#cache-map-arrow)" />
+        <path d="M 520 108 V 138" marker-end="url(#cache-map-arrow)" />
+        <path d="M 536 138 V 108" marker-end="url(#cache-map-arrow)" />
+        <path d="M 520 186 V 216" marker-end="url(#cache-map-arrow)" />
+        <path d="M 536 216 V 186" marker-end="url(#cache-map-arrow)" />
       </g>
 
-      <text class="cache-map__note" x="300" y="196">head · most recent</text>
-      <path class="cache-map__tick" d="M 300 172 V 184" />
-      <text class="cache-map__note" x="640" y="196">tail · next to evict</text>
-      <path class="cache-map__tick" d="M 640 172 V 184" />
+      <text class="cache-map__note" x="600" y="88">{copy.headNote}</text>
+      <text class="cache-map__note" x="600" y="244">{copy.tailNote}</text>
 
       <g class="cache-map__paths">
-        <text class="cache-map__path" x="24" y="238">
-          <tspan class="cache-map__path-key">read</tspan>
-          <tspan>hash(key) → bucket → node, O(1) → move node to head → return value</tspan>
+        <text
+          class="cache-map__path"
+          x={rtl ? 736 : 24}
+          y="296"
+          direction={rtl ? 'rtl' : 'ltr'}
+        >
+          <tspan class="cache-map__path-key">{copy.readKey}</tspan>
+          <tspan> {copy.readPath}</tspan>
         </text>
-        <text class="cache-map__path" x="24" y="266">
-          <tspan class="cache-map__path-key">write</tspan>
-          <tspan>new node at head → if bytes exceed the cap, unlink the tail and delete its bucket</tspan>
+        <text
+          class="cache-map__path"
+          x={rtl ? 736 : 24}
+          y="322"
+          direction={rtl ? 'rtl' : 'ltr'}
+        >
+          <tspan class="cache-map__path-key">{copy.writeKey}</tspan>
+          <tspan> {copy.writePath}</tspan>
         </text>
       </g>
     </svg>
@@ -121,11 +186,16 @@ const nodes = [
     const buckets = Array.from(map.querySelectorAll<SVGGElement>('[data-bucket]'));
     const nodes = Array.from(map.querySelectorAll<SVGGElement>('[data-node]'));
     const routes = Array.from(map.querySelectorAll<SVGPathElement>('[data-route]'));
+    const edges = Array.from(map.querySelectorAll<SVGGElement>('[data-edge]'));
 
     const clear = (): void => {
       buckets.forEach((bucket) => bucket.classList.remove('is-lit'));
       nodes.forEach((node) => node.classList.remove('is-lit'));
-      routes.forEach((route) => route.classList.remove('is-lit'));
+      edges.forEach((edge) => edge.classList.remove('is-lit'));
+      routes.forEach((route) => {
+        route.classList.remove('is-lit');
+        route.setAttribute('marker-end', 'url(#cache-map-arrow)');
+      });
     };
 
     const light = (bucketId: string, nodeId: string): void => {
@@ -136,8 +206,14 @@ const nodes = [
       nodes.forEach((node) => {
         if (node.dataset.node === nodeId) node.classList.add('is-lit');
       });
+      edges.forEach((edge) => {
+        if (edge.dataset.edge === bucketId) edge.classList.add('is-lit');
+      });
       routes.forEach((route) => {
-        if (route.dataset.route === bucketId) route.classList.add('is-lit');
+        if (route.dataset.route === bucketId) {
+          route.classList.add('is-lit');
+          route.setAttribute('marker-end', 'url(#cache-map-arrow-active)');
+        }
       });
     };
 
@@ -146,12 +222,33 @@ const nodes = [
       if (!target) return;
       bucket.addEventListener('mouseenter', () => light(bucket.dataset.bucket ?? '', target));
       bucket.addEventListener('mouseleave', clear);
+      bucket.addEventListener('click', () => light(bucket.dataset.bucket ?? '', target));
+      bucket.addEventListener('keydown', (event) => {
+        const key = (event as KeyboardEvent).key;
+        if (key === 'Enter' || key === ' ') {
+          event.preventDefault();
+          light(bucket.dataset.bucket ?? '', target);
+        } else if (key === 'Escape') {
+          clear();
+        }
+      });
     });
 
     nodes.forEach((node) => {
       const bucket = node.dataset.bucket ?? '';
-      node.addEventListener('mouseenter', () => light(bucket, node.dataset.node ?? ''));
+      const nodeId = node.dataset.node ?? '';
+      node.addEventListener('mouseenter', () => light(bucket, nodeId));
       node.addEventListener('mouseleave', clear);
+      node.addEventListener('click', () => light(bucket, nodeId));
+      node.addEventListener('keydown', (event) => {
+        const key = (event as KeyboardEvent).key;
+        if (key === 'Enter' || key === ' ') {
+          event.preventDefault();
+          light(bucket, nodeId);
+        } else if (key === 'Escape') {
+          clear();
+        }
+      });
     });
   });
 </script>

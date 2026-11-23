@@ -3,8 +3,9 @@
  * Interactive architecture map for a case study.
  *
  * The SVG is server rendered, so the map is there without JavaScript: frames, orthogonal routes,
- * numbered stages. The script adds the step machine: click a node or use the controls, the focused
- * stage inverts, its incoming route darkens, and a request token travels the route.
+ * labels, numbered stages. The script adds the step machine: click a node or use the controls, the
+ * focused stage and its co-active stages light, their routes animate, and the matching step panel
+ * and pill are selected.
  */
 import type { Flow } from '../data/flows';
 import type { ArchGraph } from '../data/arch';
@@ -21,7 +22,7 @@ const { id, flow, graph, playLabel, pauseLabel } = Astro.props;
 const titleId = id + '-title';
 const markerId = id + '-arrow';
 
-const H = 58;
+const H = 60;
 const nodes = new Map(graph.nodes.map((node) => [node.id, { ...node, w: node.w ?? 140, h: H }]));
 
 interface P { x: number; y: number }
@@ -35,20 +36,29 @@ const at = (node: { x: number; y: number; w: number; h: number }, side: Side): P
 };
 
 /** A left-to-right, top-to-bottom orthogonal route between two boxes. */
-const route = (a: NonNullable<ReturnType<typeof nodes.get>>, b: NonNullable<ReturnType<typeof nodes.get>>): P[] => {
+const route = (
+  a: NonNullable<ReturnType<typeof nodes.get>>,
+  b: NonNullable<ReturnType<typeof nodes.get>>,
+  fromDx = 0,
+  toDx = 0
+): P[] => {
   const sameRow = Math.abs(a.y - b.y) < 1;
-  const sameCol = Math.abs(a.x - b.x) < 1;
+  const sameCol = Math.abs(a.x + fromDx - (b.x + toDx)) < 1;
 
   if (sameRow) {
     return b.x > a.x ? [at(a, 'r'), at(b, 'l')] : [at(a, 'l'), at(b, 'r')];
   }
   if (sameCol) {
-    return b.y > a.y ? [at(a, 'b'), at(b, 't')] : [at(a, 't'), at(b, 'b')];
+    const start = at(a, b.y > a.y ? 'b' : 't');
+    const end = at(b, b.y > a.y ? 't' : 'b');
+    return [{ x: start.x + fromDx, y: start.y }, { x: end.x + toDx, y: end.y }];
   }
 
   const down = b.y > a.y;
-  const start = at(a, down ? 'b' : 't');
-  const end = at(b, down ? 't' : 'b');
+  const rawStart = at(a, down ? 'b' : 't');
+  const rawEnd = at(b, down ? 't' : 'b');
+  const start = { x: rawStart.x + fromDx, y: rawStart.y };
+  const end = { x: rawEnd.x + toDx, y: rawEnd.y };
   const mid = (start.y + end.y) / 2;
   return [start, { x: start.x, y: mid }, { x: end.x, y: mid }, end];
 };
@@ -79,21 +89,31 @@ const edges = graph.edges.flatMap((edge) => {
   const from = nodes.get(edge.from);
   const to = nodes.get(edge.to);
   if (!from || !to) return [];
-  const points = route(from, to);
+  const points = route(from, to, edge.fromDx ?? 0, edge.toDx ?? 0);
   const midIndex = Math.floor((points.length - 1) / 2);
   const a = points[midIndex];
   const b = points[midIndex + 1] ?? points[midIndex];
+  const isVertical = Math.abs(a.x - b.x) < 1;
+  const midX = (a.x + b.x) / 2;
+  const midY = (a.y + b.y) / 2;
+  const tagW = edge.label ? edge.label.length * 5.6 + 12 : 0;
   return [{
     ...edge,
     d: rounded(points),
-    labelX: (a.x + b.x) / 2,
-    labelY: (a.y + b.y) / 2 - 7
+    tagX: midX,
+    tagY: isVertical ? midY : midY - 10,
+    tagW
   }];
 });
 
-const badges = new Map<string, number>();
-graph.stepNodes.forEach((nodeId, index) => {
-  if (!badges.has(nodeId)) badges.set(nodeId, index + 1);
+// a node can belong to more than one step; the badge lists every step it takes part in
+const nodeSteps = new Map<string, number[]>();
+graph.steps.forEach((step, index) => {
+  step.nodes.forEach((nodeId) => {
+    const list = nodeSteps.get(nodeId) ?? [];
+    if (!list.includes(index + 1)) list.push(index + 1);
+    nodeSteps.set(nodeId, list);
+  });
 });
 ---
 
@@ -102,6 +122,7 @@ graph.stepNodes.forEach((nodeId, index) => {
   data-arch
   data-id={id}
   data-accent={graph.accent}
+  data-marker={markerId}
   data-play-label={playLabel}
   data-pause-label={pauseLabel}
   aria-labelledby={titleId}
@@ -116,6 +137,12 @@ graph.stepNodes.forEach((nodeId, index) => {
       <defs>
         <marker id={markerId} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow" />
+        </marker>
+        <marker id={markerId + '-active'} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow arch__arrow--active" />
+        </marker>
+        <marker id={markerId + '-touch'} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow arch__arrow--touch" />
         </marker>
       </defs>
 
@@ -132,8 +159,15 @@ graph.stepNodes.forEach((nodeId, index) => {
       <g class="arch__edges">
         {edges.map((edge) => (
           <g class="arch__edge" data-from={edge.from} data-to={edge.to}>
+            <path d={edge.d} class="arch__edge-glow" aria-hidden="true" />
             <path d={edge.d} class:list={{ 'arch__edge-path': true, 'is-dashed': edge.dashed }} marker-end={'url(#' + markerId + ')'} />
-            {edge.label && <text class="arch__edge-label" x={edge.labelX} y={edge.labelY}>{edge.label}</text>}
+            <path d={edge.d} class="arch__edge-flow" pathLength="100" aria-hidden="true" />
+            {edge.label && (
+              <g class="arch__edge-tag" transform={'translate(' + edge.tagX + ' ' + edge.tagY + ')'}>
+                <rect x={-edge.tagW / 2} y="-7.5" width={edge.tagW} height="15" rx="7.5" />
+                <text x="0" y="0" dominant-baseline="central">{edge.label}</text>
+              </g>
+            )}
           </g>
         ))}
       </g>
@@ -141,18 +175,29 @@ graph.stepNodes.forEach((nodeId, index) => {
       <g class="arch__nodes">
         {graph.nodes.map((node) => {
           const width = node.w ?? 140;
-          const badge = badges.get(node.id);
+          const nums = nodeSteps.get(node.id) ?? [];
+          const badgeText = nums.join('·');
+          const badgeW = Math.max(15, badgeText.length * 5.2 + 9);
+          const stepLabel = badgeText ? ' — step ' + badgeText + ' of ' + graph.steps.length : '';
+          const ariaLabel = node.label + (node.sub ? ' — ' + node.sub : '') + stepLabel;
           return (
-            <g class="arch__node" data-node={node.id} transform={'translate(' + (node.x - width / 2) + ' ' + (node.y - H / 2) + ')'}>
+            <g
+              class="arch__node"
+              data-node={node.id}
+              transform={'translate(' + (node.x - width / 2) + ' ' + (node.y - H / 2) + ')'}
+              role="button"
+              tabindex="0"
+              aria-label={ariaLabel}
+            >
               <rect class:list={{ 'arch__node-box': true, 'is-store': node.kind === 'store', 'is-external': node.kind === 'external' }} width={width} height={H} rx="13" />
-              {badge && (
-                <g class="arch__badge">
-                  <circle cx="15" cy="15" r="7.5" />
-                  <text x="15" y="15">{badge}</text>
+              {badgeText && (
+                <g class="arch__badge" transform="translate(10 0)">
+                  <rect x="0" y="-7.5" width={badgeW} height="15" rx="7.5" />
+                  <text x={badgeW / 2} y="0" dominant-baseline="central">{badgeText}</text>
                 </g>
               )}
-              <text class="arch__node-label" x={width / 2} y={node.sub ? 27 : 34}>{node.label}</text>
-              {node.sub && <text class="arch__node-sub" x={width / 2} y={43}>{node.sub}</text>}
+              <text class="arch__node-label" x={width / 2} y={node.sub ? 29 : 35}>{node.label}</text>
+              {node.sub && <text class="arch__node-sub" x={width / 2} y={45}>{node.sub}</text>}
             </g>
           );
         })}
@@ -160,24 +205,51 @@ graph.stepNodes.forEach((nodeId, index) => {
     </svg>
   </div>
 
-  <div class="arch__bar" dir="ltr">
-    <button type="button" class="arch__btn" data-arch-prev aria-label="Previous step">←</button>
-    <button type="button" class="arch__play" data-arch-play>
-      <span class="arch__play-icon" aria-hidden="true">▶</span>
-      <span data-arch-play-label>{playLabel}</span>
-    </button>
-    <button type="button" class="arch__btn" data-arch-next aria-label="Next step">→</button>
-    <span class="arch__count" data-arch-count>01 / {String(flow.steps.length).padStart(2, '0')}</span>
+  <div class="arch__controls">
+    <div class="arch__bar" dir="ltr">
+      <button type="button" class="arch__btn" data-arch-prev aria-label="Previous step">←</button>
+      <button type="button" class="arch__play" data-arch-play>
+        <span class="arch__play-icon" aria-hidden="true">▶</span>
+        <span data-arch-play-label>{playLabel}</span>
+      </button>
+      <button type="button" class="arch__btn" data-arch-next aria-label="Next step">→</button>
+      <span class="arch__count" data-arch-count>01 / {String(flow.steps.length).padStart(2, '0')}</span>
+    </div>
+
+    <ol class="arch__track" role="tablist" aria-label={flow.title}>
+      {flow.steps.map((step, index) => (
+        <li role="presentation">
+          <button
+            type="button"
+            role="tab"
+            class:list={{ 'arch__tab': true, 'is-active': index === 0 }}
+            data-arch-step={index}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            aria-controls={id + '-panel-' + index}
+            id={id + '-tab-' + index}
+          >
+            <span class="arch__tab-num" dir="ltr">{String(index + 1).padStart(2, '0')}</span>
+            <span class="arch__tab-label">{step.label}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
   </div>
   <div class="arch__progress" aria-hidden="true"><i data-arch-progress></i></div>
 
   <div class="arch__panels">
     {flow.steps.map((step, index) => (
-      <article class="arch__panel" data-panel={index}>
+      <article
+        class:list={{ 'arch__panel': true, 'is-active': index === 0 }}
+        id={id + '-panel-' + index}
+        role="tabpanel"
+        aria-labelledby={id + '-tab-' + index}
+        data-panel={index}
+      >
         <h3>
-          <span class="arch__step">{String(index + 1).padStart(2, '0')}</span>
-          {step.title}
-          {step.metric && <span class="arch__metric">{step.metric}</span>}
+          <span class="arch__step" dir="ltr">{String(index + 1).padStart(2, '0')}</span>
+          <span class="arch__title-text">{step.title}</span>
+          {step.metric && <span class="arch__metric" dir="ltr">{step.metric}</span>}
         </h3>
         <p>{step.body}</p>
         {step.notes && (
@@ -189,14 +261,19 @@ graph.stepNodes.forEach((nodeId, index) => {
     ))}
   </div>
 
-  <script type="application/json" data-arch-data set:html={JSON.stringify({ stepNodes: graph.stepNodes })} />
+  <script type="application/json" data-arch-data set:html={JSON.stringify({ steps: graph.steps })} />
 </section>
 
 <script>
   import { animate } from 'motion/mini';
 
+  interface StepState {
+    nodes: string[];
+    edges?: Array<[string, string]>;
+  }
+
   interface StepData {
-    stepNodes: string[];
+    steps: StepState[];
   }
 
   document.querySelectorAll<HTMLElement>('[data-arch]').forEach((section) => {
@@ -207,75 +284,134 @@ graph.stepNodes.forEach((nodeId, index) => {
     const nodes = Array.from(section.querySelectorAll<SVGGElement>('[data-node]'));
     const edges = Array.from(section.querySelectorAll<SVGGElement>('.arch__edge'));
     const panels = Array.from(section.querySelectorAll<HTMLElement>('[data-panel]'));
+    const tabs = Array.from(section.querySelectorAll<HTMLButtonElement>('[data-arch-step]'));
+    const track = section.querySelector<HTMLElement>('.arch__track');
     const count = section.querySelector<HTMLElement>('[data-arch-count]');
     const progress = section.querySelector<HTMLElement>('[data-arch-progress]');
     const playText = section.querySelector<HTMLElement>('[data-arch-play-label]');
     const playButton = section.querySelector<HTMLButtonElement>('[data-arch-play]');
     const playLabel = section.dataset.playLabel ?? 'Play';
     const pauseLabel = section.dataset.pauseLabel ?? 'Pause';
+    const markerBase = section.dataset.marker ?? '';
     if (!nodes.length || !panels.length) return;
+
+    const reduceMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     section.classList.add('is-interactive');
     let current = 0;
     let playing = false;
     let timer: number | undefined;
-    let drawing: { stop: () => void } | undefined;
-    let drawnPath: SVGPathElement | null = null;
+    let drawings: Array<{ stop: () => void }> = [];
+    let drawnPaths: SVGPathElement[] = [];
+    let drawToken = 0;
 
     const pad = (value: number): string => String(value).padStart(2, '0');
 
-    /** Stop the route animation and hand the path back to the stylesheet. */
+    /** Stop route animations and hand every path back to the stylesheet. */
     const stopDrawing = (): void => {
-      drawing?.stop();
-      drawing = undefined;
-      if (drawnPath) {
-        drawnPath.style.strokeDasharray = '';
-        drawnPath.style.strokeDashoffset = '';
-        drawnPath = null;
-      }
+      drawToken += 1;
+      drawings.forEach((drawing) => drawing.stop());
+      drawings = [];
+      drawnPaths.forEach((path) => {
+        path.style.strokeDasharray = '';
+        path.style.strokeDashoffset = '';
+      });
+      drawnPaths = [];
     };
 
-    /** Draw the incoming route from its source to its target. */
-    const drawRoute = (): void => {
-      const path = section.querySelector<SVGPathElement>('.arch__edge.is-path .arch__edge-path');
-      if (!path) return;
-      const length = path.getTotalLength();
-      if (!length) return;
-      drawnPath = path;
-      path.style.strokeDasharray = String(length);
-      path.style.strokeDashoffset = String(length);
-      drawing = animate(0, 1, {
-        duration: 0.65,
-        ease: [0.32, 0.72, 0, 1],
-        onUpdate: (value: number) => {
-          path.style.strokeDashoffset = String(length * (1 - value));
-        },
-        onComplete: () => stopDrawing()
-      }) as unknown as { stop: () => void };
+    /** Draw every active route from its source to its target. */
+    const drawRoutes = (): void => {
+      if (reduceMotion) return;
+      const state = data.steps[current] ?? { nodes: [], edges: [] };
+      const orderedKeys = (state.edges ?? []).map(([from, to]) => from + '->' + to);
+      const edgeByKey = new Map(
+        edges.map((edge) => [(edge.dataset.from ?? '') + '->' + (edge.dataset.to ?? ''), edge])
+      );
+      const paths = orderedKeys
+        .map((key) => edgeByKey.get(key)?.querySelector<SVGPathElement>('.arch__edge-path'))
+        .filter((path): path is SVGPathElement => Boolean(path));
+
+      const lengths = paths.map((path) => path.getTotalLength());
+      if (!paths.length || lengths.every((length) => !length)) return;
+
+      const token = drawToken;
+      drawnPaths = paths;
+      const stepDur = paths.length > 2 ? 0.25 : paths.length > 1 ? 0.3 : 0.38;
+      const stepStagger = paths.length > 2 ? 0.08 : paths.length > 1 ? 0.11 : 0;
+
+      paths.forEach((path, index) => {
+        const length = lengths[index];
+        if (!length) return;
+        path.style.strokeDasharray = String(length);
+        path.style.strokeDashoffset = String(length);
+      });
+
+      drawings = paths.map((path, index) => {
+        const length = lengths[index];
+        return animate(0, 1, {
+          duration: stepDur,
+          delay: index * stepStagger,
+          ease: [0.22, 1, 0.36, 1],
+          onUpdate: (value: number) => {
+            if (length) path.style.strokeDashoffset = String(length * (1 - value));
+          }
+        }) as unknown as { stop: () => void };
+      });
+
+      const totalMs = Math.ceil((stepDur + (paths.length - 1) * stepStagger) * 1000) + 50;
+      // once every route has drawn itself, drop the inline dash styles entirely
+      window.setTimeout(() => {
+        if (token === drawToken) {
+          drawnPaths.forEach((path) => {
+            path.style.strokeDasharray = '';
+            path.style.strokeDashoffset = '';
+          });
+          drawings = [];
+          drawnPaths = [];
+        }
+      }, totalMs);
     };
 
     const show = (index: number, animateRoute: boolean): void => {
-      const activeId = data.stepNodes[index];
-      const previousId = data.stepNodes[index - 1];
+      const state = data.steps[index] ?? { nodes: [], edges: [] };
+      const activeNodes = new Set(state.nodes ?? []);
+      const activeEdges = new Set((state.edges ?? []).map(([from, to]) => from + '->' + to));
+      const primary = state.nodes?.[0];
 
       stopDrawing();
 
       nodes.forEach((node) => {
-        node.classList.toggle('is-active', node.dataset.node === activeId);
+        const nodeId = node.dataset.node ?? '';
+        node.classList.toggle('is-active', activeNodes.has(nodeId));
+        node.classList.toggle('is-primary', nodeId === primary);
       });
 
       edges.forEach((edge) => {
-        const isPath = edge.dataset.from === previousId && edge.dataset.to === activeId;
-        const touches = edge.dataset.from === activeId || edge.dataset.to === activeId;
+        const key = (edge.dataset.from ?? '') + '->' + (edge.dataset.to ?? '');
+        const isPath = activeEdges.has(key);
+        const touches = activeNodes.has(edge.dataset.from ?? '') || activeNodes.has(edge.dataset.to ?? '');
         edge.classList.toggle('is-path', isPath);
         edge.classList.toggle('is-touch', touches && !isPath);
+        const path = edge.querySelector<SVGPathElement>('.arch__edge-path');
+        if (path) {
+          const suffix = isPath ? '-active' : touches ? '-touch' : '';
+          path.setAttribute('marker-end', 'url(#' + markerBase + suffix + ')');
+        }
+      });
+
+      tabs.forEach((tab, tabIndex) => {
+        const active = tabIndex === index;
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
       });
 
       panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
       if (count) count.textContent = pad(index + 1) + ' / ' + pad(panels.length);
       if (progress) progress.style.width = ((index + 1) / panels.length) * 100 + '%';
 
-      if (animateRoute) drawRoute();
+      if (animateRoute) drawRoutes();
     };
 
     const stopPlay = (): void => {
@@ -289,7 +425,7 @@ graph.stepNodes.forEach((nodeId, index) => {
     const select = (index: number): void => {
       if (playing) stopPlay();
       current = ((index % panels.length) + panels.length) % panels.length;
-      show(current, false);
+      show(current, true);
     };
 
     const play = (): void => {
@@ -300,45 +436,82 @@ graph.stepNodes.forEach((nodeId, index) => {
       playing = true;
       playButton?.classList.add('is-playing');
       if (playText) playText.textContent = pauseLabel;
-      current = 0;
-      show(0, false);
+      if (current >= panels.length - 1) {
+        current = 0;
+        show(0, true);
+      } else {
+        current += 1;
+        show(current, true);
+      }
 
       const tick = (): void => {
         if (!playing) return;
         if (current >= panels.length - 1) {
-          timer = window.setTimeout(stopPlay, 1600);
+          timer = window.setTimeout(stopPlay, 1300);
           return;
         }
         current += 1;
         show(current, true);
-        timer = window.setTimeout(tick, 1550);
+        timer = window.setTimeout(tick, 1350);
       };
-      timer = window.setTimeout(tick, 900);
+      timer = window.setTimeout(tick, 1350);
+    };
+
+    const stepIndexesFor = (nodeId: string): number[] =>
+      data.steps
+        .map((step, index) => (step.nodes?.includes(nodeId) ? index : -1))
+        .filter((index) => index >= 0);
+
+    const activateNode = (nodeId: string): void => {
+      const indexes = stepIndexesFor(nodeId);
+      if (!indexes.length) return;
+      const at = indexes.indexOf(current);
+      const next = at >= 0 && indexes.length > 1 ? indexes[(at + 1) % indexes.length] : indexes[0];
+      select(next);
     };
 
     section.querySelector('[data-arch-prev]')?.addEventListener('click', () => select(current - 1));
     section.querySelector('[data-arch-next]')?.addEventListener('click', () => select(current + 1));
     playButton?.addEventListener('click', play);
+    tabs.forEach((tab, index) => tab.addEventListener('click', () => select(index)));
 
     nodes.forEach((node) => {
-      node.addEventListener('click', () => {
-        const index = data.stepNodes.indexOf(node.dataset.node ?? '');
-        if (index >= 0) select(index);
+      const nodeId = node.dataset.node ?? '';
+      node.addEventListener('click', () => activateNode(nodeId));
+      node.addEventListener('keydown', (event) => {
+        const key = (event as KeyboardEvent).key;
+        if (key === 'Enter' || key === ' ') {
+          event.preventDefault();
+          activateNode(nodeId);
+        }
       });
     });
 
+    const rtl = track ? getComputedStyle(track).direction === 'rtl' : false;
     section.addEventListener('keydown', (event) => {
       const key = (event as KeyboardEvent).key;
-      if (key === 'ArrowRight' || key === 'ArrowDown') {
+      const nextKey = rtl ? 'ArrowLeft' : 'ArrowRight';
+      const prevKey = rtl ? 'ArrowRight' : 'ArrowLeft';
+      if (key === nextKey || key === 'ArrowDown') {
         event.preventDefault();
         select(current + 1);
-      } else if (key === 'ArrowLeft' || key === 'ArrowUp') {
+      } else if (key === prevKey || key === 'ArrowUp') {
         event.preventDefault();
         select(current - 1);
+      } else if (key === 'Home') {
+        event.preventDefault();
+        select(0);
+      } else if (key === 'End') {
+        event.preventDefault();
+        select(panels.length - 1);
       }
     });
 
-    show(0, false);
+      if (section.classList.contains('is-revealed')) {
+        show(0, true);
+      } else if ('IntersectionObserver' in window) {
+        show(0, false);
+      }
 
     // fade the stages in the first time the map scrolls into view
     if ('IntersectionObserver' in window) {
@@ -346,6 +519,7 @@ graph.stepNodes.forEach((nodeId, index) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             section.classList.add('is-revealed');
+            drawRoutes();
             observer.disconnect();
           }
         });
@@ -353,6 +527,7 @@ graph.stepNodes.forEach((nodeId, index) => {
       observer.observe(section);
     } else {
       section.classList.add('is-revealed');
+      show(0, true);
     }
   });
 </script>
