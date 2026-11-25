@@ -868,28 +868,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   flex-shrink: 0;
 }
 
-/* Portrait in /about/ */
-.article--about img {
-  border-radius: 9999px;
-  background: var(--panel-solid);
-  border: 2px solid var(--panel-border);
-  width: 10.5rem;
-  height: 10.5rem;
-  object-fit: cover;
-  object-position: 50% 20%;
-  display: block;
-  margin: 0.5rem auto 1.35rem;
-  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.35);
+/* Compact 60x60 rounded-xl portrait in /about/ matching main portfolio */
+.about-head {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
 }
 
-@media (min-width: 640px) {
-  .article--about img {
-    float: inline-end;
-    width: 11.5rem;
-    height: 11.5rem;
-    margin-block: 0.35rem 1.25rem;
-    margin-inline-start: 1.5rem;
-  }
+.about-head-text {
+  min-width: 0;
+}
+
+.article img.about-avatar {
+  width: 60px;
+  height: 60px;
+  margin: 0;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--panel-border);
+  object-fit: cover;
+  object-position: 50% 20%;
+  flex-shrink: 0;
 }
 
 [dir='rtl'] .article p,

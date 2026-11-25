@@ -46,5 +46,5 @@ I'd rather write the retry logic first and find out on Monday that I didn't need
 abstraction and find out in production. I test before I quote a number. I leave notes behind, because
 I don't want the next person to have to call me.
 
-I studied computer science at Mansoura University and co-founded Penta Studio in Cairo, which is where
+I studied computer science at Mansoura University and worked as a software engineer at Penta Studio in Cairo, which is where
 most of this happened.

@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { marked } from 'marked';
 import { dict, localePath, type Lang } from '../../i18n/ui';
 import { workEntries, workSlug } from '../../i18n/content';
+import { contactInfo } from '../../data/portfolio';
 
 interface Props {
   lang: Lang;
@@ -45,9 +46,11 @@ const decodeHtml = (value: string): string =>
     .replace(/&quot;/g, '"');
 
 let html = marked.parse(body, { gfm: true }) as string;
-html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
-  return '<h2 id="' + slugify(text) + '">' + text + '</h2>';
-});
+html = html
+  .replace(/<p>\s*<img[^>]*src="\/assets\/img\/ahmed\.jpg"[^>]*>\s*<\/p>/i, '')
+  .replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
+    return '<h2 id="' + slugify(text) + '">' + text + '</h2>';
+  });
 
 const sections = [...html.matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)]
   .map((match) => ({ id: match[1], label: decodeHtml(match[2].replace(/<[^>]+>/g, '')).trim() }))
@@ -83,10 +86,22 @@ const copy =
 >
   <article class="article article--about">
     <header class="about-header">
-      <h1>{t.aboutHeading}</h1>
-      <div class="about-sub">
-        <span class="post-pill">{copy.location}</span>
-        <span class="post-pill">{copy.readTime}</span>
+      <div class="about-head">
+        <img
+          src={contactInfo.avatarUrl}
+          alt={t.personName}
+          class="about-avatar"
+          width="60"
+          height="60"
+          decoding="async"
+        />
+        <div class="about-head-text">
+          <h1>{t.aboutHeading}</h1>
+          <div class="about-sub">
+            <span class="post-pill">{copy.location}</span>
+            <span class="post-pill">{copy.readTime}</span>
+          </div>
+        </div>
       </div>
 
       {sections.length > 0 && (

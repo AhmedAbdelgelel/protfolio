@@ -155,8 +155,8 @@ const en: PortfolioContent = {
     {
       num: '01',
       company: 'penta studio',
-      shortRole: 'co-founder',
-      role: 'software engineer · co-founder',
+      shortRole: 'software engineer',
+      role: 'software engineer',
       period: 'dec 2025 — now',
       shortPeriod: '2025 – now',
       stats: [
@@ -213,6 +213,23 @@ const en: PortfolioContent = {
   projects: [
     {
       num: '01',
+      slug: 'relay',
+      name: 'relay · llm gateway',
+      shortMeta: '50 → 1 · 2026',
+      year: '2026',
+      metric: '50 → 1 calls',
+      repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
+      summary: 'openai-compatible llm gateway separating exact redis hits from policy-gated semantic reuse.',
+      pipeline: 'req → redis → onnx/pgvec → policy gate',
+      bullets: [
+        'pure policy gate checks tenant, model, sampling params, system-prompt hash, and threshold.',
+        'single-flight collapses 50 concurrent identical calls into 1 upstream request with sse streaming.',
+        'circuit-breaker provider fallback, docker compose, 420 tests, and next.js evidence panel.'
+      ],
+      stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
+    },
+    {
+      num: '02',
       slug: 'smart-cache-engine',
       name: 'smart cache engine',
       shortMeta: '3m+ ops/s · 2025',
@@ -229,7 +246,7 @@ const en: PortfolioContent = {
       stack: ['node.js', 'lru', 'ttl', 'sorted sets', 'zero deps']
     },
     {
-      num: '02',
+      num: '03',
       slug: 'epub-to-pdf',
       name: 'epub to pdf',
       shortMeta: '1:1 viewport · 2025',
@@ -244,27 +261,10 @@ const en: PortfolioContent = {
         'supports batch shelves, pdf-lib merging, and guaranteed cross-platform temp cleanup.'
       ],
       stack: ['node.js', 'puppeteer', 'pdf-lib', 'xhtml']
-    },
-    {
-      num: '03',
-      slug: 'relay',
-      name: 'relay · llm gateway',
-      shortMeta: '50 → 1 · 2026',
-      year: '2026',
-      metric: '50 → 1 calls',
-      repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
-      summary: 'openai-compatible llm gateway separating exact redis hits from policy-gated semantic reuse.',
-      pipeline: 'req → redis → onnx/pgvec → policy gate',
-      bullets: [
-        'pure policy gate checks tenant, model, sampling params, system-prompt hash, and threshold.',
-        'single-flight collapses 50 concurrent identical calls into 1 upstream request with sse streaming.',
-        'circuit-breaker provider fallback, docker compose, 420 tests, and next.js evidence panel.'
-      ],
-      stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
     }
   ],
   skills: [
-    { label: 'languages', items: ['typescript', 'javascript', 'go', 'c++', 'python', 'java', 'c'] },
+    { label: 'languages', items: ['typescript', 'javascript', 'go', 'c++', 'python'] },
     { label: 'backend & queues', items: ['node.js', 'fastify', 'nestjs', 'express', 'kafka', 'rabbitmq'] },
     { label: 'data & ai infra', items: ['postgresql', 'pgvector', 'redis', 'mongodb', 'mysql', 'onnx', 'mcp'] },
     { label: 'cloud & testing', items: ['docker', 'azure', 'ci/cd', 'linux', 'git', 'jest', 'mocha', 'react'] }
@@ -281,7 +281,7 @@ const en: PortfolioContent = {
     ],
     highlights: [
       'core focus on systems programming, database internals, algorithms, and distributed backend design.',
-      'co-founded penta studio in cairo while completing the degree, shipping production client backends.'
+      'worked as a software engineer at penta studio in cairo while completing the degree, shipping production client backends.'
     ],
     courses: ['data structures', 'algorithms', 'operating systems', 'databases', 'networks', 'software eng']
   }
@@ -337,8 +337,8 @@ const ar: PortfolioContent = {
     {
       num: '01',
       company: 'penta studio',
-      shortRole: 'مؤسس',
-      role: 'مهندس برمجيات · مؤسس مشارك',
+      shortRole: 'مهندس برمجيات',
+      role: 'مهندس برمجيات',
       period: 'ديسمبر 2025 — الآن',
       shortPeriod: '2025 – الآن',
       stats: [
@@ -395,6 +395,23 @@ const ar: PortfolioContent = {
   projects: [
     {
       num: '01',
+      slug: 'relay',
+      name: 'relay · llm gateway',
+      shortMeta: '50 → 1 · 2026',
+      year: '2026',
+      metric: '50 → 1 calls',
+      repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
+      summary: 'بوابة نماذج لغة تفصل المطابقة التامة في redis عن الكاش الدلالي المحكوم بالسياسات.',
+      pipeline: 'req → redis → onnx/pgvec → policy gate',
+      bullets: [
+        'بوابة سياسات نقية تتحقق من العميل والنموذج ومعاملات التوليد وبصمة النظام وحد التشابه.',
+        'دمج 50 طلبًا متزامنًا متطابقًا في استدعاء واحد للمزوّد مع بث sse مباشر.',
+        'مزوّد احتياطي بقاطع دائرة، docker compose، 420 اختبارًا، ولوحة تحكم next.js.'
+      ],
+      stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
+    },
+    {
+      num: '02',
       slug: 'smart-cache-engine',
       name: 'smart cache engine',
       shortMeta: '3m+ ops/s · 2025',
@@ -411,7 +428,7 @@ const ar: PortfolioContent = {
       stack: ['node.js', 'lru', 'ttl', 'sorted sets', 'zero deps']
     },
     {
-      num: '02',
+      num: '03',
       slug: 'epub-to-pdf',
       name: 'epub to pdf',
       shortMeta: '1:1 viewport · 2025',
@@ -426,27 +443,10 @@ const ar: PortfolioContent = {
         'يدعم التحويل الدفعي ودمج الصفحات بـ pdf-lib مع تنظيف تلقائي للملفات المؤقتة.'
       ],
       stack: ['node.js', 'puppeteer', 'pdf-lib', 'xhtml']
-    },
-    {
-      num: '03',
-      slug: 'relay',
-      name: 'relay · llm gateway',
-      shortMeta: '50 → 1 · 2026',
-      year: '2026',
-      metric: '50 → 1 calls',
-      repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
-      summary: 'بوابة نماذج لغة تفصل المطابقة التامة في redis عن الكاش الدلالي المحكوم بالسياسات.',
-      pipeline: 'req → redis → onnx/pgvec → policy gate',
-      bullets: [
-        'بوابة سياسات نقية تتحقق من العميل والنموذج ومعاملات التوليد وبصمة النظام وحد التشابه.',
-        'دمج 50 طلبًا متزامنًا متطابقًا في استدعاء واحد للمزوّد مع بث sse مباشر.',
-        'مزوّد احتياطي بقاطع دائرة، docker compose، 420 اختبارًا، ولوحة تحكم next.js.'
-      ],
-      stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
     }
   ],
   skills: [
-    { label: 'اللغات', items: ['typescript', 'javascript', 'go', 'c++', 'python', 'java', 'c'] },
+    { label: 'اللغات', items: ['typescript', 'javascript', 'go', 'c++', 'python'] },
     { label: 'الباك إند والطوابير', items: ['node.js', 'fastify', 'nestjs', 'express', 'kafka', 'rabbitmq'] },
     { label: 'البيانات والذكاء', items: ['postgresql', 'pgvector', 'redis', 'mongodb', 'mysql', 'onnx', 'mcp'] },
     { label: 'السحابة والاختبارات', items: ['docker', 'azure', 'ci/cd', 'linux', 'git', 'jest', 'mocha', 'react'] }
@@ -463,7 +463,7 @@ const ar: PortfolioContent = {
     ],
     highlights: [
       'تركيز على برمجة الأنظمة وقواعد البيانات والخوارزميات ومعمارية الباك إند الموزّع.',
-      'شاركت في تأسيس penta studio في القاهرة أثناء الدراسة مع تسليم أنظمة فعلية للعملاء.'
+      'عملت كمهندس برمجيات في penta studio في القاهرة أثناء الدراسة مع تسليم أنظمة فعلية للعملاء.'
     ],
     courses: ['هياكل البيانات', 'الخوارزميات', 'نظم التشغيل', 'قواعد البيانات', 'الشبكات', 'هندسة البرمجيات']
   }
