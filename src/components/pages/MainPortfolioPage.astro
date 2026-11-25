@@ -1,0 +1,1105 @@
+﻿---
+import '../../styles/main-page.css';
+import { locales, localesInfo, localePath, defaultLang, type Lang } from '../../i18n/ui';
+import { getPortfolio, contactInfo } from '../../data/portfolio';
+
+interface Props {
+  lang?: Lang;
+}
+
+const lang = Astro.props.lang ?? defaultLang;
+const info = localesInfo[lang];
+const data = getPortfolio(lang);
+const other: Lang = lang === 'en' ? 'ar' : 'en';
+const switchHref = localePath(other, '/');
+
+const site = 'https://glgl.me';
+const canonical = new URL(localePath(lang, '/'), site).href;
+const alternates = locales.map((locale) => ({
+  hreflang: localesInfo[locale].htmlLang,
+  href: new URL(localePath(locale, '/'), site).href
+}));
+
+const expCount = String(data.experience.length).padStart(2, '0');
+const projCount = String(data.projects.length).padStart(2, '0');
+---
+
+<!doctype html>
+<html lang={info.htmlLang} dir={info.dir} data-palette="nile-silt" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{data.meta.title}</title>
+    <meta name="description" content={data.meta.description} />
+    <meta name="author" content={data.identity.name} />
+    <link rel="canonical" href={canonical} />
+    {alternates.map((alt) => (
+      <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={new URL('/', site).href} />
+    <meta name="color-scheme" content="dark light" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={data.meta.title} />
+    <meta property="og:description" content={data.meta.description} />
+    <meta property="og:image" content={site + '/assets/img/og.png'} />
+    <meta property="og:locale" content={info.htmlLang} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={data.meta.title} />
+    <meta name="twitter:description" content={data.meta.description} />
+    <meta name="twitter:image" content={site + '/assets/img/og.png'} />
+
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/img/favicon-64.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicon-180.png" />
+    <link rel="preload" href="/assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/geistmono-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <script is:inline>
+      try {
+        var root = document.documentElement;
+        var savedPalette = localStorage.getItem('palette');
+        if (savedPalette) root.dataset.palette = savedPalette;
+        var savedTheme = localStorage.getItem('main-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
+      } catch (e) {}
+    </script>
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: data.identity.name,
+        jobTitle: data.meta.jobTitle,
+        url: site,
+        image: site + contactInfo.avatarUrl,
+        email: 'mailto:' + contactInfo.email,
+        address: { '@type': 'PostalAddress', addressLocality: 'Cairo', addressCountry: 'EG' },
+        sameAs: [contactInfo.githubUrl, contactInfo.linkedinUrl]
+      })}
+    />
+  </head>
+
+  <body>
+    <!-- Full-Viewport Interactive WebGL2 Pixel-Art + Bayer Dither Landscape -->
+    <canvas class="pixel-landscape-canvas" data-pixel-landscape aria-hidden="true"></canvas>
+
+    <!-- Far-Right Floating Vertical Utility Pill (Frosted, Concave-Fillet Hover Morph) -->
+    <aside class="utility-dock" aria-label="controls">
+      <button
+        type="button"
+        class="dock-morph-btn"
+        data-dock-morph
+        data-palette-trigger
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        aria-label={data.controls.paletteLabel}
+      >
+        <svg class="dock-morph-svg" width="120" height="34" viewBox="0 0 120 34" aria-hidden="true">
+          <path class="dock-morph-path" d="" />
+        </svg>
+        <span class="dock-morph-icon">
+          <span class="dock-swatch" aria-hidden="true"></span>
+        </span>
+        <span class="dock-morph-tip" data-dock-tip>{data.controls.paletteLabel}</span>
+      </button>
+
+      <button
+        type="button"
+        class="dock-morph-btn"
+        data-dock-morph
+        data-theme-toggle
+        data-current="dark"
+        data-label-dark={data.controls.themeDark}
+        data-label-light={data.controls.themeLight}
+        aria-label={data.controls.themeLight}
+      >
+        <svg class="dock-morph-svg" width="120" height="34" viewBox="0 0 120 34" aria-hidden="true">
+          <path class="dock-morph-path" d="" />
+        </svg>
+        <span class="dock-morph-icon">
+          <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <path
+              d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+          <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path
+              d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <span class="dock-morph-tip" data-dock-tip data-theme-tip>{data.controls.themeLight}</span>
+      </button>
+
+      <a
+        href={switchHref}
+        hreflang={localesInfo[other].htmlLang}
+        lang={localesInfo[other].htmlLang}
+        class="dock-morph-btn"
+        data-dock-morph
+        aria-label={data.controls.otherLangFull}
+      >
+        <svg class="dock-morph-svg" width="120" height="34" viewBox="0 0 120 34" aria-hidden="true">
+          <path class="dock-morph-path" d="" />
+        </svg>
+        <span class="dock-morph-icon">{data.controls.otherLangShort}</span>
+        <span class="dock-morph-tip" data-dock-tip>{data.controls.otherLangFull}</span>
+      </a>
+    </aside>
+
+    <!-- Palette Popover -->
+    <div class="palette-popover" role="listbox" data-palette-menu data-open="false" aria-label={data.controls.paletteLabel}>
+      {data.palettes.map((palette, index) => (
+        <button
+          type="button"
+          role="option"
+          class="palette-opt squish"
+          data-palette-option={palette.id}
+          aria-selected={index === 0 ? 'true' : 'false'}
+        >
+          <span class="palette-dot" style={`background:${palette.swatchBg}`}>
+            <i style={`background:${palette.swatchAccent}`}></i>
+          </span>
+          <span>{palette.name}</span>
+        </button>
+      ))}
+    </div>
+
+    <!-- Centered Zero-Scroll 100dvh Stage (No Header/Footer Chrome Blocking Scene) -->
+    <div class="viewport-shell" data-viewport-shell>
+      <main class="stage-main">
+        <div class="two-zone">
+          <!-- Left Column (35%): Compact Identity Rail (No Status Pill) -->
+          <section class="identity-col" aria-label="identity">
+            <div class="id-head">
+              <img
+                src={contactInfo.avatarUrl}
+                alt={data.identity.name}
+                class="avatar"
+                width="60"
+                height="60"
+                decoding="async"
+              />
+              <div class="id-titles">
+                <h1 class="id-name">{data.identity.name}</h1>
+                <p class="id-role">{data.identity.role}</p>
+              </div>
+            </div>
+
+            <p class="bio-primary">{data.identity.bioPrimary}</p>
+            <p class="bio-secondary">{data.identity.bioSecondary}</p>
+
+            <div class="cta-row">
+              <a
+                href={contactInfo.resumeUrl}
+                target="_blank"
+                rel="noopener"
+                class="cta-btn cta-btn--primary squish"
+              >
+                <span>{data.controls.resume}</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+
+              <button
+                type="button"
+                class="cta-btn cta-btn--secondary squish"
+                data-copy-email={contactInfo.email}
+                data-label-default={data.controls.copyEmail}
+                data-label-copied={data.controls.copied}
+              >
+                <span data-copy-label>{data.controls.copyEmail}</span>
+              </button>
+            </div>
+
+            <!-- Compact 40x40 square icon row with concave-fillet hover labels -->
+            <nav class="icon-row" aria-label="contact">
+              <a
+                href={contactInfo.resumeUrl}
+                target="_blank"
+                rel="noopener"
+                class="morph-btn morph-btn--accent"
+                data-morph-btn
+                aria-label={data.controls.resume}
+              >
+                <svg class="morph-svg" width="110" height="70" viewBox="0 0 110 70" aria-hidden="true">
+                  <path class="morph-path" d="" />
+                </svg>
+                <span class="morph-icon">
+                  <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5.5 2.75h6L15.25 6.5v10.75h-9.75z" />
+                    <path d="M11.25 2.75V6.75h4" />
+                    <path d="M8 10.75h4.25M8 13.75h3" />
+                  </svg>
+                </span>
+                <span class="morph-tip" data-morph-tip>{data.controls.resume}</span>
+              </a>
+
+              <a
+                href={'mailto:' + contactInfo.email}
+                class="morph-btn"
+                data-morph-btn
+                aria-label={data.controls.email}
+              >
+                <svg class="morph-svg" width="110" height="70" viewBox="0 0 110 70" aria-hidden="true">
+                  <path class="morph-path" d="" />
+                </svg>
+                <span class="morph-icon">
+                  <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2.5" y="4.25" width="15" height="11.5" rx="2.5" />
+                    <path d="M3.25 5.75 10 10.75l6.75-5" />
+                  </svg>
+                </span>
+                <span class="morph-tip" data-morph-tip>{data.controls.email}</span>
+              </a>
+
+              <a
+                href={contactInfo.phoneHref}
+                class="morph-btn"
+                data-morph-btn
+                aria-label={data.controls.phone}
+              >
+                <svg class="morph-svg" width="110" height="70" viewBox="0 0 110 70" aria-hidden="true">
+                  <path class="morph-path" d="" />
+                </svg>
+                <span class="morph-icon">
+                  <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4.5 3.75h3l1.25 3.5-1.75 1.25a9.5 9.5 0 0 0 4.5 4.5l1.25-1.75 3.5 1.25v3a1.5 1.5 0 0 1-1.6 1.5A12.25 12.25 0 0 1 3 5.35a1.5 1.5 0 0 1 1.5-1.6Z" />
+                  </svg>
+                </span>
+                <span class="morph-tip" data-morph-tip>{data.controls.phone}</span>
+              </a>
+
+              <a
+                href={contactInfo.githubUrl}
+                target="_blank"
+                rel="noopener"
+                class="morph-btn"
+                data-morph-btn
+                aria-label={data.controls.github}
+              >
+                <svg class="morph-svg" width="110" height="70" viewBox="0 0 110 70" aria-hidden="true">
+                  <path class="morph-path" d="" />
+                </svg>
+                <span class="morph-icon">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+                  </svg>
+                </span>
+                <span class="morph-tip" data-morph-tip>{data.controls.github}</span>
+              </a>
+
+              <a
+                href={contactInfo.linkedinUrl}
+                target="_blank"
+                rel="noopener"
+                class="morph-btn"
+                data-morph-btn
+                aria-label={data.controls.linkedin}
+              >
+                <svg class="morph-svg" width="110" height="70" viewBox="0 0 110 70" aria-hidden="true">
+                  <path class="morph-path" d="" />
+                </svg>
+                <span class="morph-icon">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M13.6 1H2.4C1.63 1 1 1.63 1 2.4v11.2c0 .77.63 1.4 1.4 1.4h11.2c.77 0 1.4-.63 1.4-1.4V2.4c0-.77-.63-1.4-1.4-1.4ZM5.2 13H3.1V6.3h2.1V13ZM4.15 5.4a1.22 1.22 0 1 1 0-2.44 1.22 1.22 0 0 1 0 2.44ZM13 13h-2.1V9.74c0-.78-.02-1.78-1.08-1.78-1.09 0-1.25.85-1.25 1.72V13H6.47V6.3h2.01v.92h.03c.28-.53.97-1.09 1.99-1.09 2.13 0 2.52 1.4 2.52 3.22V13Z" />
+                  </svg>
+                </span>
+                <span class="morph-tip" data-morph-tip>{data.controls.linkedin}</span>
+              </a>
+            </nav>
+          </section>
+
+          <!-- Right Column (65%): Sculpted Frosted Connected-Tab Panel (360px) -->
+          <section class="panel-col" aria-label="portfolio">
+            <div class="tabs-bar" role="tablist" data-tabs-bar>
+              <div class="tab-bridge" data-tab-bridge aria-hidden="true"></div>
+
+              <button type="button" role="tab" class="tab-btn" data-tab="experience" aria-selected="true">
+                <span>{data.tabs.experience}</span>
+                <span class="tab-count ltr">{expCount}</span>
+              </button>
+
+              <button type="button" role="tab" class="tab-btn" data-tab="projects" aria-selected="false">
+                <span>{data.tabs.projects}</span>
+                <span class="tab-count ltr">{projCount}</span>
+              </button>
+
+              <button type="button" role="tab" class="tab-btn" data-tab="stack" aria-selected="false">
+                <span>{data.tabs.stack}</span>
+              </button>
+
+              <button type="button" role="tab" class="tab-btn" data-tab="education" aria-selected="false">
+                <span>{data.tabs.education}</span>
+              </button>
+            </div>
+
+            <div class="panel-box" data-panel-box>
+              <!-- Stepped Bayer Dither Wipe Overlay -->
+              <canvas class="dither-wipe" data-dither-wipe aria-hidden="true"></canvas>
+
+              <!-- TAB 1: EXPERIENCE -->
+              <div class="tab-panel" role="tabpanel" data-panel="experience" data-active="true">
+                <div class="master-detail">
+                  <div class="drum-rail" data-drum="experience" role="listbox" aria-label={data.tabs.experience}>
+                    <div class="drum-active-bar" data-drum-bar="experience" aria-hidden="true"></div>
+                    <div class="drum-stage">
+                      {data.experience.map((job, idx) => (
+                        <button
+                          type="button"
+                          role="option"
+                          class="drum-item"
+                          data-drum-item="experience"
+                          data-index={idx}
+                          aria-selected={idx === 0 ? 'true' : 'false'}
+                          style={`--offset:${idx};--scale:${idx === 0 ? 1 : 0.92};--alpha:${idx === 0 ? 1 : idx === 1 ? 0.54 : 0.28};`}
+                        >
+                          <span class="drum-num ltr">{job.num}</span>
+                          <span class="drum-text">
+                            <span class="drum-title">{job.company}</span>
+                            <span class="drum-sub">{job.shortRole} · {job.shortPeriod}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div class="inspector-pane" data-inspector="experience">
+                    {data.experience.map((job, idx) => (
+                      <article class="inspector-entry" data-entry="experience" data-index={idx} data-active={idx === 0 ? 'true' : 'false'}>
+                        <div class="inspector-top">
+                          <div class="inspector-head">
+                            <div>
+                              <h2 class="inspector-title">{job.company}</h2>
+                              <p class="inspector-sub">{job.role}</p>
+                            </div>
+                            <span class="date-pill">{job.period}</span>
+                          </div>
+
+                          <div class="stat-strip">
+                            {job.stats.map((st) => (
+                              <div class="stat-cell">
+                                <span class="stat-label">{st.label}:</span>
+                                <span class="stat-val ltr">{st.value}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <ul class="impact-list">
+                            {job.bullets.map((b) => (
+                              <li>{b}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div class="inspector-foot">
+                          <ul class="chips">
+                            {job.stack.map((tech) => (
+                              <li class="chip ltr">{tech}</li>
+                            ))}
+                          </ul>
+                          <span class="wheel-hint">{data.controls.wheelHint}</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 2: PROJECTS -->
+              <div class="tab-panel" role="tabpanel" data-panel="projects" data-active="false">
+                <div class="master-detail">
+                  <div class="drum-rail" data-drum="projects" role="listbox" aria-label={data.tabs.projects}>
+                    <div class="drum-active-bar" data-drum-bar="projects" aria-hidden="true"></div>
+                    <div class="drum-stage">
+                      {data.projects.map((project, idx) => (
+                        <button
+                          type="button"
+                          role="option"
+                          class="drum-item"
+                          data-drum-item="projects"
+                          data-index={idx}
+                          aria-selected={idx === 0 ? 'true' : 'false'}
+                          style={`--offset:${idx};--scale:${idx === 0 ? 1 : 0.92};--alpha:${idx === 0 ? 1 : idx === 1 ? 0.54 : 0.28};`}
+                        >
+                          <span class="drum-num ltr">{project.num}</span>
+                          <span class="drum-text">
+                            <span class="drum-title ltr">{project.name}</span>
+                            <span class="drum-sub ltr">{project.shortMeta}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div class="inspector-pane" data-inspector="projects">
+                    {data.projects.map((project, idx) => (
+                      <article class="inspector-entry" data-entry="projects" data-index={idx} data-active={idx === 0 ? 'true' : 'false'}>
+                        <div class="inspector-top">
+                          <div class="inspector-head">
+                            <div class="inspector-title-row">
+                              <h2 class="inspector-title ltr">{project.name}</h2>
+                              <span class="inspector-year ltr">{project.year}</span>
+                            </div>
+                            <div class="proj-links">
+                              <a href={project.repoUrl} target="_blank" rel="noopener" class="pill-link pill-link--accent squish">
+                                <span>{data.controls.code}</span>
+                                <span aria-hidden="true">↗</span>
+                              </a>
+                              <a href={localePath(lang, '/work/' + project.slug + '/')} class="pill-link squish">
+                                <span>{data.controls.docs}</span>
+                                <span aria-hidden="true">↗</span>
+                              </a>
+                            </div>
+                          </div>
+
+                          <p class="proj-summary">{project.summary}</p>
+
+                          <div class="pipeline-bar">
+                            <code class="pipeline-code ltr" title={project.pipeline}>{project.pipeline}</code>
+                            <span class="metric-pill ltr">{project.metric}</span>
+                          </div>
+
+                          <ul class="impact-list">
+                            {project.bullets.map((b) => (
+                              <li>{b}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div class="inspector-foot">
+                          <ul class="chips">
+                            {project.stack.map((tech) => (
+                              <li class="chip chip--tech ltr" data-tech={tech}>{tech}</li>
+                            ))}
+                          </ul>
+                          <span class="wheel-hint">{data.controls.wheelHint}</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: STACK -->
+              <div class="tab-panel" role="tabpanel" data-panel="stack" data-active="false">
+                <div class="stack-grid">
+                  {data.skills.map((group) => (
+                    <div class="stack-card">
+                      <h2 class="stack-card__label">{group.label}</h2>
+                      <ul class="chips">
+                        {group.items.map((skill) => (
+                          <li class="chip ltr">{skill}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <!-- TAB 4: EDUCATION -->
+              <div class="tab-panel" role="tabpanel" data-panel="education" data-active="false">
+                <div class="edu-view">
+                  <div class="inspector-head">
+                    <div>
+                      <h2 class="inspector-title">{data.education.school}</h2>
+                      <p class="inspector-sub">{data.education.degree} · {data.education.location}</p>
+                    </div>
+                    <span class="date-pill ltr">{data.education.period}</span>
+                  </div>
+
+                  <div class="stat-strip">
+                    {data.education.stats.map((st) => (
+                      <div class="stat-cell">
+                        <span class="stat-label">{st.label}:</span>
+                        <span class="stat-val ltr">{st.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <ul class="impact-list">
+                    {data.education.highlights.map((h) => (
+                      <li>{h}</li>
+                    ))}
+                  </ul>
+
+                  <div class="edu-course-box">
+                    <span class="edu-course-title">coursework</span>
+                    <ul class="chips">
+                      {data.education.courses.map((course) => (
+                        <li class="chip">{course}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      import { initPixelLandscape, type PaletteId } from '../../scripts/pixelLandscape';
+
+      const root = document.documentElement;
+      const isRTL = root.dir === 'rtl';
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // -----------------------------------------------------------------------
+      // 1. Initialize WebGL2 Pixel-Art + Bayer Dither Landscape
+      // -----------------------------------------------------------------------
+      const landscapeCanvas = document.querySelector<HTMLCanvasElement>('[data-pixel-landscape]');
+      const viewportShell = document.querySelector<HTMLElement>('[data-viewport-shell]');
+      const initialPalette = (root.dataset.palette as PaletteId) || 'nile-silt';
+      const initialLight = root.dataset.theme === 'light';
+
+      const landscape = landscapeCanvas
+        ? initPixelLandscape(landscapeCanvas, initialPalette, initialLight)
+        : null;
+
+      // -----------------------------------------------------------------------
+      // 2. Stepped Bayer Dither Wipe (4x4 matrix, 4px cells, 0.22 alpha)
+      // -----------------------------------------------------------------------
+      const bayer4 = [
+        0, 8, 2, 10,
+        12, 4, 14, 6,
+        3, 11, 1, 9,
+        15, 7, 13, 5
+      ].map((v) => (v + 0.5) / 16);
+
+      const parseHexRgb = (hex: string): [number, number, number] => {
+        const clean = hex.trim().replace('#', '');
+        if (clean.length === 6) {
+          const n = parseInt(clean, 16);
+          if (!Number.isNaN(n)) return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        }
+        return [212, 163, 89];
+      };
+
+      const panelBox = document.querySelector<HTMLElement>('[data-panel-box]');
+      const wipeCanvas = document.querySelector<HTMLCanvasElement>('[data-dither-wipe]');
+      const wipeCtx = wipeCanvas?.getContext('2d', { alpha: true }) ?? null;
+      let wipeRaf = 0;
+
+      const triggerDitherWipe = (direction: 'down' | 'right', durationMs: number, regionRatioStartX = 0) => {
+        if (reducedMotion || !panelBox || !wipeCanvas || !wipeCtx) return;
+        const rect = panelBox.getBoundingClientRect();
+        if (rect.width < 10 || rect.height < 10) return;
+
+        const PIXEL = 4;
+        const cols = Math.max(1, Math.ceil(rect.width / PIXEL));
+        const rows = Math.max(1, Math.ceil(rect.height / PIXEL));
+        if (wipeCanvas.width !== cols || wipeCanvas.height !== rows) {
+          wipeCanvas.width = cols;
+          wipeCanvas.height = rows;
+        }
+
+        const img = wipeCtx.createImageData(cols, rows);
+        const data = img.data;
+        const [ar, ag, ab] = parseHexRgb(getComputedStyle(root).getPropertyValue('--accent'));
+        const alphaByte = Math.round(255 * 0.22);
+
+        const xMin = direction === 'right' ? (isRTL ? 0 : Math.floor(cols * regionRatioStartX)) : 0;
+        const xMax = direction === 'right' ? (isRTL ? Math.ceil(cols * (1 - regionRatioStartX)) : cols) : cols;
+        const spanX = Math.max(1, xMax - xMin);
+
+        cancelAnimationFrame(wipeRaf);
+        const start = performance.now();
+
+        const step = (now: number) => {
+          const p = Math.min(1, (now - start) / durationMs);
+          const eased = 1 - Math.pow(1 - p, 2.2);
+          data.fill(0);
+
+          if (direction === 'down') {
+            const front = eased * (rows + 18) - 8;
+            for (let y = 0; y < rows; y++) {
+              const bRow = (y & 3) << 2;
+              const dist = Math.abs(y - front);
+              if (dist > 14) continue;
+              const waveDensity = (1 - dist / 14) * (1 - p * 0.35);
+              let rowIdx = y * cols * 4;
+              for (let x = 0; x < cols; x++) {
+                if (waveDensity > bayer4[bRow | (x & 3)]) {
+                  data[rowIdx] = ar;
+                  data[rowIdx + 1] = ag;
+                  data[rowIdx + 2] = ab;
+                  data[rowIdx + 3] = alphaByte;
+                }
+                rowIdx += 4;
+              }
+            }
+          } else {
+            const frontOffset = eased * (spanX + 20) - 10;
+            const frontX = isRTL ? xMax - frontOffset : xMin + frontOffset;
+            for (let y = 0; y < rows; y++) {
+              const bRow = (y & 3) << 2;
+              for (let x = xMin; x < xMax; x++) {
+                const dist = Math.abs(x - frontX);
+                if (dist > 14) continue;
+                const waveDensity = (1 - dist / 14) * (1 - p * 0.3);
+                if (waveDensity > bayer4[bRow | (x & 3)]) {
+                  const idx = (y * cols + x) * 4;
+                  data[idx] = ar;
+                  data[idx + 1] = ag;
+                  data[idx + 2] = ab;
+                  data[idx + 3] = alphaByte;
+                }
+              }
+            }
+          }
+
+          wipeCtx.putImageData(img, 0, 0);
+          if (p < 1) {
+            wipeRaf = requestAnimationFrame(step);
+          } else {
+            wipeCtx.clearRect(0, 0, cols, rows);
+          }
+        };
+
+        wipeRaf = requestAnimationFrame(step);
+      };
+
+      // -----------------------------------------------------------------------
+      // 3. Connected Concave-Fillet Tab Bridge + Choreographed Wind Gust
+      // -----------------------------------------------------------------------
+      const tabsBar = document.querySelector<HTMLElement>('[data-tabs-bar]');
+      const tabBridge = document.querySelector<HTMLElement>('[data-tab-bridge]');
+      const tabBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+      const tabPanels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
+      let activeTab = 'experience';
+
+      const syncTabBridge = (instant = false) => {
+        if (!tabsBar || !tabBridge) return;
+        const activeBtn = tabBtns.find((b) => b.dataset.tab === activeTab) ?? tabBtns[0];
+        if (!activeBtn) return;
+        const barRect = tabsBar.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        const x = btnRect.left - barRect.left;
+        if (instant) {
+          const prev = tabBridge.style.transition;
+          tabBridge.style.transition = 'none';
+          tabBridge.style.width = `${btnRect.width}px`;
+          tabBridge.style.transform = `translateX(${x}px)`;
+          void tabBridge.offsetWidth;
+          tabBridge.style.transition = prev;
+        } else {
+          tabBridge.style.width = `${btnRect.width}px`;
+          tabBridge.style.transform = `translateX(${x}px)`;
+        }
+      };
+
+      const selectTab = (id: string) => {
+        if (id === activeTab) return;
+        activeTab = id;
+        tabBtns.forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === id ? 'true' : 'false'));
+        tabPanels.forEach((p) => (p.dataset.active = p.dataset.panel === id ? 'true' : 'false'));
+        syncTabBridge(false);
+        triggerDitherWipe('down', 240);
+        landscape?.triggerWindGust();
+      };
+
+      tabBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          if (b.dataset.tab) selectTab(b.dataset.tab);
+        });
+      });
+
+      syncTabBridge(true);
+      if (document.fonts?.ready) document.fonts.ready.then(() => syncTabBridge(true));
+      window.addEventListener('resize', () => syncTabBridge(true));
+
+      // -----------------------------------------------------------------------
+      // 4. 3D Cylindrical Rotary Drum ("اسطوانة") + Micro-Ripple Feedback
+      // -----------------------------------------------------------------------
+      const drumIndices: Record<string, number> = { experience: 0, projects: 0 };
+      const wheelLocks: Record<string, number> = { experience: 0, projects: 0 };
+
+      const setDrumIndex = (group: string, nextIndex: number, animate = true) => {
+        const items = Array.from(document.querySelectorAll<HTMLButtonElement>(`[data-drum-item="${group}"]`));
+        const entries = Array.from(document.querySelectorAll<HTMLElement>(`[data-entry="${group}"]`));
+        const bar = document.querySelector<HTMLElement>(`[data-drum-bar="${group}"]`);
+        if (!items.length) return;
+
+        const clamped = Math.max(0, Math.min(items.length - 1, nextIndex));
+        if (animate && clamped === drumIndices[group]) return;
+        drumIndices[group] = clamped;
+
+        items.forEach((item, idx) => {
+          const offset = idx - clamped;
+          const abs = Math.abs(offset);
+          const isSelected = offset === 0;
+          const alpha = isSelected ? 1 : abs === 1 ? 0.54 : 0.28;
+          item.style.setProperty('--offset', String(offset));
+          item.style.setProperty('--scale', isSelected ? '1' : '0.92');
+          item.style.setProperty('--alpha', String(alpha));
+          item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+
+        entries.forEach((entry, idx) => {
+          entry.dataset.active = idx === clamped ? 'true' : 'false';
+        });
+
+        if (animate) {
+          if (bar) {
+            bar.classList.add('is-stepping');
+            window.setTimeout(() => bar.classList.remove('is-stepping'), 200);
+          }
+          triggerDitherWipe('right', 150, 0.37);
+          landscape?.triggerMicroRipple();
+        }
+      };
+
+      ['experience', 'projects'].forEach((group) => {
+        const drumEl = document.querySelector<HTMLElement>(`[data-drum="${group}"]`);
+        const items = Array.from(document.querySelectorAll<HTMLButtonElement>(`[data-drum-item="${group}"]`));
+
+        items.forEach((item) => {
+          item.addEventListener('click', () => {
+            setDrumIndex(group, Number(item.dataset.index ?? 0), true);
+          });
+        });
+
+        drumEl?.addEventListener(
+          'wheel',
+          (e) => {
+            e.preventDefault();
+            const now = performance.now();
+            if (now - wheelLocks[group] < 180) return;
+            if (Math.abs(e.deltaY) < 4) return;
+            wheelLocks[group] = now;
+            const dir = e.deltaY > 0 ? 1 : -1;
+            const total = items.length;
+            setDrumIndex(group, (drumIndices[group] + dir + total) % total, true);
+          },
+          { passive: false }
+        );
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        if (activeTab === 'experience' || activeTab === 'projects') {
+          const total = document.querySelectorAll(`[data-drum-item="${activeTab}"]`).length;
+          if (!total) return;
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setDrumIndex(activeTab, (drumIndices[activeTab] + 1) % total, true);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setDrumIndex(activeTab, (drumIndices[activeTab] - 1 + total) % total, true);
+          }
+        }
+      });
+
+      // -----------------------------------------------------------------------
+      // 5. Concave-Fillet SVG Morph — Hero Icon Row & Vertical Utility Dock
+      // -----------------------------------------------------------------------
+      const buildDownMorph = (cx: number, tw: number, p: number): string => {
+        const lerp = (a: number, b: number) => +(a + (b - a) * p).toFixed(2);
+        const bw = 20, r = 11, s = 1.65, rt = 9.5, st = 1.4, f = 8;
+        const yNeck = 36, yTop = 44, yBot = 70, ry0 = 29;
+        const rx = cx + bw, lx = cx - bw;
+
+        const rEdgeY = lerp(ry0, yNeck);
+        const rFilletCp1Y = lerp(ry0, yNeck + 5);
+        const rFilletCp2X = lerp(rx, rx + f - 5);
+        const rFilletEndX = lerp(rx, rx + f);
+        const rTipTopY = lerp(ry0, yTop);
+        const rTipRunX = lerp(rx, cx + tw - rt);
+        const rTipCornerCp1X = lerp(rx, cx + tw - st);
+        const rTipOuterX = lerp(rx, cx + tw);
+        const rTipCornerCp2Y = lerp(ry0, yTop + st);
+        const rTipCornerEndY = lerp(ry0, yTop + rt);
+        const rTipSideEndY = lerp(ry0, yBot - rt);
+
+        const botCornerCp1Y = lerp(40 - s, yBot - st);
+        const botCornerCp2X = lerp(rx - s, cx + tw - st);
+        const botY = lerp(40, yBot);
+        const botCornerEndX = lerp(rx - r, cx + tw - rt);
+
+        const lBotEdgeX = lerp(lx + r, cx - tw + rt);
+        const lBotCornerCp1X = lerp(lx + s, cx - tw + st);
+        const lTipOuterX = lerp(lx, cx - tw);
+        const lTipCornerCp2X = lerp(lx, cx - tw + st);
+        const lTipRunX = lerp(lx, cx - tw + rt);
+        const lFilletStartX = lerp(lx, lx - f);
+        const lFilletCp1X = lerp(lx, lx - f + 5);
+
+        return [
+          `M ${cx - bw + r} 0`,
+          `L ${cx + bw - r} 0`,
+          `C ${rx - s} 0 ${rx} ${s} ${rx} ${r}`,
+          `L ${rx} ${rEdgeY}`,
+          `C ${rx} ${rFilletCp1Y} ${rFilletCp2X} ${rTipTopY} ${rFilletEndX} ${rTipTopY}`,
+          `L ${rTipRunX} ${rTipTopY}`,
+          `C ${rTipCornerCp1X} ${rTipTopY} ${rTipOuterX} ${rTipCornerCp2Y} ${rTipOuterX} ${rTipCornerEndY}`,
+          `L ${rTipOuterX} ${rTipSideEndY}`,
+          `C ${rTipOuterX} ${botCornerCp1Y} ${botCornerCp2X} ${botY} ${botCornerEndX} ${botY}`,
+          `L ${lBotEdgeX} ${botY}`,
+          `C ${lBotCornerCp1X} ${botY} ${lTipOuterX} ${botCornerCp1Y} ${lTipOuterX} ${rTipSideEndY}`,
+          `L ${lTipOuterX} ${rTipCornerEndY}`,
+          `C ${lTipOuterX} ${rTipCornerCp2Y} ${lTipCornerCp2X} ${rTipTopY} ${lTipRunX} ${rTipTopY}`,
+          `L ${lFilletStartX} ${rTipTopY}`,
+          `C ${lFilletCp1X} ${rTipTopY} ${lx} ${rFilletCp1Y} ${lx} ${rEdgeY}`,
+          `L ${lx} ${r}`,
+          `C ${lx} ${s} ${lx + s} 0 ${cx - bw + r} 0`,
+          'Z'
+        ].join(' ');
+      };
+
+      const buildSideMorph = (svgW: number, labelW: number, p: number): string => {
+        const lerp = (a: number, b: number) => +(a + (b - a) * p).toFixed(2);
+        const H = 34, r = 10, s = 1.5;
+        const bx2 = svgW, bx1 = svgW - 34;
+        const tipTop = 4, tipBot = 30, rt = 8.5, st = 1.3;
+        const neckX = bx1 + 2, f = 6;
+        const leftX = Math.max(2, bx1 - 6 - labelW);
+
+        const topFilletX = lerp(bx1 + r, neckX);
+        const topFilletEndX = lerp(bx1 + r, bx1 - f);
+        const topTipY = lerp(0, tipTop);
+        const tipLeftX = lerp(bx1, leftX);
+        const tipRunX = lerp(bx1 + r, leftX + rt);
+        const botTipY = lerp(H, tipBot);
+        const tipCornerTopEndY = lerp(r, tipTop + rt);
+        const tipCornerBotStartY = lerp(H - r, tipBot - rt);
+
+        return [
+          `M ${bx2 - r} 0`,
+          `C ${bx2 - s} 0 ${bx2} ${s} ${bx2} ${r}`,
+          `L ${bx2} ${H - r}`,
+          `C ${bx2} ${H - s} ${bx2 - s} ${H} ${bx2 - r} ${H}`,
+          `L ${topFilletX} ${H}`,
+          `C ${lerp(bx1 + s, bx1 - 1)} ${H} ${lerp(bx1, bx1 - 1)} ${botTipY} ${topFilletEndX} ${botTipY}`,
+          `L ${tipRunX} ${botTipY}`,
+          `C ${lerp(bx1 + s, leftX + st)} ${botTipY} ${tipLeftX} ${lerp(H - s, tipBot - st)} ${tipLeftX} ${tipCornerBotStartY}`,
+          `L ${tipLeftX} ${tipCornerTopEndY}`,
+          `C ${tipLeftX} ${lerp(s, tipTop + st)} ${lerp(bx1 + s, leftX + st)} ${topTipY} ${tipRunX} ${topTipY}`,
+          `L ${topFilletEndX} ${topTipY}`,
+          `C ${lerp(bx1, bx1 - 1)} ${topTipY} ${lerp(bx1 + s, bx1 - 1)} 0 ${topFilletX} 0`,
+          'Z'
+        ].join(' ');
+      };
+
+      document.querySelectorAll<HTMLElement>('[data-morph-btn]').forEach((btn) => {
+        const svg = btn.querySelector<SVGSVGElement>('.morph-svg');
+        const path = btn.querySelector<SVGPathElement>('.morph-path');
+        const tip = btn.querySelector<HTMLElement>('[data-morph-tip]');
+        if (!svg || !path || !tip) return;
+        let cx = 55, tw = 40, progress = 0, raf = 0;
+
+        const measure = () => {
+          const w = tip.getBoundingClientRect().width;
+          tw = Math.max(38, Math.ceil(w / 2) + 2);
+          const sw = Math.max(106, Math.ceil(tw * 2) + 8);
+          cx = sw / 2;
+          svg.setAttribute('width', String(sw));
+          svg.setAttribute('viewBox', `0 0 ${sw} 70`);
+          path.setAttribute('d', buildDownMorph(cx, tw, progress));
+        };
+
+        const anim = (target: number) => {
+          measure();
+          if (reducedMotion) {
+            progress = target;
+            path.setAttribute('d', buildDownMorph(cx, tw, progress));
+            return;
+          }
+          cancelAnimationFrame(raf);
+          const start = performance.now(), from = progress, dur = target > from ? 210 : 160;
+          const tick = (now: number) => {
+            const raw = Math.min(1, (now - start) / dur);
+            progress = from + (target - from) * (1 - Math.pow(1 - raw, 3));
+            path.setAttribute('d', buildDownMorph(cx, tw, progress));
+            if (raw < 1) raf = requestAnimationFrame(tick);
+            else { progress = target; path.setAttribute('d', buildDownMorph(cx, tw, progress)); }
+          };
+          raf = requestAnimationFrame(tick);
+        };
+
+        measure();
+        if (document.fonts?.ready) document.fonts.ready.then(measure);
+        btn.addEventListener('pointerenter', () => anim(1));
+        btn.addEventListener('pointerleave', () => anim(0));
+        btn.addEventListener('focus', () => anim(1));
+        btn.addEventListener('blur', () => anim(0));
+      });
+
+      const dockMorphRemeasure: Array<() => void> = [];
+      document.querySelectorAll<HTMLElement>('[data-dock-morph]').forEach((btn) => {
+        const svg = btn.querySelector<SVGSVGElement>('.dock-morph-svg');
+        const path = btn.querySelector<SVGPathElement>('.dock-morph-path');
+        const tip = btn.querySelector<HTMLElement>('[data-dock-tip]');
+        if (!svg || !path || !tip) return;
+        let svgW = 120, labelW = 64, progress = 0, raf = 0;
+
+        const measure = () => {
+          labelW = Math.max(46, Math.ceil(tip.getBoundingClientRect().width) + 2);
+          svgW = Math.max(108, 46 + labelW);
+          svg.setAttribute('width', String(svgW));
+          svg.setAttribute('viewBox', `0 0 ${svgW} 34`);
+          path.setAttribute('d', buildSideMorph(svgW, labelW, progress));
+        };
+
+        const anim = (target: number) => {
+          measure();
+          if (reducedMotion) {
+            progress = target;
+            path.setAttribute('d', buildSideMorph(svgW, labelW, progress));
+            return;
+          }
+          cancelAnimationFrame(raf);
+          const start = performance.now(), from = progress, dur = target > from ? 200 : 155;
+          const tick = (now: number) => {
+            const raw = Math.min(1, (now - start) / dur);
+            progress = from + (target - from) * (1 - Math.pow(1 - raw, 3));
+            path.setAttribute('d', buildSideMorph(svgW, labelW, progress));
+            if (raw < 1) raf = requestAnimationFrame(tick);
+            else { progress = target; path.setAttribute('d', buildSideMorph(svgW, labelW, progress)); }
+          };
+          raf = requestAnimationFrame(tick);
+        };
+
+        measure();
+        dockMorphRemeasure.push(measure);
+        if (document.fonts?.ready) document.fonts.ready.then(measure);
+        btn.addEventListener('pointerenter', () => anim(1));
+        btn.addEventListener('pointerleave', () => anim(0));
+        btn.addEventListener('focus', () => anim(1));
+        btn.addEventListener('blur', () => anim(0));
+      });
+
+      // -----------------------------------------------------------------------
+      // 6. Theme Toggle (Dock OR Clicking Sun/Moon), Palette Lerp & Sea Clicks
+      // -----------------------------------------------------------------------
+      const paletteTrigger = document.querySelector<HTMLButtonElement>('[data-palette-trigger]');
+      const paletteMenu = document.querySelector<HTMLElement>('[data-palette-menu]');
+      const paletteOpts = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-palette-option]'));
+
+      const setPaletteMenu = (open: boolean) => {
+        if (!paletteMenu || !paletteTrigger) return;
+        paletteMenu.dataset.open = open ? 'true' : 'false';
+        paletteTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      };
+
+      const applyPalette = (id: string, animate = true) => {
+        const match = paletteOpts.find((o) => o.dataset.paletteOption === id) ?? paletteOpts[0];
+        if (!match) return;
+        const chosen = (match.dataset.paletteOption ?? 'nile-silt') as PaletteId;
+        root.dataset.palette = chosen;
+        try { localStorage.setItem('palette', chosen); } catch {}
+        paletteOpts.forEach((o) => o.setAttribute('aria-selected', o === match ? 'true' : 'false'));
+        landscape?.setPalette(chosen, !animate);
+      };
+
+      applyPalette(root.dataset.palette ?? 'nile-silt', false);
+
+      paletteTrigger?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setPaletteMenu(paletteMenu?.dataset.open !== 'true');
+      });
+
+      paletteOpts.forEach((opt) => {
+        opt.addEventListener('click', () => {
+          if (opt.dataset.paletteOption) applyPalette(opt.dataset.paletteOption, true);
+          setPaletteMenu(false);
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement | null;
+        if (
+          paletteMenu && paletteTrigger &&
+          !paletteMenu.contains(target as Node) &&
+          !paletteTrigger.contains(target as Node)
+        ) {
+          setPaletteMenu(false);
+        }
+
+        // Background landscape clicks (only on empty sky/sea outside the UI cards & dock)
+        if (landscape && target && !target.closest('.two-zone, .utility-dock, .palette-popover')) {
+          const action = landscape.handleBackgroundClick(e.clientX, e.clientY);
+          if (action === 'toggle-theme') {
+            applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark', true);
+          }
+        }
+      });
+
+      // Cursor pointer hint when hovering directly over the moon or sun in open sky
+      window.addEventListener(
+        'pointermove',
+        (e) => {
+          if (!landscape || !viewportShell) return;
+          const target = e.target as HTMLElement | null;
+          const onUi = !!target?.closest('.two-zone, .utility-dock, .palette-popover');
+          viewportShell.classList.toggle('is-celestial-hover', !onUi && landscape.isOverCelestial(e.clientX, e.clientY));
+        },
+        { passive: true }
+      );
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setPaletteMenu(false);
+      });
+
+      const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+      const themeTip = document.querySelector<HTMLElement>('[data-theme-tip]');
+      const applyTheme = (mode: string, animate = true) => {
+        const next = mode === 'light' ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try { localStorage.setItem('main-theme', next); } catch {}
+        if (themeBtn) {
+          themeBtn.dataset.current = next;
+          const nextLabel = next === 'dark'
+            ? themeBtn.dataset.labelLight ?? 'light'
+            : themeBtn.dataset.labelDark ?? 'dark';
+          themeBtn.setAttribute('aria-label', nextLabel);
+          if (themeTip) themeTip.textContent = nextLabel;
+          dockMorphRemeasure.forEach((fn) => fn());
+        }
+        landscape?.setTheme(next === 'light', !animate);
+      };
+
+      applyTheme(root.dataset.theme ?? 'dark', false);
+      themeBtn?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark', true));
+
+      // Copy email CTA
+      const copyBtn = document.querySelector<HTMLButtonElement>('[data-copy-email]');
+      if (copyBtn) {
+        const labelEl = copyBtn.querySelector<HTMLElement>('[data-copy-label]');
+        let timer: number | undefined;
+        copyBtn.addEventListener('click', async () => {
+          const email = copyBtn.dataset.copyEmail ?? '';
+          try {
+            await navigator.clipboard.writeText(email);
+          } catch {
+            const area = document.createElement('textarea');
+            area.value = email;
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand('copy');
+            area.remove();
+          }
+          copyBtn.classList.add('is-copied');
+          if (labelEl) labelEl.textContent = copyBtn.dataset.labelCopied ?? 'copied';
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => {
+            copyBtn.classList.remove('is-copied');
+            if (labelEl) labelEl.textContent = copyBtn.dataset.labelDefault ?? 'copy email';
+          }, 1800);
+        });
+      }
+    </script>
+  </body>
+</html>
