@@ -107,19 +107,19 @@ export const contactInfo = {
 
 const en: PortfolioContent = {
   meta: {
-    title: 'ahmed abdelgelel — backend engineer',
+    title: 'ahmed abdelgelel — software engineer, ai systems',
     description:
-      'backend engineer in cairo. node.js, typescript, llm gateways, caches, and backends that hold up after launch.',
-    jobTitle: 'Backend engineer'
+      'software engineer in cairo building production ai and backend systems with client teams, from ambiguous workflows to reliable software in their environment.',
+    jobTitle: 'Software engineer — AI systems and client delivery'
   },
   identity: {
     name: 'ahmed abdelgelel',
-    role: 'backend engineer · cairo',
-    status: 'open to backend roles',
+    role: 'software engineer · ai systems · cairo',
+    status: 'open to forward-deployed engineering roles',
     bioPrimary:
-      'i build backends in node.js and typescript — apis, caches, queues, and llm gateways that stay calm when real traffic shows up.',
+      'i build production ai and backend systems with client teams — from ambiguous workflows to reliable software running in their environment.',
     bioSecondary:
-      'owning client backends from first schema to production: model gateways, semantic caching, mcp tools, and boring retry logic.'
+      'relay is how i approach that work: policy-gated model calls, safe caching, provider fallback, and evidence behind every system decision.'
   },
   controls: {
     resume: 'resume',
@@ -160,14 +160,14 @@ const en: PortfolioContent = {
       period: 'dec 2025 — now',
       shortPeriod: '2025 – now',
       stats: [
-        { label: 'scope', value: '0 → prod' },
-        { label: 'focus', value: 'llm & apis' },
+        { label: 'scope', value: 'discovery → prod' },
+        { label: 'focus', value: 'ai & apis' },
         { label: 'systems', value: 'multi-tenant' }
       ],
       bullets: [
-        'architected node.js & typescript backends from initial schema to production rollout.',
-        'built llm gateways with semantic caching, mcp tool bridges, and fault-tolerant queues.',
-        'owned latency budgets, observability, and zero-downtime client deployments.'
+        'translated evolving client workflows into node.js & typescript backends, owning discovery, schemas, apis, and rollout.',
+        'built llm infrastructure with policy-aware caching, mcp tool bridges, resilient queues, and provider failure handling.',
+        'stayed accountable after launch through latency budgets, observability, and zero-downtime deployments.'
       ],
       stack: ['node.js', 'typescript', 'nestjs', 'postgresql', 'redis', 'queues']
     },
@@ -184,9 +184,9 @@ const en: PortfolioContent = {
         { label: 'systems', value: 'auto epub' }
       ],
       bullets: [
-        'built the entire backend of a personalized story bookstore from zero to live orders.',
-        'implemented stripe checkout webhooks, idempotent order flows, and artist queues.',
-        'engineered background epub book generation, multilingual schemas, and role-based access.'
+        'turned a personalized publishing workflow into a production backend, from product discovery to live customer orders.',
+        'made stripe webhooks the source of truth with idempotent checkout, order state, and artist assignment queues.',
+        'moved epub generation off the request path and shipped multilingual content, admin tooling, and role-based access.'
       ],
       stack: ['node.js', 'typescript', 'stripe', 'epub', 'workers', 'rbac']
     },
@@ -203,9 +203,9 @@ const en: PortfolioContent = {
         { label: 'systems', value: 'billing' }
       ],
       bullets: [
-        'designed rest apis for workshop orders, invoicing, and payment tracking workflows.',
-        'built role-based auth separating admins, workshop staff, and customers.',
-        'integrated azure ocr to extract vendor, date, and totals from uploaded receipts.'
+        'worked directly around a saudi workshop’s operations to ship order, invoicing, and payment-tracking apis.',
+        'built role-based workflows for admins, workshop staff, and customers as the sole backend engineer.',
+        'integrated azure ocr into the invoicing workflow to extract vendor, date, and totals from uploaded receipts.'
       ],
       stack: ['node.js', 'rest apis', 'azure ocr', 'rbac', 'postgresql']
     }
@@ -219,12 +219,12 @@ const en: PortfolioContent = {
       year: '2026',
       metric: '50 → 1 calls',
       repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
-      summary: 'openai-compatible llm gateway separating exact redis hits from policy-gated semantic reuse.',
-      pipeline: 'req → redis → onnx/pgvec → policy gate',
+      summary: 'multi-tenant ai gateway making model reuse safe, observable, and resilient across providers.',
+      pipeline: 'auth → exact cache → policy gate → provider',
       bullets: [
-        'pure policy gate checks tenant, model, sampling params, system-prompt hash, and threshold.',
-        'single-flight collapses 50 concurrent identical calls into 1 upstream request with sse streaming.',
-        'circuit-breaker provider fallback, docker compose, 420 tests, and next.js evidence panel.'
+        'semantic reuse must match tenant, provider, model, sampling, system-prompt, and policy boundaries.',
+        'single-flight collapses 50 concurrent identical calls into 1 upstream request; safe hits avoid provider spend.',
+        'cache outages degrade to misses, while decision evidence and provider fallback keep production behavior debuggable.'
       ],
       stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
     },
@@ -289,19 +289,19 @@ const en: PortfolioContent = {
 
 const ar: PortfolioContent = {
   meta: {
-    title: 'أحمد عبد الجليل — مهندس باك إند',
+    title: 'أحمد عبد الجليل — مهندس برمجيات وأنظمة ذكاء اصطناعي',
     description:
-      'مهندس باك إند في القاهرة. أنظمة Node.js وTypeScript وبوابات نماذج اللغة ومحركات التخزين المؤقت.',
-    jobTitle: 'مهندس باك إند'
+      'مهندس برمجيات في القاهرة أبني أنظمة ذكاء اصطناعي وباك إند للإنتاج مع فرق العملاء، من سير العمل غير الواضح إلى برنامج موثوق داخل بيئتهم.',
+    jobTitle: 'مهندس برمجيات — أنظمة ذكاء اصطناعي وتسليم للعملاء'
   },
   identity: {
     name: 'أحمد عبد الجليل',
-    role: 'مهندس باك إند · القاهرة',
-    status: 'متاح لفرص باك إند',
+    role: 'مهندس برمجيات · أنظمة ذكاء · القاهرة',
+    status: 'متاح لأدوار الهندسة الميدانية مع العملاء',
     bioPrimary:
-      'أبني أنظمة باك إند بـ node.js وtypescript — واجهات، كاش، طوابير، وبوابات لنماذج اللغة تصمد لما يبدأ الضغط الحقيقي.',
+      'أبني أنظمة ذكاء اصطناعي وباك إند للإنتاج مع فرق العملاء — من سير العمل غير الواضح إلى برنامج موثوق يعمل داخل بيئتهم.',
     bioSecondary:
-      'أمسك الباك إند من أول تصميم لحد الإنتاج: بوابات النماذج، الكاش الدلالي، أدوات mcp، ومنطق إعادة المحاولة الهادئ.'
+      'Relay يلخّص طريقتي: استدعاءات نماذج محكومة بسياسات، كاش آمن، مزوّد احتياطي، ودليل يفسّر كل قرار داخل النظام.'
   },
   controls: {
     resume: 'السيرة',
@@ -342,14 +342,14 @@ const ar: PortfolioContent = {
       period: 'ديسمبر 2025 — الآن',
       shortPeriod: '2025 – الآن',
       stats: [
-        { label: 'النطاق', value: '0 → إنتاج' },
-        { label: 'التركيز', value: 'llm / api' },
-        { label: 'الأنظمة', value: 'متعددة' }
+        { label: 'النطاق', value: 'اكتشاف → إنتاج' },
+        { label: 'التركيز', value: 'ذكاء / api' },
+        { label: 'الأنظمة', value: 'متعددة العملاء' }
       ],
       bullets: [
-        'تصميم وقيادة معمارية الباك إند بـ node.js وtypescript من أول مخطط حتى الإطلاق.',
-        'بناء بوابات لنماذج اللغة بكاش دلالي، وأدوات mcp، وطوابير تتحمل الأخطاء.',
-        'إدارة الأداء، المراقبة، وإطلاقات العملاء دون توقف.'
+        'حوّلت سير عمل العملاء المتغيّر إلى أنظمة بـ node.js وtypescript، وتولّيت الاكتشاف والمخططات والواجهات والإطلاق.',
+        'بنيت بنية للنماذج تشمل كاشًا محكومًا بسياسات، وأدوات mcp، وطوابير مرنة، ومعالجة أعطال المزوّدين.',
+        'بقيت مسؤولًا بعد الإطلاق عبر ميزانيات زمن الاستجابة والمراقبة ونشر التحديثات دون توقف.'
       ],
       stack: ['node.js', 'typescript', 'nestjs', 'postgresql', 'redis', 'queues']
     },
@@ -366,9 +366,9 @@ const ar: PortfolioContent = {
         { label: 'الأنظمة', value: 'epub' }
       ],
       bullets: [
-        'بناء الباك إند الكامل لمتجر قصص مخصّصة من الصفر حتى استقبال الطلبات الفعلية.',
-        'تطوير مدفوعات stripe بالـ webhooks، ومسارات طلب آمنة، وطوابير إسناد الفنانين.',
-        'هندسة مهام خلفية لتوليد كتب epub، ونماذج متعددة اللغات، وصلاحيات الإدارة.'
+        'حوّلت سير عمل النشر المخصّص إلى باك إند للإنتاج، من فهم المنتج حتى استقبال طلبات العملاء الفعلية.',
+        'جعلت stripe webhooks مصدر الحقيقة مع دفع آمن من التكرار، وحالات للطلب، وطوابير لإسناد الفنانين.',
+        'نقلت توليد epub خارج مسار الطلب وسلّمت محتوى متعدد اللغات وأدوات إدارة وصلاحيات حسب الدور.'
       ],
       stack: ['node.js', 'typescript', 'stripe', 'epub', 'workers', 'rbac']
     },
@@ -385,9 +385,9 @@ const ar: PortfolioContent = {
         { label: 'الأنظمة', value: 'فواتير' }
       ],
       bullets: [
-        'تصميم واجهات rest لإدارة طلبات الصيانة والفواتير ومسارات الدفع.',
-        'بناء نظام صلاحيات يفصل بين الإدارة وفريق الورشة والعملاء.',
-        'دمج azure ocr لاستخراج المورّد والتاريخ والمبلغ تلقائيًا من الإيصالات.'
+        'عملت حول عمليات ورشة سعودية مباشرة لأسلّم واجهات لطلبات الصيانة والفواتير وتتبّع المدفوعات.',
+        'بنيت مسارات حسب الدور للإدارة وفريق الورشة والعملاء بصفتي مهندس الباك إند الوحيد.',
+        'دمجت azure ocr في مسار الفوترة لاستخراج المورّد والتاريخ والإجمالي من الإيصالات المرفوعة.'
       ],
       stack: ['node.js', 'rest apis', 'azure ocr', 'rbac', 'postgresql']
     }
@@ -401,12 +401,12 @@ const ar: PortfolioContent = {
       year: '2026',
       metric: '50 → 1 calls',
       repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
-      summary: 'بوابة نماذج لغة تفصل المطابقة التامة في redis عن الكاش الدلالي المحكوم بالسياسات.',
-      pipeline: 'req → redis → onnx/pgvec → policy gate',
+      summary: 'بوابة ذكاء اصطناعي متعددة العملاء تجعل إعادة استخدام ردود النماذج آمنة وقابلة للتفسير ومرنة أمام الأعطال.',
+      pipeline: 'auth → exact cache → policy gate → provider',
       bullets: [
-        'بوابة سياسات نقية تتحقق من العميل والنموذج ومعاملات التوليد وبصمة النظام وحد التشابه.',
-        'دمج 50 طلبًا متزامنًا متطابقًا في استدعاء واحد للمزوّد مع بث sse مباشر.',
-        'مزوّد احتياطي بقاطع دائرة، docker compose، 420 اختبارًا، ولوحة تحكم next.js.'
+        'لا يُعاد استخدام رد مشابه إلا بمطابقة العميل والمزوّد والنموذج وإعدادات التوليد وبصمة النظام وإصدار السياسة.',
+        'single-flight يحوّل 50 استدعاءً متطابقًا ومتزامنًا إلى طلب واحد للمزوّد، والإصابات الآمنة توفّر التكلفة.',
+        'يتدرّج عطل الكاش إلى miss، ويبقى سلوك النظام قابلًا للتتبّع عبر أدلة القرار والمزوّد الاحتياطي.'
       ],
       stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
     },

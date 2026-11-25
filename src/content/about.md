@@ -1,19 +1,22 @@
 <!--
   This file is the About page. "npm run build" renders it into /about.
 
-  meta: {"title":"Ahmed Abdelgelel","description":"Backend engineer in Cairo, forward deployed on client teams: Node.js and TypeScript backends, LLM gateways, and agentic systems that hold up in production."}
+  meta: {"title":"Ahmed Abdelgelel","description":"Software engineer in Cairo who turns real workflows into simple, reliable products, with clear communication and ownership from discovery through deployment."}
 -->
 
 ![Ahmed Abdelgelel](/assets/img/ahmed.jpg)
 
-I'm a backend engineer in Cairo, and the work I keep choosing is the part that gets harder as a
-system grows: caching and eviction, routing between providers, queues that stay correct under
-retries, and the difference between an API that works and one that survives its first thousand users.
+I'm a software engineer in Cairo who likes owning the whole problem, not just the ticket. Good
+software starts with understanding what people are trying to accomplish, then turning that into a
+simple, reliable system: clear data models, thoughtful interfaces, useful feedback, measured
+performance, and behavior that remains understandable when something fails. I care about the technical
+details, but I care about them because they make a product useful to someone.
 
-Most of that curiosity now points at model infrastructure. An agent is only as good as the plumbing
-under it, so I spend my time on gateways, retrieval, evaluation, and the caching that makes a loop
-affordable to run. Two years of shipping these systems into other people's businesses is where the
-interest comes from, and where it gets tested.
+That is why forward-deployed engineering is a natural extension of my work. I can enter a customer's
+workflow, ask the questions that expose the real constraint, translate between their team and the
+technical implementation, and stay responsible through deployment and iteration. The stack changes
+from one problem to another; the standard does not: honest trade-offs, measurable outcomes, clear
+communication, and software the customer can keep using after I leave.
 
 ## Working inside a team
 
@@ -31,8 +34,13 @@ parts nobody planned for. At Naqaa Al-Ain I was the only engineer between Cairo 
 Saudi Arabia. I wrote the orders, invoices, payments and the OCR that reads receipts, and I answered
 the questions about them afterwards.
 
-The AI work is the same job with less predictable dependencies. Relay caches and routes model calls,
-so a provider going slow doesn't take a product offline on a Friday. That's the work I want to keep doing, on the hook when it breaks.
+The AI work is the same job with less predictable dependencies. Relay taught me to treat tenant
+boundaries, cache policy, provider failure, and decision evidence as product features rather than
+implementation details. A model returning a good answer once is a demo; a system that can explain and
+repeat that result inside a customer's constraints is software.
+
+That is how I want to work as a forward-deployed engineer: learn the real workflow, ship into its
+constraints, measure whether the system helped, and remain on the hook when it breaks.
 
 ## Agents, briefly
 

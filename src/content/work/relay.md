@@ -71,4 +71,34 @@ An agent loop retries. It re-asks the same prompt, or one that is trivially diff
 minute. A gateway that cannot tell a retry from a new request turns a bad minute into a bill. A gateway
 that can tell them apart is the difference between an agent that is cheap to run and one that is not.
 
+## What Relay changed about how I engineer
+
+Relay moved my unit of design from the endpoint to the decision. An AI feature is not finished when a
+provider returns `200`. The system still has to define when an answer may be reused, which context makes
+two requests different, what happens when a dependency fails, and how an operator reconstructs the result
+later.
+
+That changes where the engineering effort goes. Tenant isolation and prompt identity become executable
+policy instead of assumptions in a design document. Thresholds come from labelled examples and measured
+cost, not intuition. Tests include broken cache dependencies and malformed provider responses, and the
+evidence panel is designed with the request path rather than added after an incident.
+
+Model quality still matters. Production software determines whether that quality reaches a customer
+safely, affordably, and repeatedly.
+
+## How this translates to forward-deployed engineering
+
+Forward-deployed work starts inside a customer's workflow, not with a preferred architecture. The same
+method transfers: sit with the operators, find the expensive or fragile decision, make its boundaries
+explicit, ship the smallest end-to-end path against real data, instrument it, and iterate when reality
+disagrees with the demo.
+
+Relay's gateway is one expression of that method. Another customer may need a document pipeline, a
+tool-using agent, or an integration with a system they already run. The stack changes; the engineering
+contract does not: explicit policy, safe degradation, measurable outcomes, and an operating surface the
+customer can use after handoff.
+
+That is the work I want to do: close enough to the customer to understand what should change, and
+responsible for the unglamorous details after deployment.
+
 [Repository](https://github.com/AhmedAbdelgelel/Relay)

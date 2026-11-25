@@ -16,7 +16,7 @@ export const localesInfo = {
 
 const en = {
   personName: 'Ahmed Abdelgelel',
-  jobTitle: 'Backend engineer',
+  jobTitle: 'Software engineer — AI systems and client delivery',
   navWork: 'Work',
   navAbout: 'About',
   navContact: 'Contact',
@@ -27,16 +27,16 @@ const en = {
   themeSystem: 'Follow the system',
   themeLight: 'Light',
   themeDark: 'Dark',
-  homeTitle: 'Ahmed Abdelgelel — Backend engineer',
+  homeTitle: 'Ahmed Abdelgelel — Software engineer, AI systems',
   homeDescription:
-    'Backend engineer in Cairo. Node.js and TypeScript backends, LLM gateways, and agentic systems that hold up in production.',
+    'Software engineer in Cairo building production AI and backend systems with client teams, from ambiguous workflows to reliable software in their environment.',
   homeIntro:
-    'Backend engineer in Cairo. I join a team, own the backend from the first sketch to production, and stay until it runs without me.',
+    'Software engineer in Cairo. I work inside client teams, own the system from the first sketch to production, and stay until it runs without me.',
   homeMore: 'More about me',
   aboutHeading: 'About',
   aboutTitle: 'Ahmed Abdelgelel',
   aboutDescription:
-    'Backend engineer in Cairo, forward deployed on client teams: Node.js and TypeScript backends, LLM gateways, and agentic systems that hold up in production.',
+    'Software engineer in Cairo who turns real workflows into simple, reliable products, with clear communication and ownership from discovery through deployment.',
   onThisPage: 'On this page',
   playFlow: 'Play the flow',
   pauseFlow: 'Pause',
@@ -47,7 +47,7 @@ const en = {
 
 const ar = {
   personName: 'أحمد عبد الجليل',
-  jobTitle: 'مهندس باك إند',
+  jobTitle: 'مهندس برمجيات — أنظمة ذكاء اصطناعي وتسليم للعملاء',
   navWork: 'أعمالي',
   navAbout: 'عني',
   navContact: 'تواصل',
@@ -58,16 +58,16 @@ const ar = {
   themeSystem: 'حسب النظام',
   themeLight: 'فاتح',
   themeDark: 'غامق',
-  homeTitle: 'أحمد عبد الجليل — مهندس باك إند',
+  homeTitle: 'أحمد عبد الجليل — مهندس برمجيات وأنظمة ذكاء اصطناعي',
   homeDescription:
-    'مهندس باك إند في القاهرة. أبني أنظمة خلفية بـ Node.js وTypeScript، وبوابات لنماذج اللغة، وأنظمة وكلاء تصمد في الإنتاج.',
+    'مهندس برمجيات في القاهرة أبني أنظمة ذكاء اصطناعي وباك إند للإنتاج مع فرق العملاء، من سير العمل غير الواضح إلى برنامج موثوق داخل بيئتهم.',
   homeIntro:
-    'مهندس باك إند في القاهرة. أنضم إلى الفريق وأتولى الباك إند من أول رسمة على الورق حتى الإنتاج، وأبقى معه إلى أن يعمل من دوني.',
+    'مهندس برمجيات في القاهرة. أعمل داخل فريق العميل وأتولى النظام من أول رسمة على الورق حتى الإنتاج، وأبقى معه إلى أن يعمل من دوني.',
   homeMore: 'المزيد عني',
   aboutHeading: 'نبذة عني',
   aboutTitle: 'أحمد عبد الجليل',
   aboutDescription:
-    'مهندس باك إند في القاهرة، أعمل داخل فرق العملاء: أنظمة خلفية بـ Node.js وTypeScript، وبوابات لنماذج اللغة، وأنظمة وكلاء تصمد في الإنتاج.',
+    'مهندس برمجيات في القاهرة أحوّل سير العمل الحقيقي إلى منتجات بسيطة وموثوقة، بتواصل واضح ومسؤولية من الاكتشاف حتى النشر.',
   onThisPage: 'في هذه الصفحة',
   playFlow: 'شغّل المسار',
   pauseFlow: 'إيقاف',

@@ -1,7 +1,7 @@
 /* =============================================================================
-   glgl.me — Zero-Scroll (100dvh) Portfolio Over WebGL2 Pixel-Art Landscape
+   glgl.me — Responsive Portfolio Over WebGL2 Pixel-Art Landscape
    Frosted Charcoal (#141311/88) & Parchment (#f6f1e7/88) · Nile Silt Gold (#d4a359)
-   Connected Concave-Fillet Tabs · Viscoelastic Jelly Physics · Fluid SVG Morphs
+   Connected Tabs · Viscoelastic Jelly Physics · Fluid SVG Morphs
    ========================================================================== */
 
 @font-face {
@@ -276,18 +276,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Zero-Scroll 100dvh Viewport Stage (Unobstructed Sky, Sea & Grass Framing)
+   Responsive Viewport Stage (Unobstructed Sky, Sea & Grass Framing)
    -------------------------------------------------------------------------- */
 
 .viewport-shell {
   position: relative;
   z-index: 2;
-  height: 100dvh;
+  min-height: 100dvh;
   width: 100%;
   overflow: hidden;
+  overflow: clip;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-block: clamp(1.5rem, 4vh, 3rem);
   padding-inline: 2rem;
 }
 
@@ -314,7 +316,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .two-zone {
   display: grid;
   width: 100%;
-  grid-template-columns: 35% 1fr;
+  grid-template-columns: minmax(0, 35%) minmax(0, 1fr);
   align-items: center;
   gap: 2.5rem;
   pointer-events: auto;
@@ -788,7 +790,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Right Column (65%) — Sculpted Frosted Connected-Tab Panel (h-[360px])
+   Right Column (65%) — Sculpted Frosted Connected-Tab Panel
    -------------------------------------------------------------------------- */
 
 .panel-col {
@@ -804,6 +806,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: flex;
   align-items: flex-end;
   gap: 0.375rem;
+  margin-bottom: -3px;
+  padding-block-end: 2px;
   padding-inline-start: 1.25rem;
   padding-inline-end: 1rem;
   z-index: 2;
@@ -812,52 +816,37 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .tab-bridge {
   position: absolute;
   top: 0;
-  bottom: -1px;
+  bottom: 0;
   left: 0;
   width: 118px;
-  border-radius: 12px 12px 0 0;
-  background: var(--panel-bg);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid var(--panel-border);
-  border-bottom: 1px solid var(--panel-solid);
+  overflow: visible;
   pointer-events: none;
   z-index: 1;
   transform-origin: 50% 100%;
   will-change: transform, width;
 }
 
-/* Two 14px x 14px inverted concave corner fillets fusing active tab into panel border */
-.tab-bridge::before,
-.tab-bridge::after {
-  content: '';
+.tab-bridge-svg {
   position: absolute;
-  bottom: -1px;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
+  top: 0;
+  left: -18px;
+  display: block;
+  width: calc(100% + 36px);
+  height: 100%;
+  overflow: visible;
 }
 
-.tab-bridge::before {
-  left: -14px;
-  background: radial-gradient(
-    circle at 0 0,
-    transparent 13px,
-    var(--panel-border) 13px,
-    var(--panel-border) 14px,
-    var(--panel-bg) 14px
-  );
+.tab-bridge-fill {
+  fill: var(--panel-bg);
 }
 
-.tab-bridge::after {
-  right: -14px;
-  background: radial-gradient(
-    circle at 100% 0,
-    transparent 13px,
-    var(--panel-border) 13px,
-    var(--panel-border) 14px,
-    var(--panel-bg) 14px
-  );
+.tab-bridge-outline {
+  fill: none;
+  stroke: var(--panel-border);
+  stroke-width: 1px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .tab-btn {
@@ -865,12 +854,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   z-index: 2;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   gap: 0.35rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 12px 12px 0 0;
-  background: color-mix(in srgb, var(--panel-bg) 62%, transparent);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  border-radius: 9px;
+  background: transparent;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted);
@@ -883,10 +871,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--ink);
 }
 
+.tab-btn:not([aria-selected='true']):hover {
+  background: color-mix(in srgb, var(--panel-bg) 58%, transparent);
+}
+
 .tab-btn[aria-selected='true'] {
   background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   color: var(--accent);
 }
 
@@ -896,14 +886,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   opacity: 0.75;
 }
 
-/* Unified Fixed-Height Frosted Panel (360px strictly locked across all 4 tabs) */
+/* Unified panel: compact on short screens, roomier where the viewport allows. */
 .panel-box {
   position: relative;
-  height: 360px;
+  height: clamp(400px, 52vh, 470px);
   border-radius: 16px;
   corner-shape: squircle;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
+  border-top: 0;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   overflow: hidden;
@@ -911,10 +902,31 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   flex-direction: column;
 }
 
+.panel-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    var(--panel-border) 0,
+    var(--panel-border) var(--tab-cut-left, 0px),
+    transparent var(--tab-cut-left, 0px),
+    transparent var(--tab-cut-right, 0px),
+    var(--panel-border) var(--tab-cut-right, 0px),
+    var(--panel-border) 100%
+  );
+  pointer-events: none;
+  z-index: 4;
+}
+
 .tab-panel {
   display: none;
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
 
 .tab-panel[data-active='true'] {
@@ -927,9 +939,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .master-detail {
   display: grid;
-  grid-template-columns: 37% 63%;
+  grid-template-columns: minmax(0, 37%) minmax(0, 63%);
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
 
 .drum-rail {
@@ -1021,18 +1034,24 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: relative;
   min-width: 0;
   height: 100%;
+  min-height: 0;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-border) transparent;
 }
 
 .inspector-entry {
   display: none;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
-  gap: 0.55rem;
+  min-height: 100%;
+  gap: 0.75rem;
 }
 
 .inspector-entry[data-active='true'] {
@@ -1042,29 +1061,43 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .inspector-top {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   gap: 0.65rem;
+}
+
+.inspector-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
 }
 
 .inspector-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.65rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.65rem;
+  min-width: 0;
 }
 
 .inspector-title-row {
   display: flex;
   align-items: baseline;
   gap: 0.45rem;
+  flex: 1 1 10rem;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .inspector-title {
+  min-width: 0;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
   text-transform: lowercase;
-  line-height: 1.2;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .inspector-year {
@@ -1074,10 +1107,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .inspector-sub {
+  margin: 0;
   font-size: 0.76rem;
+  line-height: 1.45;
   color: var(--muted);
   text-transform: lowercase;
-  margin-top: 0.1rem;
+  overflow-wrap: anywhere;
 }
 
 .date-pill {
@@ -1134,26 +1169,25 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--accent-ink);
 }
 
-/* 3-cell horizontal summary strip */
+/* Three equal cells with predictable label/value wrapping at every width. */
 .stat-strip {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border-block: 1px solid var(--panel-border);
   margin-block: 0.1rem;
 }
 
 .stat-cell {
-  flex: 1 1 auto;
+  min-width: 0;
   padding: 0.45rem 0.5rem;
   display: flex;
-  align-items: baseline;
-  gap: 0.28rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
   font-family: var(--font-mono);
   font-size: 11px;
-  white-space: nowrap;
-}
-
-.stat-cell:first-child {
-  padding-inline-start: 0.05rem;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .stat-cell + .stat-cell {
@@ -1166,9 +1200,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .stat-val {
+  min-width: 0;
   color: var(--ink);
   font-weight: 500;
   text-transform: lowercase;
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
 }
 
 /* Compact Project Pipeline Row */
@@ -1185,12 +1222,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .pipeline-code {
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: 11px;
+  line-height: 1.4;
   color: var(--body);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .metric-pill {
@@ -1208,9 +1246,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .proj-summary {
+  margin: 0;
   font-size: 0.79rem;
   line-height: 1.45;
   color: var(--body);
+  overflow-wrap: anywhere;
 }
 
 /* Impact Bullets */
@@ -1226,6 +1266,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-size: 12px;
   line-height: 1.54;
   color: var(--body);
+  overflow-wrap: anywhere;
 }
 
 .impact-list li::before {
@@ -1244,6 +1285,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  flex-shrink: 0;
   gap: 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--panel-border);
@@ -1251,7 +1293,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .chips {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
+  min-width: 0;
   gap: 0.3rem;
 }
 
@@ -1264,7 +1308,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--body);
   font-family: var(--font-mono);
   font-size: 11px;
+  line-height: 1.35;
   text-transform: lowercase;
+  white-space: nowrap;
 }
 
 .chip--tech {
@@ -1319,20 +1365,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Stack & Education Tabs (strictly fit 360px, zero scrollbars)
+   Stack & Education Tabs (adaptive, scroll-safe layouts)
    -------------------------------------------------------------------------- */
 
 .stack-grid {
   width: 100%;
   height: 100%;
+  min-height: 0;
   padding: 1.15rem 1.25rem;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(min-content, 1fr));
   gap: 0.85rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-border) transparent;
 }
 
 .stack-card {
+  min-width: 0;
   padding: 0.85rem 0.95rem;
   border-radius: 13px;
   corner-shape: squircle;
@@ -1340,8 +1393,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 0.5rem;
+  justify-content: flex-start;
+  gap: 0.65rem;
 }
 
 .stack-card__label {
@@ -1355,14 +1408,21 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .edu-view {
   width: 100%;
   height: 100%;
+  min-height: 0;
   padding: 1.25rem 1.35rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.75rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-border) transparent;
 }
 
 .edu-course-box {
+  margin-block-start: auto;
   padding: 0.75rem 0.9rem;
   border-radius: 12px;
   corner-shape: squircle;
@@ -1381,21 +1441,87 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Responsive (< 960px releases to normal vertical scroll)
+   Responsive — content-aware panels, top dock until a side gutter exists
    -------------------------------------------------------------------------- */
+
+@media (min-width: 960px) and (max-width: 1199px) {
+  .master-detail {
+    grid-template-columns: minmax(0, 32%) minmax(0, 68%);
+  }
+
+  .panel-box {
+    height: clamp(460px, 64vh, 500px);
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1324px) {
+  .utility-dock {
+    top: 0.75rem;
+    transform: none !important;
+    flex-direction: row;
+    inset-inline-end: 0.75rem;
+    padding: 0.45rem 0.65rem;
+    gap: 0.5rem;
+  }
+
+  .palette-popover {
+    top: 4.25rem;
+    inset-inline-end: 0.75rem;
+    transform: none;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1324px) and (max-height: 480px) {
+  .viewport-shell {
+    align-items: flex-start;
+    padding-block-start: 4.5rem;
+  }
+}
 
 @media (max-width: 959px) {
   .viewport-shell {
     height: auto;
     min-height: 100dvh;
-    overflow-y: auto;
-    padding: 4.75rem 1.25rem 6rem;
+    overflow: hidden;
+    overflow: clip;
+    padding: 4.75rem 1.25rem 5rem;
     align-items: flex-start;
   }
 
   .two-zone {
-    grid-template-columns: 1fr;
-    gap: 2.25rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .identity-col::before {
+    inset: -3rem -1rem;
+  }
+
+  .tabs-bar {
+    gap: 0.2rem;
+    padding-inline: 0.35rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    min-height: 40px;
+  }
+
+  .tab-btn:not([aria-selected='true']) {
+    background: color-mix(in srgb, var(--panel-bg) 68%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .tab-btn:not([aria-selected='true']):hover {
+    background: color-mix(in srgb, var(--panel-bg) 82%, transparent);
   }
 
   .panel-box {
@@ -1403,14 +1529,22 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     min-height: 360px;
   }
 
+  .tab-panel,
+  .master-detail,
+  .inspector-pane,
+  .inspector-entry {
+    height: auto;
+  }
+
   .master-detail {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .drum-rail {
     height: 88px;
     border-inline-end: 0;
     border-bottom: 1px solid var(--panel-border);
+    cursor: default;
   }
 
   .drum-stage {
@@ -1419,22 +1553,46 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     align-items: center;
     padding-inline: 0.75rem;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
   }
 
   .drum-item {
     width: auto;
-    max-width: 75vw;
+    max-width: min(75vw, 18rem);
     flex: 0 0 auto;
   }
 
+  .inspector-pane {
+    min-height: 0;
+    overflow: visible;
+    scrollbar-gutter: auto;
+  }
+
+  .inspector-entry {
+    min-height: 0;
+  }
+
+  .wheel-hint {
+    display: none;
+  }
+
   .stack-grid {
-    grid-template-columns: 1fr;
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;
+    overflow: visible;
+  }
+
+  .edu-view {
+    height: auto;
+    min-height: 360px;
+    overflow: visible;
   }
 
   .utility-dock {
     top: 0.75rem;
-    transform: none;
+    transform: none !important;
     flex-direction: row;
     inset-inline-end: 0.75rem;
     padding: 0.45rem 0.65rem;
@@ -1442,9 +1600,60 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
 
   .palette-popover {
-    top: 3.7rem;
+    top: 4.25rem;
     inset-inline-end: 0.75rem;
     transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .viewport-shell {
+    padding: 4.5rem 1rem 4rem;
+  }
+
+  .two-zone {
+    gap: 1.75rem;
+  }
+
+  .id-name {
+    font-size: clamp(1.2rem, 6vw, 1.42rem);
+  }
+
+  .inspector-pane {
+    padding: 1rem;
+  }
+
+  .stat-cell {
+    padding-inline: 0.35rem;
+  }
+
+  .pipeline-bar {
+    align-items: flex-start;
+  }
+
+  .edu-view {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 379px) {
+  .tabs-bar {
+    padding-inline: 0.15rem;
+  }
+
+  .tab-btn {
+    gap: 0.2rem;
+    padding-inline: 0.55rem;
+    font-size: 0.7rem;
+  }
+
+  .tab-count {
+    display: none;
+  }
+
+  .avatar {
+    width: 52px;
+    height: 52px;
   }
 }
 

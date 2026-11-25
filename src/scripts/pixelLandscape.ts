@@ -3,10 +3,13 @@
  *
  * Composition & depth-ordered parallax layers:
  *   1. Deep twilight sky with fine Bayer dither gradient, 1px & '+' cross stars,
- *      and volumetric 2-tap self-shadowed cumulus banks + traveling cumulus clouds (0.12x–0.18x)
- *   2. Refined Moon (night) & Sun (day) with 900ms parabolic orbital arc (0.22x)
+ *      and occasional bright-headed shooting stars with tapered fading trails
+ *   2. Refined Moon (night) & Sun (day) with 900ms parabolic orbital arc (0.22x),
+ *      loose flocks of curved, flapping day birds (0.09x), and volumetric 2-tap
+ *      self-shadowed cumulus banks + traveling clouds in front of them (0.12x–0.18x)
  *   3. Physically inspired calm horizon sea with true sky & cloud mirror reflections,
  *      Schlick Fresnel, dispersive 4-octave wave normals, interactive click ripples,
+ *      a subtly blended coordinated fish school with swimming tails and fins,
  *      slope-aligned specular shimmer glints, and 8 gravity splash droplets (0.40x)
  *   4. U-shaped foreground coastal meadow of 3 overlapping tiers of gracefully arching
  *      curved grass fronds with root ambient occlusion, backlit subsurface translucency,
@@ -329,6 +332,220 @@ vec3 ditherMix(vec3 c0, vec3 c1, float val, float thresh, float steps) {
 float puff(vec2 p, vec2 c, vec2 r) {
   vec2 d = (p - c) / r;
   return 1.0 - dot(d, d);
+}
+
+float sdSegment(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(0.00001, dot(ba, ba)), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+// A tiny gull silhouette: swept curved wings, tapered body, head, beak and tail fan.
+// All coordinates are local to the bird, with +/-1 being the wing tips.
+float birdSilhouette(vec2 p, float flap, float size) {
+  float side = p.x < 0.0 ? -1.0 : 1.0;
+  float tipY = mix(-0.30, 0.48, flap);
+  vec2 root = vec2(side * 0.035, 0.005);
+  vec2 inner = vec2(side * 0.30, 0.065 + flap * 0.16);
+  vec2 elbow = vec2(side * 0.62, 0.085 + flap * 0.30);
+  vec2 tip = vec2(side, tipY);
+
+  float wingD = sdSegment(p, root, inner);
+  wingD = min(wingD, sdSegment(p, inner, elbow));
+  wingD = min(wingD, sdSegment(p, elbow, tip));
+  float wingWidth = mix(0.082, 0.018, smoothstep(0.04, 1.0, abs(p.x)));
+  float aa = 0.55 / max(1.0, size);
+  float wing = 1.0 - smoothstep(wingWidth, wingWidth + aa, wingD);
+
+  float bodyD = (length(p / vec2(0.26, 0.078)) - 1.0) * 0.078;
+  float body = 1.0 - smoothstep(0.0, aa, bodyD);
+  float headD = length(p - vec2(0.235, 0.018)) - 0.064;
+  float head = 1.0 - smoothstep(0.0, aa, headD);
+
+  float beakD = max(max(0.26 - p.x, p.x - 0.40), abs(p.y - 0.012) - max(0.0, 0.40 - p.x) * 0.12);
+  float beak = 1.0 - smoothstep(0.0, aa, beakD);
+  float tailWidth = max(0.0, -p.x - 0.14) * 0.30;
+  float tailD = max(max(-0.40 - p.x, p.x + 0.16), abs(p.y) - tailWidth);
+  float tail = 1.0 - smoothstep(0.0, aa, tailD);
+
+  return max(max(wing, body), max(max(head, beak), tail));
+}
+
+// Distant birds travel as two loose, coordinated flocks. Pixel snapping and
+// tapered one-pixel wing edges keep the silhouettes crisp at virtual resolution.
+vec3 applyBirdFlocks(vec3 col, vec2 uv, float t, float thresh) {
+  float dayVis = smoothstep(0.12, 0.58, uDayProgress);
+  if (dayVis < 0.01) return col;
+
+  float coverage = 0.0;
+  for (int flock = 0; flock < 2; flock++) {
+    float ff = float(flock);
+    float direction = flock == 0 ? 1.0 : -1.0;
+    float baseX = flock == 0 ? 0.36 : 1.02;
+    float speed = 0.0080 - ff * 0.0018;
+    float flockX = mod(baseX + direction * t * speed + 0.18, 1.36) - 0.18;
+    float flockY = 0.81 + ff * 0.065 + sin(t * 0.22 + ff * 2.4) * 0.012;
+    vec2 flockCenter = vec2(flockX, flockY) * uResolution;
+    vec2 flockDelta = uv * uResolution - flockCenter;
+    if (abs(flockDelta.x) > 76.0 || abs(flockDelta.y) > 44.0) continue;
+
+    float flapBout = mix(0.06, 0.48, smoothstep(-0.25, 0.45, sin(t * 0.43 + ff * 2.1)));
+    for (int i = 0; i < 5; i++) {
+      if (flock == 1 && i == 4) continue;
+      float fi = float(i);
+      float rank = floor((fi + 1.0) * 0.5);
+      float side = i == 0 ? 0.0 : (mod(fi, 2.0) < 0.5 ? 1.0 : -1.0);
+      float seed = hash11(fi * 17.31 + ff * 61.7 + 4.2);
+      vec2 offset = vec2(
+        -direction * rank * (11.5 + ff * 1.5) + sin(fi * 2.3) * 2.5,
+        side * rank * (3.8 + ff * 0.6) + (seed - 0.5) * 3.0
+      );
+      offset += vec2(
+        sin(t * 0.47 + fi * 1.9 + ff) * 1.6,
+        sin(t * 0.73 + fi * 1.3 + ff * 0.8) * 1.3
+      );
+
+      float size = (6.0 + seed * 1.6) * (1.0 - ff * 0.16);
+      vec2 center = floor(flockCenter + offset) + 0.5;
+      vec2 localPx = uv * uResolution - center;
+      if (abs(localPx.x) > size * 1.25 || abs(localPx.y) > size * 0.95) continue;
+
+      vec2 q = localPx / size;
+      q.x *= direction;
+      q.y -= q.x * sin(t * 0.31 + fi * 0.8 + ff) * 0.035;
+      float flap = clamp(0.48 + sin(t * (7.2 + ff * 0.80) + ff * 1.7 - rank * 0.32 + side * 0.12) * flapBout, 0.02, 0.98);
+      float bird = birdSilhouette(q, flap, size);
+      coverage = max(coverage, bird * (0.68 - ff * 0.10));
+    }
+  }
+
+  // Fine Bayer breakup softens distant edges without turning birds into dots.
+  coverage *= 0.92 + 0.08 * step(thresh, coverage);
+  vec3 birdCol = mix(uCloudShad, uSkyTop, 0.28) * 0.82;
+  return mix(col, birdCol, clamp(coverage * dayVis, 0.0, 0.82));
+}
+
+// A tapered fish with a rounded nose, narrow caudal peduncle, forked wagging
+// tail, and small dorsal/ventral fins. Local +X is the swimming direction.
+float fishSilhouette(vec2 p, float tailSwing, float size) {
+  float aa = 0.50 / max(1.0, size);
+  float bodyX = (p.x - 0.02) / 0.82;
+  float bodyH = 0.28 * sqrt(max(0.0, 1.0 - bodyX * bodyX));
+  bodyH *= mix(0.76, 1.0, smoothstep(-0.78, 0.70, p.x));
+  float bodyD = max(abs(p.y) - bodyH, max(-0.80 - p.x, p.x - 0.84));
+  float body = 1.0 - smoothstep(0.0, aa, bodyD);
+
+  vec2 tailP = p;
+  tailP.y -= (p.x + 0.64) * tailSwing;
+  float tailWidth = 0.055 + max(0.0, -p.x - 0.62) * 0.48;
+  float tailD = max(abs(tailP.y) - tailWidth, max(-1.30 - p.x, p.x + 0.60));
+  float tail = 1.0 - smoothstep(0.0, aa, tailD);
+  float notchWidth = max(0.0, -p.x - 1.0) * 0.52;
+  float notchZone = 1.0 - smoothstep(-1.18, -0.98, p.x);
+  float notch = (1.0 - smoothstep(notchWidth, notchWidth + aa, abs(tailP.y))) * notchZone;
+  tail *= 1.0 - notch;
+
+  float dorsalPeak = 0.13 + 0.34 * max(0.0, 1.0 - abs((p.x + 0.06) / 0.32));
+  float dorsalD = max(max(-0.38 - p.x, p.x - 0.26), max(0.12 - p.y, p.y - dorsalPeak));
+  float dorsal = 1.0 - smoothstep(0.0, aa, dorsalD);
+  float ventralDepth = -0.12 - 0.30 * max(0.0, 1.0 - abs((p.x - 0.06) / 0.28));
+  float ventralD = max(max(-0.22 - p.x, p.x - 0.34), max(ventralDepth - p.y, p.y + 0.12));
+  float ventral = 1.0 - smoothstep(0.0, aa, ventralD);
+
+  return max(max(body, tail), max(dorsal, ventral));
+}
+
+// Seven fish share a slow school trajectory, with small phase-lagged weaving
+// and tail strokes rather than independent random motion.
+vec3 applyFishSchool(vec3 col, vec2 uv, float horizonY, float t, float thresh) {
+  float schoolX = mod(0.24 + t * 0.010 + 0.18, 1.36) - 0.18;
+  float schoolY = horizonY - 0.105 + sin(t * 0.25) * 0.008;
+  vec2 schoolCenter = vec2(schoolX, schoolY) * uResolution;
+  vec2 schoolDelta = uv * uResolution - schoolCenter;
+  if (abs(schoolDelta.x) > 105.0 || abs(schoolDelta.y) > 48.0) return col;
+
+  float coverage = 0.0;
+  for (int i = 0; i < 7; i++) {
+    float fi = float(i);
+    float seed = hash11(fi * 23.17 + 8.4);
+    vec2 offset = vec2(
+      6.0 - fi * 10.5 + sin(fi * 2.2) * 3.0,
+      sin(fi * 1.85 + 0.4) * 11.0 + (seed - 0.5) * 4.0
+    );
+    offset += vec2(
+      sin(t * 0.48 + fi * 0.72) * 1.2,
+      sin(t * 0.82 + fi * 0.65) * 1.8
+    );
+
+    float size = 4.2 + seed * 1.6;
+    vec2 center = floor(schoolCenter + offset) + 0.5;
+    vec2 localPx = uv * uResolution - center;
+    if (abs(localPx.x) > size * 1.55 || abs(localPx.y) > size * 0.85) continue;
+
+    vec2 q = localPx / size;
+    q.y -= q.x * sin(t * 0.55 + fi * 0.8) * 0.055;
+    float tailSwing = sin(t * (5.2 + seed * 0.90) - fi * 0.42) * 0.24;
+    float fish = fishSilhouette(q, tailSwing, size);
+    coverage = max(coverage, fish * (0.76 + seed * 0.12));
+  }
+
+  coverage *= 0.90 + 0.10 * step(thresh, coverage);
+  float waterClarity = mix(0.46, 0.52, uDayProgress);
+  vec3 fishCol = mix(uSeaDeep, uSeaMid, 0.22 + uDayProgress * 0.10);
+  return mix(col, fishCol, clamp(coverage * waterClarity, 0.0, 0.56));
+}
+
+// Two independent, long-period meteor events leave the sky empty most of the
+// time. Reduced motion holds just one tasteful mid-flight meteor still.
+vec3 applyShootingStars(vec3 col, vec2 px, float nightVis, float t, float thresh) {
+  for (int i = 0; i < 2; i++) {
+    if (uReducedMotion > 0.5 && i == 1) continue;
+    float fi = float(i);
+    float period = i == 0 ? 23.0 : 37.0;
+    float offset = i == 0 ? 22.0 : 9.0;
+    float timeline = t + offset;
+    float cycle = floor(timeline / period);
+    float age = mod(timeline, period);
+    if (uReducedMotion > 0.5) {
+      cycle = 0.0;
+      age = 0.46;
+    }
+    if (age > 1.18) continue;
+
+    float seed = hash11(cycle * 17.13 + fi * 53.1 + 7.7);
+    float seed2 = hash11(cycle * 31.71 + fi * 19.3 + 2.9);
+    vec2 start = vec2(mix(0.18, 0.68, seed), mix(0.78, 0.93, seed2)) * uResolution;
+    if (i == 0 && cycle < 0.5) start = vec2(0.44, 0.90) * uResolution;
+    vec2 direction = normalize(vec2((i == 0 ? 1.0 : -1.0) * 0.86, -0.50));
+    vec2 head = start + direction * (150.0 + seed * 45.0) * age;
+    vec2 delta = px + 0.5 - head;
+    float maxTrail = 42.0 + seed2 * 30.0;
+    if (abs(delta.x) > maxTrail + 5.0 || abs(delta.y) > maxTrail + 5.0) continue;
+
+    float fade = smoothstep(0.0, 0.08, age) * (1.0 - smoothstep(0.72, 1.18, age));
+    float along = dot(delta, -direction);
+    float across = abs(dot(delta, vec2(-direction.y, direction.x)));
+    float trailLength = maxTrail * smoothstep(0.0, 0.16, age);
+    if (along > 0.0 && along < trailLength && across < 2.5) {
+      float trailT = along / max(0.001, trailLength);
+      float trailWidth = mix(1.15, 0.18, pow(trailT, 0.70));
+      float trail = (1.0 - smoothstep(trailWidth, trailWidth + 0.65, across))
+                  * pow(1.0 - trailT, 1.6) * fade * nightVis;
+      if (trail > thresh * 0.14) {
+        col = mix(col, mix(uMoonCol, uSkyLow, 0.16), clamp(trail * 0.82, 0.0, 0.88));
+      }
+    }
+
+    float headDist = length(delta);
+    float glow = exp(-headDist * 0.65) * 0.22 * fade * nightVis;
+    col = mix(col, uMoonCol, glow);
+    float headMask = (1.0 - smoothstep(0.65, 1.65, headDist)) * fade * nightVis;
+    if (headMask > thresh * 0.08) {
+      col = mix(col, mix(uMoonCol, vec3(1.0), 0.65), clamp(headMask, 0.0, 0.98));
+    }
+  }
+  return col;
 }
 
 // Evaluates sculpted framing cumulus banks (left & right corners, open starry center)
@@ -685,7 +902,11 @@ void main() {
       }
     }
 
+    if (nightVis > 0.01 && skyH > 0.22) {
+      col = applyShootingStars(col, px, nightVis, t, thresh);
+    }
     col = applyCelestials(col, uv, celOff, horizonY, aspect, t, thresh, false);
+    col = applyBirdFlocks(col, uv + par * 0.09, t, thresh);
     col = applyCloudLayers(col, uv, par, activeCelPos, thresh, 1.0);
   } else {
     // =======================================================================
@@ -776,6 +997,10 @@ void main() {
         col = mix(col, uSkyLow, 0.36);
       }
     }
+
+    // Underwater school sits within the water body, beneath surface glints
+    // and the later foreground meadow layer.
+    col = applyFishSchool(col, uv, horizonY, t, thresh);
 
     // Slope-aligned horizontal specular moonlight/sunlight glints
     float activeRefX = mix(mix(0.45, activeCelPos.x, 0.42), activeCelPos.x, uDayProgress);
