@@ -790,63 +790,59 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Right Column (65%) — Sculpted Frosted Connected-Tab Panel
+   Right Column (65%) — Unified Frosted Jelly Tab-Panel Silhouette
    -------------------------------------------------------------------------- */
 
 .panel-col {
+  position: relative;
+  isolation: isolate;
   min-width: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
 }
 
-/* Tab Row inset by ps-5 (1.25rem), gap-1.5 (0.375rem) */
-.tabs-bar {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: 0.375rem;
-  margin-bottom: -3px;
-  padding-block-end: 2px;
-  padding-inline-start: 1.25rem;
-  padding-inline-end: 1rem;
-  z-index: 2;
-}
-
-.tab-bridge {
+.panel-unified-bg {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 118px;
-  overflow: visible;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
-  z-index: 1;
-  transform-origin: 50% 100%;
-  will-change: transform, width;
+  background: var(--panel-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  will-change: clip-path;
 }
 
-.tab-bridge-svg {
+.panel-unified-outline {
   position: absolute;
-  top: 0;
-  left: -18px;
-  display: block;
-  width: calc(100% + 36px);
+  inset: 0;
+  width: 100%;
   height: 100%;
+  z-index: 5;
+  pointer-events: none;
   overflow: visible;
 }
 
-.tab-bridge-fill {
-  fill: var(--panel-bg);
-}
-
-.tab-bridge-outline {
+.panel-unified-stroke {
   fill: none;
   stroke: var(--panel-border);
   stroke-width: 1px;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
+}
+
+/* Tab Row inset by 1.75rem so the concave fillet clears the 14px outer radius */
+.tabs-bar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.375rem;
+  margin-bottom: 0;
+  padding-block-end: 0;
+  padding-inline-start: 1.75rem;
+  padding-inline-end: 1rem;
+  z-index: 3;
 }
 
 .tab-btn {
@@ -857,7 +853,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   flex: 0 0 auto;
   gap: 0.35rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 9px;
+  border-radius: 9px 9px 0 0;
   background: transparent;
   font-size: 0.75rem;
   font-weight: 500;
@@ -872,7 +868,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .tab-btn:not([aria-selected='true']):hover {
-  background: color-mix(in srgb, var(--panel-bg) 58%, transparent);
+  background: color-mix(in srgb, var(--panel-bg) 42%, transparent);
 }
 
 .tab-btn[aria-selected='true'] {
@@ -886,40 +882,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   opacity: 0.75;
 }
 
-/* Unified panel: compact on short screens, roomier where the viewport allows. */
+/* Unified panel body: background & outline live on .panel-unified-bg / .panel-unified-outline */
 .panel-box {
   position: relative;
+  z-index: 2;
   height: clamp(400px, 52vh, 470px);
-  border-radius: 16px;
-  corner-shape: squircle;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-top: 0;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border-radius: 14px;
+  background: transparent;
+  border: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.panel-box::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    var(--panel-border) 0,
-    var(--panel-border) var(--tab-cut-left, 0px),
-    transparent var(--tab-cut-left, 0px),
-    transparent var(--tab-cut-right, 0px),
-    var(--panel-border) var(--tab-cut-right, 0px),
-    var(--panel-border) 100%
-  );
-  pointer-events: none;
-  z-index: 4;
 }
 
 .tab-panel {
@@ -931,6 +906,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .tab-panel[data-active='true'] {
   display: flex;
+  position: relative;
+  z-index: 2;
+}
+
+.tab-panel[data-exiting='true'] {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1295,6 +1280,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: flex;
   flex: 1 1 auto;
   flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
   min-width: 0;
   gap: 0.3rem;
 }
@@ -1375,8 +1362,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 1.15rem 1.25rem;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(min-content, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
+  align-items: stretch;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1386,23 +1374,85 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .stack-card {
   min-width: 0;
-  padding: 0.85rem 0.95rem;
+  padding: 0.95rem 1.05rem;
   border-radius: 13px;
   corner-shape: squircle;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
   border: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 0.65rem;
+  gap: 0.7rem;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.stack-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--panel-border));
+  background: var(--surface);
+}
+
+.stack-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .stack-card__label {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.73rem;
   font-weight: 600;
   color: var(--accent);
   text-transform: lowercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.stack-card__label::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.stack-card__count {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.stack-card .chips {
+  flex: 0 0 auto;
+  gap: 0.42rem;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+.chip--stack {
+  display: inline-flex;
+  align-items: center;
+  height: auto;
+  padding: 0.28rem 0.62rem;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg) 42%, var(--chip));
+  border: 1px solid var(--panel-border);
+  color: var(--ink);
+  font-size: 11.5px;
+  line-height: 1.25;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.chip--stack:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .edu-view {
@@ -1499,7 +1549,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
   .tabs-bar {
     gap: 0.2rem;
-    padding-inline: 0.35rem;
+    padding-inline: 1.1rem;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
@@ -1514,14 +1564,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     min-height: 40px;
   }
 
-  .tab-btn:not([aria-selected='true']) {
-    background: color-mix(in srgb, var(--panel-bg) 68%, transparent);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
   .tab-btn:not([aria-selected='true']):hover {
-    background: color-mix(in srgb, var(--panel-bg) 82%, transparent);
+    background: color-mix(in srgb, var(--panel-bg) 42%, transparent);
   }
 
   .panel-box {

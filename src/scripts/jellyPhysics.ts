@@ -17,6 +17,114 @@ export interface JellyEnterOptions {
   baseTransform?: string;
 }
 
+export interface JellySlideOptions {
+  fromX: number;
+  delayMs?: number;
+  stiffness?: number;
+  damping?: number;
+  mass?: number;
+  stretchFactor?: number;
+}
+
+/**
+ * Animates an element horizontally from `fromX` to 0 with Hooke's law spring overshoot,
+ * smooth 0 -> 1 opacity ramp, and volume-conserving squash & stretch.
+ */
+export function jellySlideEnter(el: HTMLElement, opts: JellySlideOptions): () => void {
+  cancelActive(el);
+
+  if (prefersReducedMotion() || opts.fromX === 0) {
+    el.style.opacity = '';
+    el.style.transform = '';
+    el.style.willChange = '';
+    return () => {};
+  }
+
+  const stiffness = opts.stiffness ?? 290;
+  const damping = opts.damping ?? 21;
+  const mass = opts.mass ?? 1;
+  const stretchFactor = opts.stretchFactor ?? 0.00018;
+  const delayMs = Math.max(0, opts.delayMs ?? 0);
+
+  let x = opts.fromX;
+  let v = 0;
+  let rafId = 0;
+  let timerId = 0;
+  let cancelled = false;
+  let startTime = 0;
+  let lastTime = 0;
+
+  el.style.opacity = '0';
+  el.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
+  el.style.willChange = 'transform, opacity';
+
+  const finish = () => {
+    if (cancelled) return;
+    cancelled = true;
+    activeCleanups.delete(el);
+    el.style.transform = '';
+    el.style.opacity = '';
+    el.style.willChange = '';
+  };
+
+  const cleanup = () => {
+    if (cancelled) return;
+    cancelled = true;
+    window.clearTimeout(timerId);
+    cancelAnimationFrame(rafId);
+    activeCleanups.delete(el);
+    el.style.opacity = '';
+    el.style.transform = '';
+    el.style.willChange = '';
+  };
+
+  activeCleanups.set(el, cleanup);
+
+  const step = (now: number) => {
+    if (cancelled) return;
+    const dt = clamp((now - lastTime) / 1000, 0.001, 0.032);
+    lastTime = now;
+
+    const force = -stiffness * x - damping * v;
+    v += (force / mass) * dt;
+    x += v * dt;
+
+    const sx = clamp(1 + Math.abs(v) * stretchFactor, 0.94, 1.07);
+    const sy = 1 / sx;
+
+    const fadeRaw = clamp((now - startTime) / 160, 0, 1);
+    const opacity = 1 - (1 - fadeRaw) * (1 - fadeRaw);
+    el.style.opacity = opacity.toFixed(3);
+    el.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+
+    if (Math.abs(x) < 0.15 && Math.abs(v) < 0.5) {
+      finish();
+      return;
+    }
+
+    rafId = requestAnimationFrame(step);
+  };
+
+  const begin = () => {
+    if (cancelled) return;
+    startTime = performance.now();
+    lastTime = startTime;
+    rafId = requestAnimationFrame(step);
+  };
+
+  if (delayMs > 0) {
+    timerId = window.setTimeout(begin, delayMs);
+  } else {
+    rafId = requestAnimationFrame((now) => {
+      startTime = now;
+      lastTime = now;
+      step(now);
+    });
+  }
+
+  return cleanup;
+}
+
 export interface JellyPulseOptions {
   vx?: number;
   vy?: number;

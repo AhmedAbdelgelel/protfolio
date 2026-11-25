@@ -330,15 +330,13 @@ const projCount = String(data.projects.length).padStart(2, '0');
           </section>
 
           <!-- Right Column (65%): Adaptive Frosted Connected-Tab Panel -->
-          <section class="panel-col" aria-label="portfolio">
-            <div class="tabs-bar" role="tablist" data-tabs-bar data-enter-sky>
-              <div class="tab-bridge" data-tab-bridge aria-hidden="true">
-                <svg class="tab-bridge-svg" data-tab-bridge-svg focusable="false" aria-hidden="true">
-                  <path class="tab-bridge-fill" data-tab-bridge-fill />
-                  <path class="tab-bridge-outline" data-tab-bridge-outline />
-                </svg>
-              </div>
+          <section class="panel-col" aria-label="portfolio" data-enter-sea>
+            <div class="panel-unified-bg" data-panel-unified-bg aria-hidden="true"></div>
+            <svg class="panel-unified-outline" data-panel-unified-outline focusable="false" aria-hidden="true">
+              <path class="panel-unified-stroke" data-panel-unified-stroke />
+            </svg>
 
+            <div class="tabs-bar" role="tablist" data-tabs-bar>
               <button type="button" role="tab" class="tab-btn" data-tab="experience" aria-selected="true">
                 <span>{data.tabs.experience}</span>
                 <span class="tab-count ltr">{expCount}</span>
@@ -358,7 +356,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
               </button>
             </div>
 
-            <div class="panel-box" data-panel-box data-enter-sea>
+            <div class="panel-box" data-panel-box>
 
               <!-- TAB 1: EXPERIENCE -->
               <div class="tab-panel" role="tabpanel" data-panel="experience" data-active="true">
@@ -507,10 +505,13 @@ const projCount = String(data.projects.length).padStart(2, '0');
                 <div class="stack-grid">
                   {data.skills.map((group) => (
                     <div class="stack-card">
-                      <h2 class="stack-card__label">{group.label}</h2>
+                      <div class="stack-card__head">
+                        <h2 class="stack-card__label">{group.label}</h2>
+                        <span class="stack-card__count ltr">{String(group.items.length).padStart(2, '0')}</span>
+                      </div>
                       <ul class="chips">
                         {group.items.map((skill) => (
-                          <li class="chip ltr">{skill}</li>
+                          <li class="chip chip--stack ltr" data-tech={skill}>{skill}</li>
                         ))}
                       </ul>
                     </div>
@@ -564,7 +565,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
     <script>
       import { initPixelLandscape, type PaletteId } from '../../scripts/pixelLandscape';
-      import { jellyEnter, jellyPulse, createSpringScalar } from '../../scripts/jellyPhysics';
+      import { jellyEnter, jellySlideEnter, jellyPulse, createSpringScalar } from '../../scripts/jellyPhysics';
 
       const root = document.documentElement;
       const isRTL = root.dir === 'rtl';
@@ -594,8 +595,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
         }
 
         const skyTargets: Array<{ selector: string; delayMs: number }> = [
-          { selector: '.id-head[data-enter-sky]', delayMs: 0 },
-          { selector: '.tabs-bar[data-enter-sky]', delayMs: 70 }
+          { selector: '.id-head[data-enter-sky]', delayMs: 0 }
         ];
 
         const seaTargets: Array<{ selector: string; fromY: number; delayMs: number; baseTransform?: string }> = [
@@ -603,7 +603,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
           { selector: '.bio-secondary[data-enter-sea]', fromY: 42, delayMs: 95 },
           { selector: '.cta-row[data-enter-sea]', fromY: 46, delayMs: 150 },
           { selector: '.icon-row[data-enter-sea]', fromY: 50, delayMs: 205 },
-          { selector: '.panel-box[data-enter-sea]', fromY: 54, delayMs: 110 },
+          { selector: '.panel-col[data-enter-sea]', fromY: 48, delayMs: 100 },
           {
             selector: '.utility-dock[data-enter-sea]',
             fromY: 44,
@@ -650,66 +650,91 @@ const projCount = String(data.projects.length).padStart(2, '0');
       }
 
       // -----------------------------------------------------------------------
-      // 3. Connected Tab Bridge (Jelly Spring) + Wind Gust
+      // 3. Unified Frosted Panel + Tab Silhouette (Liquid Jelly Spring)
       // -----------------------------------------------------------------------
+      const panelCol = document.querySelector<HTMLElement>('.panel-col');
       const tabsBar = document.querySelector<HTMLElement>('[data-tabs-bar]');
       const panelBox = document.querySelector<HTMLElement>('[data-panel-box]');
-      const tabBridge = document.querySelector<HTMLElement>('[data-tab-bridge]');
-      const tabBridgeSvg = document.querySelector<SVGSVGElement>('[data-tab-bridge-svg]');
-      const tabBridgeFill = document.querySelector<SVGPathElement>('[data-tab-bridge-fill]');
-      const tabBridgeOutline = document.querySelector<SVGPathElement>('[data-tab-bridge-outline]');
+      const panelUnifiedBg = document.querySelector<HTMLElement>('[data-panel-unified-bg]');
+      const panelUnifiedOutline = document.querySelector<SVGSVGElement>('[data-panel-unified-outline]');
+      const panelUnifiedStroke = document.querySelector<SVGPathElement>('[data-panel-unified-stroke]');
       const tabBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-tab]'));
       const tabPanels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
+      const tabOrder = ['experience', 'projects', 'stack', 'education'];
       let activeTab = 'experience';
 
-      const TAB_SHOULDER = 18;
-      const renderTabBridge = (width: number, height: number, velocity: number) => {
-        if (!tabBridgeSvg || !tabBridgeFill || !tabBridgeOutline) return;
-        const w = Math.max(24, width);
-        const h = Math.max(30, height);
-        const outerW = w + TAB_SHOULDER * 2;
-        const left = TAB_SHOULDER;
-        const right = left + w;
-        const panelY = h - 3;
-        const radius = Math.min(12, w * 0.2);
-        const jelly = Math.min(3, Math.abs(velocity) * 0.003);
-        const shoulder = Math.max(6, Math.min(panelY - radius - 1, TAB_SHOULDER + jelly));
+      const clampNum = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val));
 
-        // One continuous silhouette: mirrored concave shoulders, no bottom seam.
-        const joint = [
-          `M 0 ${panelY}`,
-          `Q ${left} ${panelY} ${left} ${panelY - shoulder}`,
-          `L ${left} ${radius}`,
-          `Q ${left} 0 ${left + radius} 0`,
-          `L ${right - radius} 0`,
-          `Q ${right} 0 ${right} ${radius}`,
-          `L ${right} ${panelY - shoulder}`,
-          `Q ${right} ${panelY} ${outerW} ${panelY}`
+      const buildUnifiedPanelPath = (
+        W: number,
+        H: number,
+        y0: number,
+        tabLeft: number,
+        tabWidth: number,
+        velocity: number,
+        inset = 0
+      ): string => {
+        const xMin = inset;
+        const xMax = W - inset;
+        const yTop = inset;
+        const yBot = H - inset;
+        const R = 14;
+        const r = Math.min(11, tabWidth * 0.22);
+
+        const maxL = Math.max(xMin + R + 4, xMax - R - 4 - tabWidth);
+        const L = clampNum(tabLeft, xMin + R + 4, maxL);
+        const Rt = Math.min(xMax - R - 4, L + tabWidth);
+
+        const lean = clampNum(velocity * 0.004, -5, 5);
+        const baseS = 14;
+        const maxSL = Math.max(4, Math.min(y0 - yTop - r - 1, L - (xMin + R)));
+        const maxSR = Math.max(4, Math.min(y0 - yTop - r - 1, xMax - R - Rt));
+        const sL = clampNum(baseS + (velocity > 0 ? Math.abs(lean) : -Math.abs(lean) * 0.35), 4, maxSL);
+        const sR = clampNum(baseS + (velocity < 0 ? Math.abs(lean) : -Math.abs(lean) * 0.35), 4, maxSR);
+
+        const f = (n: number) => n.toFixed(2);
+        return [
+          `M ${f(xMin + R)} ${f(y0)}`,
+          `L ${f(L - sL)} ${f(y0)}`,
+          `Q ${f(L)} ${f(y0)} ${f(L)} ${f(y0 - sL)}`,
+          `L ${f(L)} ${f(yTop + r)}`,
+          `Q ${f(L)} ${f(yTop)} ${f(L + r)} ${f(yTop)}`,
+          `L ${f(Rt - r)} ${f(yTop)}`,
+          `Q ${f(Rt)} ${f(yTop)} ${f(Rt)} ${f(yTop + r)}`,
+          `L ${f(Rt)} ${f(y0 - sR)}`,
+          `Q ${f(Rt)} ${f(y0)} ${f(Rt + sR)} ${f(y0)}`,
+          `L ${f(xMax - R)} ${f(y0)}`,
+          `Q ${f(xMax)} ${f(y0)} ${f(xMax)} ${f(y0 + R)}`,
+          `L ${f(xMax)} ${f(yBot - R)}`,
+          `Q ${f(xMax)} ${f(yBot)} ${f(xMax - R)} ${f(yBot)}`,
+          `L ${f(xMin + R)} ${f(yBot)}`,
+          `Q ${f(xMin)} ${f(yBot)} ${f(xMin)} ${f(yBot - R)}`,
+          `L ${f(xMin)} ${f(y0 + R)}`,
+          `Q ${f(xMin)} ${f(y0)} ${f(xMin + R)} ${f(y0)}`,
+          'Z'
         ].join(' ');
-
-        tabBridgeSvg.setAttribute('viewBox', `0 0 ${outerW} ${h}`);
-        tabBridgeOutline.setAttribute('d', joint);
-        tabBridgeFill.setAttribute('d', `${joint} L ${outerW} ${panelY + 1} L 0 ${panelY + 1} Z`);
       };
 
       const applyBridgeTransform = () => {
-        if (!tabBridge) return;
-        const vx = bridgeX.getVelocity();
-        const scaleX = Math.max(0.94, Math.min(1.08, 1 + Math.abs(vx) * 0.00012));
-        const scaleY = 1 / scaleX;
-        const width = Math.max(24, bridgeW.getValue());
-        tabBridge.style.width = `${width.toFixed(2)}px`;
-        tabBridge.style.transform = `translateX(${bridgeX.getValue().toFixed(2)}px) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`;
-        renderTabBridge(width, tabBridge.clientHeight || tabsBar?.clientHeight || 36, vx);
-
-        if (panelBox) {
-          const panelRect = panelBox.getBoundingClientRect();
-          const bridgeRect = tabBridge.getBoundingClientRect();
-          const cutLeft = Math.max(0, bridgeRect.left - TAB_SHOULDER * scaleX - panelRect.left);
-          const cutRight = Math.min(panelRect.width, bridgeRect.right + TAB_SHOULDER * scaleX - panelRect.left);
-          panelBox.style.setProperty('--tab-cut-left', `${cutLeft.toFixed(2)}px`);
-          panelBox.style.setProperty('--tab-cut-right', `${cutRight.toFixed(2)}px`);
+        if (!panelCol || !tabsBar || !panelBox || !panelUnifiedBg || !panelUnifiedOutline || !panelUnifiedStroke) {
+          return;
         }
+        const W = panelCol.clientWidth;
+        const H = panelCol.clientHeight;
+        const y0 = panelBox.offsetTop;
+        if (W <= 0 || H <= 0 || y0 <= 0) return;
+
+        const vx = bridgeX.getVelocity();
+        const tabWidth = Math.max(28, bridgeW.getValue());
+        const tabLeft = bridgeX.getValue() - (tabsBar.scrollLeft || 0);
+
+        const fillPath = buildUnifiedPanelPath(W, H, y0, tabLeft, tabWidth, vx, 0);
+        const strokePath = buildUnifiedPanelPath(W, H, y0, tabLeft, tabWidth, vx, 0.5);
+
+        panelUnifiedBg.style.clipPath = `path("${fillPath}")`;
+        (panelUnifiedBg.style as CSSStyleDeclaration & { webkitClipPath?: string }).webkitClipPath = `path("${fillPath}")`;
+        panelUnifiedOutline.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        panelUnifiedStroke.setAttribute('d', strokePath);
       };
 
       const bridgeX = createSpringScalar({
@@ -731,7 +756,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
       });
 
       const syncTabBridge = (instant = false) => {
-        if (!tabsBar || !tabBridge) return;
+        if (!tabsBar) return;
         const activeBtn = tabBtns.find((b) => b.dataset.tab === activeTab) ?? tabBtns[0];
         if (!activeBtn) return;
         const x = activeBtn.offsetLeft;
@@ -739,23 +764,70 @@ const projCount = String(data.projects.length).padStart(2, '0');
         if (instant) {
           bridgeX.snap(x);
           bridgeW.snap(w);
+          applyBridgeTransform();
         } else {
           bridgeX.setTarget(x);
           bridgeW.setTarget(w);
         }
       };
 
-      const panelCol = document.querySelector<HTMLElement>('.panel-col');
-
       const selectTab = (id: string) => {
         if (id === activeTab) return;
+        const prevTab = activeTab;
+        const prevIdx = tabOrder.indexOf(prevTab);
+        const nextIdx = tabOrder.indexOf(id);
+        const dir = (nextIdx >= prevIdx ? 1 : -1) * (isRTL ? -1 : 1);
         activeTab = id;
+
         tabBtns.forEach((b) => {
           const selected = b.dataset.tab === id;
           b.setAttribute('aria-selected', selected ? 'true' : 'false');
           b.tabIndex = selected ? 0 : -1;
         });
-        tabPanels.forEach((p) => (p.dataset.active = p.dataset.panel === id ? 'true' : 'false'));
+
+        const prevPanel = tabPanels.find((p) => p.dataset.panel === prevTab);
+        const nextPanel = tabPanels.find((p) => p.dataset.panel === id);
+
+        tabPanels.forEach((p) => {
+          if (p !== prevPanel && p !== nextPanel) {
+            delete p.dataset.exiting;
+            p.dataset.active = 'false';
+          }
+        });
+
+        if (prevPanel && !reducedMotion) {
+          prevPanel.dataset.exiting = 'true';
+          prevPanel.dataset.active = 'false';
+          const exitAnim = prevPanel.animate(
+            [
+              { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
+              { opacity: 0, transform: `translate3d(${-18 * dir}px, 0, 0) scale(0.985)` }
+            ],
+            { duration: 150, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+          );
+          exitAnim.onfinish = () => {
+            if (prevPanel.dataset.panel !== activeTab) {
+              delete prevPanel.dataset.exiting;
+            }
+          };
+        } else if (prevPanel) {
+          delete prevPanel.dataset.exiting;
+          prevPanel.dataset.active = 'false';
+        }
+
+        if (nextPanel) {
+          delete nextPanel.dataset.exiting;
+          nextPanel.dataset.active = 'true';
+          if (!reducedMotion) {
+            jellySlideEnter(nextPanel, {
+              fromX: 28 * dir,
+              stiffness: 290,
+              damping: 21,
+              stretchFactor: 0.00018
+            });
+          }
+        }
+
         syncTabBridge(false);
 
         const activeBtn = tabBtns.find((b) => b.dataset.tab === id);
@@ -766,7 +838,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
         });
 
         if (panelCol) {
-          jellyPulse(panelCol, { vy: 14, intensity: 0.38 });
+          jellyPulse(panelCol, { vx: -14 * dir, vy: 8, intensity: 0.32 });
         }
         landscape?.triggerWindGust();
       };
@@ -774,7 +846,6 @@ const projCount = String(data.projects.length).padStart(2, '0');
       tabBtns.forEach((b, index) => {
         b.tabIndex = b.dataset.tab === activeTab ? 0 : -1;
         b.addEventListener('click', () => {
-          jellyPulse(b, { vy: 14, intensity: 0.35 });
           if (b.dataset.tab) selectTab(b.dataset.tab);
         });
         b.addEventListener('keydown', (e) => {
@@ -793,6 +864,12 @@ const projCount = String(data.projects.length).padStart(2, '0');
       });
 
       syncTabBridge(true);
+      requestAnimationFrame(() => syncTabBridge(true));
+      tabsBar?.addEventListener('scroll', applyBridgeTransform, { passive: true });
+      if (panelCol && typeof ResizeObserver !== 'undefined') {
+        const panelRo = new ResizeObserver(() => syncTabBridge(true));
+        panelRo.observe(panelCol);
+      }
 
       // -----------------------------------------------------------------------
       // 4. Static Entry Lists — Wheel, Arrow & Click Selection + Jelly Pulse
@@ -830,7 +907,14 @@ const projCount = String(data.projects.length).padStart(2, '0');
             });
           }
         }
-        if (activeEntry) jellyPulse(activeEntry, { vy: 14, intensity: 0.42 });
+        if (activeEntry && !reducedMotion) {
+          jellyEnter(activeEntry, {
+            fromY: 14 * dir,
+            stiffness: 320,
+            damping: 22,
+            stretchFactor: 0.00016
+          });
+        }
         landscape?.triggerMicroRipple();
       };
 
