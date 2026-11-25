@@ -1,7 +1,7 @@
 /* =============================================================================
    glgl.me — Zero-Scroll (100dvh) Portfolio Over WebGL2 Pixel-Art Landscape
    Frosted Charcoal (#141311/88) & Parchment (#f6f1e7/88) · Nile Silt Gold (#d4a359)
-   Connected Concave-Fillet Tabs · 3D Cylindrical Drum · Bayer Dither Wipe
+   Connected Concave-Fillet Tabs · Viscoelastic Jelly Physics · Fluid SVG Morphs
    ========================================================================== */
 
 @font-face {
@@ -191,8 +191,6 @@
     'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     monospace;
-  --ease-spring: cubic-bezier(0.22, 1.15, 0.36, 1);
-  --ease-squish: cubic-bezier(0.22, 1.4, 0.36, 1);
 }
 
 /* -----------------------------------------------------------------------------
@@ -252,18 +250,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   unicode-bidi: isolate;
 }
 
-.squish {
-  transition:
-    transform 180ms var(--ease-squish),
-    background-color 160ms ease,
-    color 160ms ease,
-    border-color 160ms ease;
-}
-
-.squish:active {
-  transform: scale(0.955);
-}
-
 /* -----------------------------------------------------------------------------
    Full-Viewport WebGL2 Pixel-Art Landscape Canvas (fixed inset-0 z-0)
    -------------------------------------------------------------------------- */
@@ -278,6 +264,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   pointer-events: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+
+/* -----------------------------------------------------------------------------
+   World Entrance — Sea & Sky Viscoelastic Jelly Orchestration
+   -------------------------------------------------------------------------- */
+
+.is-world-entering [data-enter-sky],
+.is-world-entering [data-enter-sea] {
+  opacity: 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -332,15 +327,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Far-Right Floating Vertical Utility Pill (Frosted Translucent)
+   Far-Right Floating Vertical Utility Pill (Frosted + Concave-Fillet Morph)
    -------------------------------------------------------------------------- */
 
 .utility-dock {
   position: fixed;
   inset-inline-end: 1rem;
   top: 50%;
-  transform: translateY(-50%);
-  z-index: 30;
+  transform: translate3d(0, -50%, 0);
+  z-index: 40;
+  isolation: isolate;
+  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -363,17 +360,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   height: 34px;
   color: var(--muted);
   z-index: 1;
-  transition: transform 180ms var(--ease-squish), color 150ms ease;
+  transition: color 140ms ease;
 }
 
 .dock-morph-btn:hover,
 .dock-morph-btn:focus-visible {
   z-index: 10;
   color: var(--ink);
-}
-
-.dock-morph-btn:active {
-  transform: scale(0.9);
 }
 
 .dock-morph-btn:focus-visible {
@@ -396,12 +389,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .dock-morph-path {
   fill: transparent;
-  transition: fill 160ms ease;
+  stroke: transparent;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  transition: fill 140ms ease, stroke 140ms ease;
 }
 
+.dock-morph-btn[data-morph-active='true'] .dock-morph-path,
 .dock-morph-btn:hover .dock-morph-path,
 .dock-morph-btn:focus-visible .dock-morph-path {
   fill: var(--surface-active);
+  stroke: var(--panel-border);
 }
 
 .dock-morph-icon {
@@ -442,7 +440,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   z-index: 1;
   opacity: 0;
   transform: translateY(-50%) translateX(5px);
-  transition: opacity 140ms ease, transform 180ms var(--ease-squish);
+  transition: opacity 140ms ease;
 }
 
 [dir='rtl'] .dock-morph-tip {
@@ -452,7 +450,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .dock-morph-btn:hover .dock-morph-tip,
 .dock-morph-btn:focus-visible .dock-morph-tip {
   opacity: 1;
-  transform: translateY(-50%) translateX(0);
 }
 
 .theme-icon { display: none; }
@@ -461,12 +458,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: block;
 }
 
-/* Palette Popover anchored inward from Vertical Dock */
+/* Palette Popover anchored inward from Vertical Dock (driven by jelly spring) */
 .palette-popover {
   position: fixed;
   inset-inline-end: 4.5rem;
   top: 50%;
-  transform: translateY(-50%) scale(0.95);
+  transform: translateY(-50%) scale(0.9);
   z-index: 45;
   min-width: 10.5rem;
   padding: 0.4rem;
@@ -481,12 +478,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   gap: 0.2rem;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 140ms ease, transform 180ms var(--ease-squish);
 }
 
 .palette-popover[data-open='true'] {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
   pointer-events: auto;
 }
 
@@ -502,6 +496,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--body);
   text-transform: lowercase;
   text-align: start;
+  transition: background-color 140ms ease, color 140ms ease;
 }
 
 .palette-opt:hover {
@@ -541,6 +536,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: visible;
   z-index: 1;
 }
 
@@ -645,6 +641,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   text-transform: lowercase;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .cta-btn--primary {
@@ -682,6 +679,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  overflow: visible;
 }
 
 .morph-btn {
@@ -693,17 +691,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   height: 40px;
   color: var(--body);
   z-index: 1;
-  transition: transform 180ms var(--ease-squish), color 150ms ease;
+  transition: color 140ms ease;
 }
 
 .morph-btn:hover,
 .morph-btn:focus-visible {
   z-index: 25;
   color: var(--ink);
-}
-
-.morph-btn:active {
-  transform: scale(0.92);
 }
 
 .morph-btn:focus-visible {
@@ -718,11 +712,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   overflow: visible;
   pointer-events: none;
   z-index: 0;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.24));
 }
 
 .morph-path {
   fill: var(--panel-bg);
-  transition: fill 160ms ease;
+  stroke: var(--panel-border);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  transition: fill 140ms ease, stroke 140ms ease;
 }
 
 .morph-btn:hover .morph-path,
@@ -777,7 +775,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   z-index: 1;
   opacity: 0;
   transform: translateX(-50%) translateY(-4px);
-  transition: opacity 140ms ease, transform 180ms var(--ease-squish);
+  transition: opacity 140ms ease;
 }
 
 .morph-btn--accent .morph-tip {
@@ -787,7 +785,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .morph-btn:hover .morph-tip,
 .morph-btn:focus-visible .morph-tip {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -826,9 +823,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-bottom: 1px solid var(--panel-solid);
   pointer-events: none;
   z-index: 1;
-  transition:
-    transform 300ms var(--ease-spring),
-    width 300ms var(--ease-spring);
+  transform-origin: 50% 100%;
   will-change: transform, width;
 }
 
@@ -881,7 +876,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--muted);
   text-transform: lowercase;
   white-space: nowrap;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition: color 140ms ease, background-color 140ms ease;
 }
 
 .tab-btn:hover {
@@ -916,18 +911,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   flex-direction: column;
 }
 
-/* Stepped Bayer Dither Wipe Canvas Overlay */
-.dither-wipe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 20;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-}
-
 .tab-panel {
   display: none;
   width: 100%;
@@ -939,7 +922,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* -----------------------------------------------------------------------------
-   Master-Detail (37% / 63%) + 3D Cylindrical Drum ("اسطوانة")
+   Master-Detail (37% / 63%) + Static Entry List
    -------------------------------------------------------------------------- */
 
 .master-detail {
@@ -954,62 +937,26 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   width: 100%;
   height: 100%;
   border-inline-end: 1px solid var(--panel-border);
-  perspective: 750px;
   overflow: hidden;
   user-select: none;
   cursor: ns-resize;
 }
 
 .drum-stage {
-  position: relative;
   width: 100%;
   height: 100%;
-  transform-style: preserve-3d;
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0, 0, 0, 0.45) 14%,
-    #000 28%,
-    #000 84%,
-    rgba(0, 0, 0, 0.45) 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0, 0, 0, 0.45) 14%,
-    #000 28%,
-    #000 84%,
-    rgba(0, 0, 0, 0.45) 100%
-  );
-}
-
-.drum-active-bar {
-  position: absolute;
-  inset-inline-start: 0;
-  top: 50%;
-  width: 2px;
-  height: 44px;
-  transform: translateY(-50%);
-  border-radius: 0 999px 999px 0;
-  background: var(--accent);
-  z-index: 6;
-  pointer-events: none;
-  transition: transform 250ms var(--ease-spring), opacity 180ms ease;
-}
-
-.drum-active-bar.is-stepping {
-  transform: translateY(-50%) scaleY(1.24);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.75rem 0.55rem;
 }
 
 .drum-item {
-  --offset: 0;
-  --scale: 1;
-  --alpha: 1;
-  position: absolute;
-  inset-inline: 0.55rem;
-  top: 50%;
+  position: relative;
+  width: 100%;
   height: 60px;
-  margin-top: -30px;
+  flex: 0 0 60px;
   padding: 0.5rem 0.7rem;
   border-radius: 12px;
   corner-shape: squircle;
@@ -1019,16 +966,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   text-align: start;
   background: transparent;
   color: var(--muted);
-  transform-origin: center center;
-  transform: translateY(calc(var(--offset) * 70px)) rotateX(calc(var(--offset) * -22deg)) scale(var(--scale));
-  opacity: var(--alpha);
-  transition:
-    transform 320ms var(--ease-spring),
-    opacity 240ms ease,
-    background-color 180ms ease,
-    color 180ms ease;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
+  transition: background-color 140ms ease, color 140ms ease;
 }
 
 .drum-item[aria-selected='true'] {
@@ -1177,6 +1115,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-weight: 500;
   text-transform: lowercase;
   white-space: nowrap;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .pill-link:hover {
@@ -1475,26 +1414,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
 
   .drum-stage {
-    mask-image: none;
-    -webkit-mask-image: none;
-    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
-    gap: 0.45rem;
     padding-inline: 0.75rem;
     overflow-x: auto;
   }
 
-  .drum-active-bar {
-    display: none;
-  }
-
   .drum-item {
-    position: static;
-    margin-top: 0;
-    height: auto;
+    width: auto;
+    max-width: 75vw;
     flex: 0 0 auto;
-    transform: none !important;
-    opacity: 1 !important;
   }
 
   .stack-grid {
@@ -1514,25 +1444,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .palette-popover {
     top: 3.7rem;
     inset-inline-end: 0.75rem;
-    transform: translateY(-4px) scale(0.96);
-  }
-
-  .palette-popover[data-open='true'] {
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
 /* -----------------------------------------------------------------------------
-   Reduced Motion — disables 3D tilt, transitions & dither wipe
+   Reduced Motion — disables entrance, spring transforms & transitions
    -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .drum-item {
-    transform: translateY(calc(var(--offset) * 70px)) scale(var(--scale)) !important;
-  }
-
-  .dither-wipe {
-    display: none !important;
+  .palette-popover[data-open='true'] {
+    opacity: 1 !important;
   }
 
   *,

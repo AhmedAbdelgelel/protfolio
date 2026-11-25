@@ -1,9 +1,9 @@
 ---
-import Base from '../../layouts/Base.astro';
-import ContactRail from '../ContactRail.astro';
+import BlogLayout from '../../layouts/BlogLayout.astro';
 import { readFileSync, existsSync } from 'node:fs';
 import { marked } from 'marked';
-import { dict, type Lang } from '../../i18n/ui';
+import { dict, localePath, type Lang } from '../../i18n/ui';
+import { workEntries, workSlug } from '../../i18n/content';
 
 interface Props {
   lang: Lang;
@@ -12,8 +12,6 @@ interface Props {
 const { lang } = Astro.props;
 const t = dict(lang);
 
-// about.md for English, about.<lang>.md for the others, and a fallback if a
-// translation does not exist yet.
 const fallback = 'src/content/about.md';
 const localized = 'src/content/about.' + lang + '.md';
 const source = readFileSync(existsSync(localized) ? localized : fallback, 'utf8');
@@ -23,7 +21,14 @@ const meta = metaMatch ? (JSON.parse(metaMatch[1]) as { title?: string; descript
 
 const body = source.replace(/<!--[\s\S]*?-->/g, '').replace(/^#\s+.*$/m, '');
 
-const slug = (value: string): string =>
+const plainText = body
+  .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+  .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  .replace(/[`*_#|>-]/g, ' ');
+const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
+const readMins = Math.max(2, Math.round(wordCount / 200));
+
+const slugify = (value: string): string =>
   value
     .replace(/&[#a-z0-9]+;/gi, '')
     .replace(/<[^>]+>/g, '')
@@ -31,13 +36,7 @@ const slug = (value: string): string =>
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
 
-let html = marked.parse(body, { gfm: true }) as string;
-html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
-  return '<h2 id="' + slug(text) + '">' + text + '</h2>';
-});
-
-// the rail is built from the page itself, so it works in any language
-const decode = (value: string): string =>
+const decodeHtml = (value: string): string =>
   value
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -45,21 +44,91 @@ const decode = (value: string): string =>
     .replace(/&#39;/g, "'")
     .replace(/&quot;/g, '"');
 
+let html = marked.parse(body, { gfm: true }) as string;
+html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, text: string) => {
+  return '<h2 id="' + slugify(text) + '">' + text + '</h2>';
+});
+
 const sections = [...html.matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)]
-  .map((match) => ({ id: match[1], label: decode(match[2].replace(/<[^>]+>/g, '')).trim() }))
-  .filter((section) => section.label.length > 0)
-  .slice(0, 4);
+  .map((match) => ({ id: match[1], label: decodeHtml(match[2].replace(/<[^>]+>/g, '')).trim() }))
+  .filter((section) => section.id.length > 0 && section.label.length > 0);
+
+const notes = (await workEntries(lang)).sort(
+  (a, b) => (a.data.order ?? 99) - (b.data.order ?? 99)
+);
+
+const copy =
+  lang === 'ar'
+    ? {
+        location: 'القاهرة، مصر',
+        readTime: `${readMins} د قراءة`,
+        inThisEssay: 'في هذا المقال',
+        notesHeading: 'ملاحظات هندسية',
+        backPortfolio: '→ العودة إلى البورتفوليو'
+      }
+    : {
+        location: 'cairo, egypt',
+        readTime: `${readMins} min read`,
+        inThisEssay: 'in this essay',
+        notesHeading: 'engineering notes',
+        backPortfolio: '← back to portfolio'
+      };
 ---
 
-<Base
+<BlogLayout
   lang={lang}
+  section="about"
   title={meta?.title ?? t.aboutTitle}
   description={meta?.description ?? t.aboutDescription}
 >
-  <ContactRail lang={lang} sections={sections} />
-
   <article class="article article--about">
-    <h1>{t.aboutHeading}</h1>
+    <header class="about-header">
+      <h1>{t.aboutHeading}</h1>
+      <div class="about-sub">
+        <span class="post-pill">{copy.location}</span>
+        <span class="post-pill">{copy.readTime}</span>
+      </div>
+
+      {sections.length > 0 && (
+        <nav class="post-toc" aria-label={copy.inThisEssay}>
+          <span class="post-toc__label">{copy.inThisEssay}</span>
+          {sections.map((section) => (
+            <a href={'#' + section.id} class="post-toc__pill">{section.label}</a>
+          ))}
+        </nav>
+      )}
+    </header>
+
     <div set:html={html} />
+
+    {notes.length > 0 && (
+      <section class="more-notes" aria-labelledby="about-notes-heading">
+        <div class="more-notes__head">
+          <h2 id="about-notes-heading" class="more-notes__title">{copy.notesHeading}</h2>
+        </div>
+        <ul class="more-notes__list">
+          {notes.map((item) => {
+            const slug = workSlug(item.id);
+            return (
+              <li>
+                <a href={localePath(lang, '/work/' + slug + '/')} class="more-notes__item">
+                  <span class="more-notes__item-title">{item.data.title}</span>
+                  <span class="more-notes__item-meta ltr">
+                    <span>{item.data.year}</span>
+                    <span class="more-notes__chip">{item.data.metric}</span>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    )}
+
+    <div class="about-footer-nav">
+      <a href={localePath(lang, '/')} class="blog-btn blog-btn--accent">
+        {copy.backPortfolio}
+      </a>
+    </div>
   </article>
-</Base>
+</BlogLayout>

@@ -1,0 +1,256 @@
+---
+import '../styles/blog.css';
+import { dict, locales, localesInfo, localePath, stripLocale, defaultLang, type Lang } from '../i18n/ui';
+import { contactInfo, getPortfolio } from '../data/portfolio';
+
+interface Props {
+  title: string;
+  description: string;
+  lang?: Lang;
+  section?: 'blog' | 'about';
+  switchPath?: string;
+}
+
+const { title, description, lang = defaultLang, section = 'blog', switchPath } = Astro.props;
+const site = 'https://glgl.me';
+const info = localesInfo[lang];
+const t = dict(lang);
+const portfolio = getPortfolio(lang);
+const other: Lang = lang === 'en' ? 'ar' : 'en';
+
+const currentPath = Astro.url.pathname.replace(/index\.html$/, '');
+const canonical = new URL(currentPath, site).href;
+const barePath = stripLocale(currentPath) || '/';
+const alternates = locales.map((locale) => ({
+  hreflang: localesInfo[locale].htmlLang,
+  href: new URL(localePath(locale, barePath), site).href
+}));
+
+const switchHref = switchPath ? localePath(other, switchPath) : localePath(other, barePath);
+const brandLabel = lang === 'ar' ? '← أحمد عبد الجليل' : '← ahmed abdelgelel';
+const sectionLabel =
+  lang === 'ar'
+    ? section === 'blog'
+      ? 'مقالات هندسية'
+      : 'نبذة عني'
+    : section === 'blog'
+      ? 'engineering notes'
+      : 'about me';
+
+const paletteNames = Object.fromEntries(portfolio.palettes.map((p) => [p.id, p.name]));
+---
+
+<!doctype html>
+<html lang={info.htmlLang} dir={info.dir} data-palette="nile-silt" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={t.personName} />
+    <link rel="canonical" href={canonical} />
+    {alternates.map((alt) => (
+      <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={new URL(barePath, site).href} />
+    <meta name="color-scheme" content="dark light" />
+
+    <meta property="og:type" content={section === 'blog' ? 'article' : 'website'} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={site + '/assets/img/og.png'} />
+    <meta property="og:locale" content={info.htmlLang} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={site + '/assets/img/og.png'} />
+
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/img/favicon-64.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicon-180.png" />
+    <link rel="preload" href="/assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/geistmono-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <script is:inline>
+      try {
+        var root = document.documentElement;
+        var validPalettes = ['nile-silt', 'deep-moss', 'basalt', 'nocturne'];
+        var savedPalette = localStorage.getItem('palette');
+        if (savedPalette && validPalettes.indexOf(savedPalette) !== -1) {
+          root.dataset.palette = savedPalette;
+        }
+        var savedTheme = localStorage.getItem('main-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+          root.dataset.theme = savedTheme;
+        }
+      } catch (e) {}
+    </script>
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: t.personName,
+        jobTitle: t.jobTitle,
+        url: site,
+        image: site + contactInfo.avatarUrl,
+        email: 'mailto:' + contactInfo.email,
+        address: { '@type': 'PostalAddress', addressLocality: 'Cairo', addressCountry: 'EG' },
+        sameAs: [contactInfo.githubUrl, contactInfo.linkedinUrl]
+      })}
+    />
+  </head>
+
+  <body>
+    <div class="blog-glow" aria-hidden="true"></div>
+    <div class="blog-progress" aria-hidden="true"><i data-blog-progress></i></div>
+
+    <header class="blog-bar">
+      <div class="blog-bar__inner">
+        <div class="blog-crumbs">
+          <a href={localePath(lang, '/')} class="blog-brand">{brandLabel}</a>
+          <span class="blog-crumb-sep" aria-hidden="true">/</span>
+          <span class="blog-crumb">{sectionLabel}</span>
+        </div>
+
+        <div class="blog-controls">
+          <button
+            type="button"
+            class="blog-ctrl blog-ctrl--palette"
+            data-palette-cycle
+            data-palettes={JSON.stringify(paletteNames)}
+            data-label-prefix={portfolio.controls.paletteLabel}
+            aria-label={portfolio.controls.paletteLabel}
+            title={portfolio.controls.paletteLabel}
+          >
+            <span class="blog-swatch" aria-hidden="true"></span>
+          </button>
+
+          <button
+            type="button"
+            class="blog-ctrl blog-ctrl--theme"
+            data-theme-toggle
+            data-current="dark"
+            data-label-dark={portfolio.controls.themeDark}
+            data-label-light={portfolio.controls.themeLight}
+            aria-label={portfolio.controls.themeLight}
+            title={portfolio.controls.themeLight}
+          >
+            <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path
+                d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+            <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+              <path
+                d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <a
+            href={switchHref}
+            hreflang={localesInfo[other].htmlLang}
+            lang={localesInfo[other].htmlLang}
+            class="blog-ctrl blog-ctrl--lang"
+            aria-label={portfolio.controls.otherLangFull}
+            title={portfolio.controls.otherLangFull}
+          >
+            {lang === 'en' ? 'ع' : 'en'}
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="blog-main">
+      <slot />
+    </main>
+
+    <script>
+      const root = document.documentElement;
+      const PALETTES = ['nile-silt', 'deep-moss', 'basalt', 'nocturne'] as const;
+
+      // 1. Reading progress bar
+      const progressBar = document.querySelector<HTMLElement>('[data-blog-progress]');
+      if (progressBar) {
+        let ticking = false;
+        const updateProgress = () => {
+          ticking = false;
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          const ratio = maxScroll > 0 ? Math.min(1, Math.max(0, window.scrollY / maxScroll)) : 0;
+          progressBar.style.width = `${(ratio * 100).toFixed(2)}%`;
+        };
+        const onScroll = () => {
+          if (!ticking) {
+            ticking = true;
+            window.requestAnimationFrame(updateProgress);
+          }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+        updateProgress();
+      }
+
+      // 2. Palette dot cycler
+      const paletteBtn = document.querySelector<HTMLButtonElement>('[data-palette-cycle]');
+      if (paletteBtn) {
+        const names = JSON.parse(paletteBtn.dataset.palettes ?? '{}') as Record<string, string>;
+        const prefix = paletteBtn.dataset.labelPrefix ?? 'palette';
+
+        const syncPaletteLabel = (id: string) => {
+          const label = `${prefix}: ${names[id] ?? id}`;
+          paletteBtn.setAttribute('aria-label', label);
+          paletteBtn.setAttribute('title', label);
+        };
+
+        syncPaletteLabel(root.dataset.palette || 'nile-silt');
+
+        paletteBtn.addEventListener('click', () => {
+          const current = root.dataset.palette || 'nile-silt';
+          const idx = PALETTES.indexOf(current as (typeof PALETTES)[number]);
+          const next = PALETTES[(idx + 1) % PALETTES.length];
+          root.dataset.palette = next;
+          try {
+            localStorage.setItem('palette', next);
+          } catch {}
+          syncPaletteLabel(next);
+        });
+      }
+
+      // 3. Sun / moon theme toggle
+      const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+      if (themeBtn) {
+        const syncTheme = (mode: string) => {
+          const current = mode === 'light' ? 'light' : 'dark';
+          root.dataset.theme = current;
+          themeBtn.dataset.current = current;
+          const nextLabel =
+            current === 'dark'
+              ? (themeBtn.dataset.labelLight ?? 'light')
+              : (themeBtn.dataset.labelDark ?? 'dark');
+          themeBtn.setAttribute('aria-label', nextLabel);
+          themeBtn.setAttribute('title', nextLabel);
+        };
+
+        syncTheme(root.dataset.theme ?? 'dark');
+
+        themeBtn.addEventListener('click', () => {
+          const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+          syncTheme(next);
+          try {
+            localStorage.setItem('main-theme', next);
+          } catch {}
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -72,6 +72,7 @@ export interface PortfolioContent {
     wheelHint: string;
     code: string;
     docs: string;
+    aboutLink: string;
   };
   palettes: PaletteOption[];
   tabs: {
@@ -135,7 +136,8 @@ const en: PortfolioContent = {
     otherLangFull: 'العربية',
     wheelHint: '↑↓ switch',
     code: 'github',
-    docs: 'docs'
+    docs: 'blog',
+    aboutLink: 'about me'
   },
   palettes: [
     { id: 'nile-silt', name: 'nile silt', swatchBg: '#151412', swatchAccent: '#d4a359' },
@@ -316,7 +318,8 @@ const ar: PortfolioContent = {
     otherLangFull: 'english',
     wheelHint: '↑↓ تنقل',
     code: 'github',
-    docs: 'توثيق'
+    docs: 'مقال',
+    aboutLink: 'المزيد عني'
   },
   palettes: [
     { id: 'nile-silt', name: 'طمي النيل', swatchBg: '#151412', swatchAccent: '#d4a359' },

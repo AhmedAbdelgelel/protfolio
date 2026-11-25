@@ -63,6 +63,12 @@ const projCount = String(data.projects.length).padStart(2, '0');
         var savedTheme = localStorage.getItem('main-theme');
         if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
       } catch (e) {}
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('is-world-entering');
+        window.setTimeout(function () {
+          document.documentElement.classList.remove('is-world-entering');
+        }, 2200);
+      }
     </script>
 
     <script
@@ -85,8 +91,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
     <!-- Full-Viewport Interactive WebGL2 Pixel-Art + Bayer Dither Landscape -->
     <canvas class="pixel-landscape-canvas" data-pixel-landscape aria-hidden="true"></canvas>
 
-    <!-- Far-Right Floating Vertical Utility Pill (Frosted, Concave-Fillet Hover Morph) -->
-    <aside class="utility-dock" aria-label="controls">
+    <!-- Far-Right Floating Vertical Utility Pill (Frosted + Concave-Fillet Hover Morph) -->
+    <aside class="utility-dock" aria-label="controls" data-enter-sea>
       <button
         type="button"
         class="dock-morph-btn"
@@ -163,7 +169,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
         <button
           type="button"
           role="option"
-          class="palette-opt squish"
+          class="palette-opt"
           data-palette-option={palette.id}
           aria-selected={index === 0 ? 'true' : 'false'}
         >
@@ -181,7 +187,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
         <div class="two-zone">
           <!-- Left Column (35%): Compact Identity Rail (No Status Pill) -->
           <section class="identity-col" aria-label="identity">
-            <div class="id-head">
+            <div class="id-head" data-enter-sky>
               <img
                 src={contactInfo.avatarUrl}
                 alt={data.identity.name}
@@ -192,19 +198,23 @@ const projCount = String(data.projects.length).padStart(2, '0');
               />
               <div class="id-titles">
                 <h1 class="id-name">{data.identity.name}</h1>
-                <p class="id-role">{data.identity.role}</p>
+                <p class="id-role">
+                  {data.identity.role}
+                  <span class="role-sep" aria-hidden="true">·</span>
+                  <a href={localePath(lang, '/about/')} class="role-about-link">{data.controls.aboutLink}</a>
+                </p>
               </div>
             </div>
 
-            <p class="bio-primary">{data.identity.bioPrimary}</p>
-            <p class="bio-secondary">{data.identity.bioSecondary}</p>
+            <p class="bio-primary" data-enter-sea>{data.identity.bioPrimary}</p>
+            <p class="bio-secondary" data-enter-sea>{data.identity.bioSecondary}</p>
 
-            <div class="cta-row">
+            <div class="cta-row" data-enter-sea>
               <a
                 href={contactInfo.resumeUrl}
                 target="_blank"
                 rel="noopener"
-                class="cta-btn cta-btn--primary squish"
+                class="cta-btn cta-btn--primary"
               >
                 <span>{data.controls.resume}</span>
                 <span aria-hidden="true">↗</span>
@@ -212,7 +222,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
               <button
                 type="button"
-                class="cta-btn cta-btn--secondary squish"
+                class="cta-btn cta-btn--secondary"
                 data-copy-email={contactInfo.email}
                 data-label-default={data.controls.copyEmail}
                 data-label-copied={data.controls.copied}
@@ -221,8 +231,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
               </button>
             </div>
 
-            <!-- Compact 40x40 square icon row with concave-fillet hover labels -->
-            <nav class="icon-row" aria-label="contact">
+            <!-- Compact 40x40 square icon row with concave-fillet SVG morph hover labels -->
+            <nav class="icon-row" aria-label="contact" data-enter-sea>
               <a
                 href={contactInfo.resumeUrl}
                 target="_blank"
@@ -321,7 +331,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
           <!-- Right Column (65%): Sculpted Frosted Connected-Tab Panel (360px) -->
           <section class="panel-col" aria-label="portfolio">
-            <div class="tabs-bar" role="tablist" data-tabs-bar>
+            <div class="tabs-bar" role="tablist" data-tabs-bar data-enter-sky>
               <div class="tab-bridge" data-tab-bridge aria-hidden="true"></div>
 
               <button type="button" role="tab" class="tab-btn" data-tab="experience" aria-selected="true">
@@ -343,15 +353,12 @@ const projCount = String(data.projects.length).padStart(2, '0');
               </button>
             </div>
 
-            <div class="panel-box" data-panel-box>
-              <!-- Stepped Bayer Dither Wipe Overlay -->
-              <canvas class="dither-wipe" data-dither-wipe aria-hidden="true"></canvas>
+            <div class="panel-box" data-panel-box data-enter-sea>
 
               <!-- TAB 1: EXPERIENCE -->
               <div class="tab-panel" role="tabpanel" data-panel="experience" data-active="true">
                 <div class="master-detail">
                   <div class="drum-rail" data-drum="experience" role="listbox" aria-label={data.tabs.experience}>
-                    <div class="drum-active-bar" data-drum-bar="experience" aria-hidden="true"></div>
                     <div class="drum-stage">
                       {data.experience.map((job, idx) => (
                         <button
@@ -361,7 +368,6 @@ const projCount = String(data.projects.length).padStart(2, '0');
                           data-drum-item="experience"
                           data-index={idx}
                           aria-selected={idx === 0 ? 'true' : 'false'}
-                          style={`--offset:${idx};--scale:${idx === 0 ? 1 : 0.92};--alpha:${idx === 0 ? 1 : idx === 1 ? 0.54 : 0.28};`}
                         >
                           <span class="drum-num ltr">{job.num}</span>
                           <span class="drum-text">
@@ -419,7 +425,6 @@ const projCount = String(data.projects.length).padStart(2, '0');
               <div class="tab-panel" role="tabpanel" data-panel="projects" data-active="false">
                 <div class="master-detail">
                   <div class="drum-rail" data-drum="projects" role="listbox" aria-label={data.tabs.projects}>
-                    <div class="drum-active-bar" data-drum-bar="projects" aria-hidden="true"></div>
                     <div class="drum-stage">
                       {data.projects.map((project, idx) => (
                         <button
@@ -429,7 +434,6 @@ const projCount = String(data.projects.length).padStart(2, '0');
                           data-drum-item="projects"
                           data-index={idx}
                           aria-selected={idx === 0 ? 'true' : 'false'}
-                          style={`--offset:${idx};--scale:${idx === 0 ? 1 : 0.92};--alpha:${idx === 0 ? 1 : idx === 1 ? 0.54 : 0.28};`}
                         >
                           <span class="drum-num ltr">{project.num}</span>
                           <span class="drum-text">
@@ -451,11 +455,11 @@ const projCount = String(data.projects.length).padStart(2, '0');
                               <span class="inspector-year ltr">{project.year}</span>
                             </div>
                             <div class="proj-links">
-                              <a href={project.repoUrl} target="_blank" rel="noopener" class="pill-link pill-link--accent squish">
+                              <a href={project.repoUrl} target="_blank" rel="noopener" class="pill-link pill-link--accent">
                                 <span>{data.controls.code}</span>
                                 <span aria-hidden="true">↗</span>
                               </a>
-                              <a href={localePath(lang, '/work/' + project.slug + '/')} class="pill-link squish">
+                              <a href={localePath(lang, '/work/' + project.slug + '/')} class="pill-link">
                                 <span>{data.controls.docs}</span>
                                 <span aria-hidden="true">↗</span>
                               </a>
@@ -550,6 +554,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
     <script>
       import { initPixelLandscape, type PaletteId } from '../../scripts/pixelLandscape';
+      import { jellyEnter, jellyPulse, createSpringScalar } from '../../scripts/jellyPhysics';
 
       const root = document.documentElement;
       const isRTL = root.dir === 'rtl';
@@ -568,110 +573,74 @@ const projCount = String(data.projects.length).padStart(2, '0');
         : null;
 
       // -----------------------------------------------------------------------
-      // 2. Stepped Bayer Dither Wipe (4x4 matrix, 4px cells, 0.22 alpha)
+      // 2. Sea & Sky Entrance Orchestration (synchronized with WebGL drop)
       // -----------------------------------------------------------------------
-      const bayer4 = [
-        0, 8, 2, 10,
-        12, 4, 14, 6,
-        3, 11, 1, 9,
-        15, 7, 13, 5
-      ].map((v) => (v + 0.5) / 16);
+      const utilityDock = document.querySelector<HTMLElement>('.utility-dock');
 
-      const parseHexRgb = (hex: string): [number, number, number] => {
-        const clean = hex.trim().replace('#', '');
-        if (clean.length === 6) {
-          const n = parseInt(clean, 16);
-          if (!Number.isNaN(n)) return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-        }
-        return [212, 163, 89];
-      };
-
-      const panelBox = document.querySelector<HTMLElement>('[data-panel-box]');
-      const wipeCanvas = document.querySelector<HTMLCanvasElement>('[data-dither-wipe]');
-      const wipeCtx = wipeCanvas?.getContext('2d', { alpha: true }) ?? null;
-      let wipeRaf = 0;
-
-      const triggerDitherWipe = (direction: 'down' | 'right', durationMs: number, regionRatioStartX = 0) => {
-        if (reducedMotion || !panelBox || !wipeCanvas || !wipeCtx) return;
-        const rect = panelBox.getBoundingClientRect();
-        if (rect.width < 10 || rect.height < 10) return;
-
-        const PIXEL = 4;
-        const cols = Math.max(1, Math.ceil(rect.width / PIXEL));
-        const rows = Math.max(1, Math.ceil(rect.height / PIXEL));
-        if (wipeCanvas.width !== cols || wipeCanvas.height !== rows) {
-          wipeCanvas.width = cols;
-          wipeCanvas.height = rows;
+      const launchWorldEntrance = () => {
+        if (reducedMotion) {
+          root.classList.remove('is-world-entering');
+          return;
         }
 
-        const img = wipeCtx.createImageData(cols, rows);
-        const data = img.data;
-        const [ar, ag, ab] = parseHexRgb(getComputedStyle(root).getPropertyValue('--accent'));
-        const alphaByte = Math.round(255 * 0.22);
+        const skyTargets: Array<{ selector: string; delayMs: number }> = [
+          { selector: '.id-head[data-enter-sky]', delayMs: 0 },
+          { selector: '.tabs-bar[data-enter-sky]', delayMs: 70 }
+        ];
 
-        const xMin = direction === 'right' ? (isRTL ? 0 : Math.floor(cols * regionRatioStartX)) : 0;
-        const xMax = direction === 'right' ? (isRTL ? Math.ceil(cols * (1 - regionRatioStartX)) : cols) : cols;
-        const spanX = Math.max(1, xMax - xMin);
-
-        cancelAnimationFrame(wipeRaf);
-        const start = performance.now();
-
-        const step = (now: number) => {
-          const p = Math.min(1, (now - start) / durationMs);
-          const eased = 1 - Math.pow(1 - p, 2.2);
-          data.fill(0);
-
-          if (direction === 'down') {
-            const front = eased * (rows + 18) - 8;
-            for (let y = 0; y < rows; y++) {
-              const bRow = (y & 3) << 2;
-              const dist = Math.abs(y - front);
-              if (dist > 14) continue;
-              const waveDensity = (1 - dist / 14) * (1 - p * 0.35);
-              let rowIdx = y * cols * 4;
-              for (let x = 0; x < cols; x++) {
-                if (waveDensity > bayer4[bRow | (x & 3)]) {
-                  data[rowIdx] = ar;
-                  data[rowIdx + 1] = ag;
-                  data[rowIdx + 2] = ab;
-                  data[rowIdx + 3] = alphaByte;
-                }
-                rowIdx += 4;
-              }
-            }
-          } else {
-            const frontOffset = eased * (spanX + 20) - 10;
-            const frontX = isRTL ? xMax - frontOffset : xMin + frontOffset;
-            for (let y = 0; y < rows; y++) {
-              const bRow = (y & 3) << 2;
-              for (let x = xMin; x < xMax; x++) {
-                const dist = Math.abs(x - frontX);
-                if (dist > 14) continue;
-                const waveDensity = (1 - dist / 14) * (1 - p * 0.3);
-                if (waveDensity > bayer4[bRow | (x & 3)]) {
-                  const idx = (y * cols + x) * 4;
-                  data[idx] = ar;
-                  data[idx + 1] = ag;
-                  data[idx + 2] = ab;
-                  data[idx + 3] = alphaByte;
-                }
-              }
-            }
+        const seaTargets: Array<{ selector: string; fromY: number; delayMs: number; baseTransform?: string }> = [
+          { selector: '.bio-primary[data-enter-sea]', fromY: 38, delayMs: 40 },
+          { selector: '.bio-secondary[data-enter-sea]', fromY: 42, delayMs: 95 },
+          { selector: '.cta-row[data-enter-sea]', fromY: 46, delayMs: 150 },
+          { selector: '.icon-row[data-enter-sea]', fromY: 50, delayMs: 205 },
+          { selector: '.panel-box[data-enter-sea]', fromY: 54, delayMs: 110 },
+          {
+            selector: '.utility-dock[data-enter-sea]',
+            fromY: 44,
+            delayMs: 240,
+            baseTransform: window.innerWidth >= 960 ? 'translate3d(0, -50%, 0)' : ''
           }
+        ];
 
-          wipeCtx.putImageData(img, 0, 0);
-          if (p < 1) {
-            wipeRaf = requestAnimationFrame(step);
-          } else {
-            wipeCtx.clearRect(0, 0, cols, rows);
+        skyTargets.forEach(({ selector, delayMs }) => {
+          const el = document.querySelector<HTMLElement>(selector);
+          if (el) {
+            jellyEnter(el, {
+              fromY: -36,
+              delayMs,
+              stiffness: 210,
+              damping: 16
+            });
           }
-        };
+        });
 
-        wipeRaf = requestAnimationFrame(step);
+        seaTargets.forEach(({ selector, fromY, delayMs, baseTransform }) => {
+          const el = document.querySelector<HTMLElement>(selector);
+          if (el) {
+            jellyEnter(el, {
+              fromY,
+              delayMs,
+              stiffness: 200,
+              damping: 16,
+              baseTransform
+            });
+          }
+        });
+
+        // Each element already holds inline opacity: 0 until its spring begins.
+        window.setTimeout(() => {
+          root.classList.remove('is-world-entering');
+        }, 100);
       };
 
+      if (reducedMotion) {
+        root.classList.remove('is-world-entering');
+      } else {
+        window.setTimeout(launchWorldEntrance, 420);
+      }
+
       // -----------------------------------------------------------------------
-      // 3. Connected Concave-Fillet Tab Bridge + Choreographed Wind Gust
+      // 3. Connected Concave-Fillet Tab Bridge (Jelly Spring) + Wind Gust
       // -----------------------------------------------------------------------
       const tabsBar = document.querySelector<HTMLElement>('[data-tabs-bar]');
       const tabBridge = document.querySelector<HTMLElement>('[data-tab-bridge]');
@@ -679,25 +648,49 @@ const projCount = String(data.projects.length).padStart(2, '0');
       const tabPanels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
       let activeTab = 'experience';
 
+      const applyBridgeTransform = () => {
+        if (!tabBridge) return;
+        const vx = bridgeX.getVelocity();
+        const scaleX = Math.max(0.94, Math.min(1.08, 1 + Math.abs(vx) * 0.00012));
+        const scaleY = 1 / Math.sqrt(scaleX);
+        tabBridge.style.width = `${Math.max(24, bridgeW.getValue()).toFixed(2)}px`;
+        tabBridge.style.transform = `translateX(${bridgeX.getValue().toFixed(2)}px) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`;
+      };
+
+      const bridgeX = createSpringScalar({
+        initial: 0,
+        stiffness: 280,
+        damping: 18,
+        epsilon: 0.15,
+        onUpdate: applyBridgeTransform,
+        onRest: applyBridgeTransform
+      });
+
+      const bridgeW = createSpringScalar({
+        initial: 118,
+        stiffness: 280,
+        damping: 18,
+        epsilon: 0.15,
+        onUpdate: applyBridgeTransform,
+        onRest: applyBridgeTransform
+      });
+
       const syncTabBridge = (instant = false) => {
         if (!tabsBar || !tabBridge) return;
         const activeBtn = tabBtns.find((b) => b.dataset.tab === activeTab) ?? tabBtns[0];
         if (!activeBtn) return;
-        const barRect = tabsBar.getBoundingClientRect();
-        const btnRect = activeBtn.getBoundingClientRect();
-        const x = btnRect.left - barRect.left;
+        const x = activeBtn.offsetLeft;
+        const w = activeBtn.offsetWidth;
         if (instant) {
-          const prev = tabBridge.style.transition;
-          tabBridge.style.transition = 'none';
-          tabBridge.style.width = `${btnRect.width}px`;
-          tabBridge.style.transform = `translateX(${x}px)`;
-          void tabBridge.offsetWidth;
-          tabBridge.style.transition = prev;
+          bridgeX.snap(x);
+          bridgeW.snap(w);
         } else {
-          tabBridge.style.width = `${btnRect.width}px`;
-          tabBridge.style.transform = `translateX(${x}px)`;
+          bridgeX.setTarget(x);
+          bridgeW.setTarget(w);
         }
       };
+
+      const panelCol = document.querySelector<HTMLElement>('.panel-col');
 
       const selectTab = (id: string) => {
         if (id === activeTab) return;
@@ -705,59 +698,51 @@ const projCount = String(data.projects.length).padStart(2, '0');
         tabBtns.forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === id ? 'true' : 'false'));
         tabPanels.forEach((p) => (p.dataset.active = p.dataset.panel === id ? 'true' : 'false'));
         syncTabBridge(false);
-        triggerDitherWipe('down', 240);
+
+        if (panelCol) {
+          jellyPulse(panelCol, { vy: 14, intensity: 0.38 });
+        }
         landscape?.triggerWindGust();
       };
 
       tabBtns.forEach((b) => {
         b.addEventListener('click', () => {
+          jellyPulse(b, { vy: 14, intensity: 0.35 });
           if (b.dataset.tab) selectTab(b.dataset.tab);
         });
       });
 
       syncTabBridge(true);
-      if (document.fonts?.ready) document.fonts.ready.then(() => syncTabBridge(true));
-      window.addEventListener('resize', () => syncTabBridge(true));
 
       // -----------------------------------------------------------------------
-      // 4. 3D Cylindrical Rotary Drum ("اسطوانة") + Micro-Ripple Feedback
+      // 4. Static Entry Lists — Wheel, Arrow & Click Selection + Jelly Pulse
       // -----------------------------------------------------------------------
       const drumIndices: Record<string, number> = { experience: 0, projects: 0 };
       const wheelLocks: Record<string, number> = { experience: 0, projects: 0 };
 
-      const setDrumIndex = (group: string, nextIndex: number, animate = true) => {
+      const setDrumIndex = (group: string, nextIndex: number) => {
         const items = Array.from(document.querySelectorAll<HTMLButtonElement>(`[data-drum-item="${group}"]`));
         const entries = Array.from(document.querySelectorAll<HTMLElement>(`[data-entry="${group}"]`));
-        const bar = document.querySelector<HTMLElement>(`[data-drum-bar="${group}"]`);
         if (!items.length) return;
 
         const clamped = Math.max(0, Math.min(items.length - 1, nextIndex));
-        if (animate && clamped === drumIndices[group]) return;
+        if (clamped === drumIndices[group]) return;
+        const dir = clamped > drumIndices[group] ? 1 : -1;
         drumIndices[group] = clamped;
 
         items.forEach((item, idx) => {
-          const offset = idx - clamped;
-          const abs = Math.abs(offset);
-          const isSelected = offset === 0;
-          const alpha = isSelected ? 1 : abs === 1 ? 0.54 : 0.28;
-          item.style.setProperty('--offset', String(offset));
-          item.style.setProperty('--scale', isSelected ? '1' : '0.92');
-          item.style.setProperty('--alpha', String(alpha));
-          item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+          item.setAttribute('aria-selected', idx === clamped ? 'true' : 'false');
         });
 
         entries.forEach((entry, idx) => {
           entry.dataset.active = idx === clamped ? 'true' : 'false';
         });
 
-        if (animate) {
-          if (bar) {
-            bar.classList.add('is-stepping');
-            window.setTimeout(() => bar.classList.remove('is-stepping'), 200);
-          }
-          triggerDitherWipe('right', 150, 0.37);
-          landscape?.triggerMicroRipple();
-        }
+        const selectedItem = items[clamped];
+        const activeEntry = entries[clamped];
+        if (selectedItem) jellyPulse(selectedItem, { vy: dir * 18, intensity: 0.5 });
+        if (activeEntry) jellyPulse(activeEntry, { vy: 14, intensity: 0.42 });
+        landscape?.triggerMicroRipple();
       };
 
       ['experience', 'projects'].forEach((group) => {
@@ -766,7 +751,12 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
         items.forEach((item) => {
           item.addEventListener('click', () => {
-            setDrumIndex(group, Number(item.dataset.index ?? 0), true);
+            const idx = Number(item.dataset.index ?? 0);
+            if (idx === drumIndices[group]) {
+              jellyPulse(item, { intensity: 0.35 });
+            } else {
+              setDrumIndex(group, idx);
+            }
           });
         });
 
@@ -780,7 +770,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
             wheelLocks[group] = now;
             const dir = e.deltaY > 0 ? 1 : -1;
             const total = items.length;
-            setDrumIndex(group, (drumIndices[group] + dir + total) % total, true);
+            setDrumIndex(group, (drumIndices[group] + dir + total) % total);
           },
           { passive: false }
         );
@@ -793,19 +783,20 @@ const projCount = String(data.projects.length).padStart(2, '0');
           if (!total) return;
           if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setDrumIndex(activeTab, (drumIndices[activeTab] + 1) % total, true);
+            setDrumIndex(activeTab, (drumIndices[activeTab] + 1) % total);
           } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setDrumIndex(activeTab, (drumIndices[activeTab] - 1 + total) % total, true);
+            setDrumIndex(activeTab, (drumIndices[activeTab] - 1 + total) % total);
           }
         }
       });
 
       // -----------------------------------------------------------------------
-      // 5. Concave-Fillet SVG Morph — Hero Icon Row & Vertical Utility Dock
+      // 5. Fluid Concave-Fillet SVG Morph — Contact Icons & Vertical Dock
       // -----------------------------------------------------------------------
       const buildDownMorph = (cx: number, tw: number, p: number): string => {
-        const lerp = (a: number, b: number) => +(a + (b - a) * p).toFixed(2);
+        const t = Math.max(0, Math.min(1.06, p));
+        const lerp = (a: number, b: number) => +(a + (b - a) * t).toFixed(2);
         const bw = 20, r = 11, s = 1.65, rt = 9.5, st = 1.4, f = 8;
         const yNeck = 36, yTop = 44, yBot = 70, ry0 = 29;
         const rx = cx + bw, lx = cx - bw;
@@ -858,7 +849,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
       };
 
       const buildSideMorph = (svgW: number, labelW: number, p: number): string => {
-        const lerp = (a: number, b: number) => +(a + (b - a) * p).toFixed(2);
+        const t = Math.max(0, Math.min(1.06, p));
+        const lerp = (a: number, b: number) => +(a + (b - a) * t).toFixed(2);
         const H = 34, r = 10, s = 1.5;
         const bx2 = svgW, bx1 = svgW - 34;
         const tipTop = 4, tipBot = 30, rt = 8.5, st = 1.3;
@@ -891,48 +883,53 @@ const projCount = String(data.projects.length).padStart(2, '0');
         ].join(' ');
       };
 
+      const morphRemeasure: Array<() => void> = [];
       document.querySelectorAll<HTMLElement>('[data-morph-btn]').forEach((btn) => {
         const svg = btn.querySelector<SVGSVGElement>('.morph-svg');
         const path = btn.querySelector<SVGPathElement>('.morph-path');
         const tip = btn.querySelector<HTMLElement>('[data-morph-tip]');
         if (!svg || !path || !tip) return;
-        let cx = 55, tw = 40, progress = 0, raf = 0;
+        let cx = 55, tw = 40;
+
+        const renderMorph = (val: number) => {
+          const t = Math.max(0, Math.min(1.06, val));
+          path.setAttribute('d', buildDownMorph(cx, tw, t));
+          tip.style.transform = `translateX(-50%) translateY(${((t - 1) * 4).toFixed(2)}px)`;
+        };
+
+        const spring = createSpringScalar({
+          initial: 0,
+          stiffness: 255,
+          damping: 15,
+          onUpdate: renderMorph
+        });
 
         const measure = () => {
-          const w = tip.getBoundingClientRect().width;
+          const w = tip.offsetWidth || tip.getBoundingClientRect().width;
           tw = Math.max(38, Math.ceil(w / 2) + 2);
           const sw = Math.max(106, Math.ceil(tw * 2) + 8);
           cx = sw / 2;
           svg.setAttribute('width', String(sw));
           svg.setAttribute('viewBox', `0 0 ${sw} 70`);
-          path.setAttribute('d', buildDownMorph(cx, tw, progress));
-        };
-
-        const anim = (target: number) => {
-          measure();
-          if (reducedMotion) {
-            progress = target;
-            path.setAttribute('d', buildDownMorph(cx, tw, progress));
-            return;
-          }
-          cancelAnimationFrame(raf);
-          const start = performance.now(), from = progress, dur = target > from ? 210 : 160;
-          const tick = (now: number) => {
-            const raw = Math.min(1, (now - start) / dur);
-            progress = from + (target - from) * (1 - Math.pow(1 - raw, 3));
-            path.setAttribute('d', buildDownMorph(cx, tw, progress));
-            if (raw < 1) raf = requestAnimationFrame(tick);
-            else { progress = target; path.setAttribute('d', buildDownMorph(cx, tw, progress)); }
-          };
-          raf = requestAnimationFrame(tick);
+          renderMorph(spring.getValue());
         };
 
         measure();
-        if (document.fonts?.ready) document.fonts.ready.then(measure);
-        btn.addEventListener('pointerenter', () => anim(1));
-        btn.addEventListener('pointerleave', () => anim(0));
-        btn.addEventListener('focus', () => anim(1));
-        btn.addEventListener('blur', () => anim(0));
+        morphRemeasure.push(measure);
+        btn.addEventListener('pointerenter', () => {
+          measure();
+          spring.setTarget(1);
+          jellyPulse(btn, { vy: 22, intensity: 0.45 });
+        });
+        btn.addEventListener('pointerleave', () => spring.setTarget(0));
+        btn.addEventListener('focus', () => {
+          measure();
+          spring.setTarget(1);
+        });
+        btn.addEventListener('blur', () => spring.setTarget(0));
+        btn.addEventListener('click', () => {
+          jellyPulse(btn, { vy: 26, intensity: 0.72 });
+        });
       });
 
       const dockMorphRemeasure: Array<() => void> = [];
@@ -941,55 +938,112 @@ const projCount = String(data.projects.length).padStart(2, '0');
         const path = btn.querySelector<SVGPathElement>('.dock-morph-path');
         const tip = btn.querySelector<HTMLElement>('[data-dock-tip]');
         if (!svg || !path || !tip) return;
-        let svgW = 120, labelW = 64, progress = 0, raf = 0;
+        let svgW = 120, labelW = 64;
+
+        const renderDockMorph = (val: number) => {
+          const t = Math.max(0, Math.min(1.06, val));
+          path.setAttribute('d', buildSideMorph(svgW, labelW, t));
+          if (t > 0.03) btn.dataset.morphActive = 'true';
+          else delete btn.dataset.morphActive;
+          const tipOffset = isRTL ? (t - 1) * 5 : (1 - t) * 5;
+          tip.style.transform = `translateY(-50%) translateX(${tipOffset.toFixed(2)}px)`;
+        };
+
+        const spring = createSpringScalar({
+          initial: 0,
+          stiffness: 255,
+          damping: 15,
+          onUpdate: renderDockMorph
+        });
 
         const measure = () => {
-          labelW = Math.max(46, Math.ceil(tip.getBoundingClientRect().width) + 2);
+          const w = tip.offsetWidth || tip.getBoundingClientRect().width;
+          labelW = Math.max(46, Math.ceil(w) + 2);
           svgW = Math.max(108, 46 + labelW);
           svg.setAttribute('width', String(svgW));
           svg.setAttribute('viewBox', `0 0 ${svgW} 34`);
-          path.setAttribute('d', buildSideMorph(svgW, labelW, progress));
-        };
-
-        const anim = (target: number) => {
-          measure();
-          if (reducedMotion) {
-            progress = target;
-            path.setAttribute('d', buildSideMorph(svgW, labelW, progress));
-            return;
-          }
-          cancelAnimationFrame(raf);
-          const start = performance.now(), from = progress, dur = target > from ? 200 : 155;
-          const tick = (now: number) => {
-            const raw = Math.min(1, (now - start) / dur);
-            progress = from + (target - from) * (1 - Math.pow(1 - raw, 3));
-            path.setAttribute('d', buildSideMorph(svgW, labelW, progress));
-            if (raw < 1) raf = requestAnimationFrame(tick);
-            else { progress = target; path.setAttribute('d', buildSideMorph(svgW, labelW, progress)); }
-          };
-          raf = requestAnimationFrame(tick);
+          renderDockMorph(spring.getValue());
         };
 
         measure();
         dockMorphRemeasure.push(measure);
-        if (document.fonts?.ready) document.fonts.ready.then(measure);
-        btn.addEventListener('pointerenter', () => anim(1));
-        btn.addEventListener('pointerleave', () => anim(0));
-        btn.addEventListener('focus', () => anim(1));
-        btn.addEventListener('blur', () => anim(0));
+        btn.addEventListener('pointerenter', () => {
+          measure();
+          spring.setTarget(1);
+          jellyPulse(btn, { vx: isRTL ? 20 : -20, intensity: 0.45 });
+        });
+        btn.addEventListener('pointerleave', () => spring.setTarget(0));
+        btn.addEventListener('focus', () => {
+          measure();
+          spring.setTarget(1);
+        });
+        btn.addEventListener('blur', () => spring.setTarget(0));
+        btn.addEventListener('click', () => {
+          jellyPulse(btn, { vx: isRTL ? 24 : -24, intensity: 0.72 });
+        });
+      });
+
+      if (document.fonts?.ready) {
+        document.fonts.ready.then(() => {
+          syncTabBridge(true);
+          morphRemeasure.forEach((fn) => fn());
+          dockMorphRemeasure.forEach((fn) => fn());
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        syncTabBridge(true);
+        morphRemeasure.forEach((fn) => fn());
+        dockMorphRemeasure.forEach((fn) => fn());
+        if (utilityDock && !root.classList.contains('is-world-entering')) {
+          utilityDock.style.transform = window.innerWidth >= 960 ? 'translate3d(0, -50%, 0)' : '';
+        }
       });
 
       // -----------------------------------------------------------------------
-      // 6. Theme Toggle (Dock OR Clicking Sun/Moon), Palette Lerp & Sea Clicks
+      // 6. Theme, Palette, Popover Jelly Spring & Interactive Micro-Pulses
       // -----------------------------------------------------------------------
       const paletteTrigger = document.querySelector<HTMLButtonElement>('[data-palette-trigger]');
       const paletteMenu = document.querySelector<HTMLElement>('[data-palette-menu]');
       const paletteOpts = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-palette-option]'));
 
+      const renderPopoverSpring = (val: number, vel: number) => {
+        if (!paletteMenu) return;
+        const opacity = Math.max(0, Math.min(1, val));
+        const isDesktop = window.innerWidth >= 960;
+        const baseScale = 0.9 + 0.1 * val;
+        const stretch = Math.max(0.92, Math.min(1.08, 1 + vel * 0.006));
+        const sy = Math.max(0.86, Math.min(1.08, baseScale * stretch));
+        const sx = Math.max(0.86, Math.min(1.08, baseScale / Math.sqrt(stretch)));
+        const yPrefix = isDesktop
+          ? 'translateY(-50%)'
+          : `translateY(${((1 - val) * -8).toFixed(2)}px)`;
+
+        paletteMenu.style.opacity = opacity.toFixed(3);
+        paletteMenu.style.transform = `${yPrefix} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+      };
+
+      const popoverSpring = createSpringScalar({
+        initial: 0,
+        stiffness: 300,
+        damping: 18,
+        onUpdate: renderPopoverSpring,
+        onRest: () => {
+          if (!paletteMenu) return;
+          const open = paletteMenu.dataset.open === 'true';
+          const isDesktop = window.innerWidth >= 960;
+          paletteMenu.style.opacity = open ? '1' : '0';
+          paletteMenu.style.transform = open
+            ? (isDesktop ? 'translateY(-50%)' : '')
+            : (isDesktop ? 'translateY(-50%) scale(0.9)' : 'translateY(-8px) scale(0.9)');
+        }
+      });
+
       const setPaletteMenu = (open: boolean) => {
         if (!paletteMenu || !paletteTrigger) return;
         paletteMenu.dataset.open = open ? 'true' : 'false';
         paletteTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        popoverSpring.setTarget(open ? 1 : 0);
       };
 
       const applyPalette = (id: string, animate = true) => {
@@ -1010,11 +1064,46 @@ const projCount = String(data.projects.length).padStart(2, '0');
       });
 
       paletteOpts.forEach((opt) => {
+        opt.addEventListener('pointerenter', () => {
+          jellyPulse(opt, { vx: isRTL ? -10 : 10, intensity: 0.25 });
+        });
         opt.addEventListener('click', () => {
+          jellyPulse(opt, { intensity: 0.55 });
           if (opt.dataset.paletteOption) applyPalette(opt.dataset.paletteOption, true);
           setPaletteMenu(false);
         });
       });
+
+      document.querySelectorAll<HTMLElement>('.cta-btn').forEach((btn) => {
+        btn.addEventListener('pointerenter', () => jellyPulse(btn, { vy: -8, intensity: 0.32 }));
+        btn.addEventListener('click', () => jellyPulse(btn, { vy: 14, intensity: 0.65 }));
+      });
+
+      document.querySelectorAll<HTMLElement>('.pill-link').forEach((link) => {
+        link.addEventListener('pointerenter', () => jellyPulse(link, { vy: -6, intensity: 0.3 }));
+        link.addEventListener('click', () => jellyPulse(link, { vy: 12, intensity: 0.6 }));
+      });
+
+      const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+      const themeTip = document.querySelector<HTMLElement>('[data-theme-tip]');
+      const applyTheme = (mode: string, animate = true) => {
+        const next = mode === 'light' ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try { localStorage.setItem('main-theme', next); } catch {}
+        if (themeBtn) {
+          themeBtn.dataset.current = next;
+          const nextLabel = next === 'dark'
+            ? themeBtn.dataset.labelLight ?? 'light'
+            : themeBtn.dataset.labelDark ?? 'dark';
+          themeBtn.setAttribute('aria-label', nextLabel);
+          if (themeTip) themeTip.textContent = nextLabel;
+          dockMorphRemeasure.forEach((fn) => fn());
+        }
+        landscape?.setTheme(next === 'light', !animate);
+      };
+
+      applyTheme(root.dataset.theme ?? 'dark', false);
+      themeBtn?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark', true));
 
       document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement | null;
@@ -1051,27 +1140,6 @@ const projCount = String(data.projects.length).padStart(2, '0');
         if (e.key === 'Escape') setPaletteMenu(false);
       });
 
-      const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
-      const themeTip = document.querySelector<HTMLElement>('[data-theme-tip]');
-      const applyTheme = (mode: string, animate = true) => {
-        const next = mode === 'light' ? 'light' : 'dark';
-        root.dataset.theme = next;
-        try { localStorage.setItem('main-theme', next); } catch {}
-        if (themeBtn) {
-          themeBtn.dataset.current = next;
-          const nextLabel = next === 'dark'
-            ? themeBtn.dataset.labelLight ?? 'light'
-            : themeBtn.dataset.labelDark ?? 'dark';
-          themeBtn.setAttribute('aria-label', nextLabel);
-          if (themeTip) themeTip.textContent = nextLabel;
-          dockMorphRemeasure.forEach((fn) => fn());
-        }
-        landscape?.setTheme(next === 'light', !animate);
-      };
-
-      applyTheme(root.dataset.theme ?? 'dark', false);
-      themeBtn?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark', true));
-
       // Copy email CTA
       const copyBtn = document.querySelector<HTMLButtonElement>('[data-copy-email]');
       if (copyBtn) {
@@ -1101,5 +1169,23 @@ const projCount = String(data.projects.length).padStart(2, '0');
         });
       }
     </script>
+
+    <style>
+      .role-sep {
+        margin-inline: 0.28rem;
+        opacity: 0.65;
+      }
+
+      .role-about-link {
+        color: var(--body);
+        border-bottom: 1px solid var(--panel-border);
+        transition: color 140ms ease, border-color 140ms ease;
+      }
+
+      .role-about-link:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent-border);
+      }
+    </style>
   </body>
 </html>

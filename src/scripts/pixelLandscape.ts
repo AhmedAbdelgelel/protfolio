@@ -3,12 +3,14 @@
  *
  * Composition & depth-ordered parallax layers:
  *   1. Deep twilight sky with fine Bayer dither gradient, 1px & '+' cross stars,
- *      and sculpted 3-tone cumulus cloud banks framing upper-left & upper-right (0.12x)
+ *      and volumetric 2-tap self-shadowed cumulus banks + traveling cumulus clouds (0.12x–0.18x)
  *   2. Refined Moon (night) & Sun (day) with 900ms parabolic orbital arc (0.22x)
- *   3. Deep slate-indigo calm horizon sea with razor-thin horizontal shimmer streaks,
- *      interactive click ripples, and jumping pixel fish + splash droplets (0.40x)
+ *   3. Physically inspired calm horizon sea with true sky & cloud mirror reflections,
+ *      Schlick Fresnel, dispersive 4-octave wave normals, interactive click ripples,
+ *      slope-aligned specular shimmer glints, and 8 gravity splash droplets (0.40x)
  *   4. U-shaped foreground coastal meadow of 3 overlapping tiers of gracefully arching
- *      curved grass fronds with 1px rim highlights, wind waves & cursor repulsion (0.65x–1.0x)
+ *      curved grass fronds with root ambient occlusion, backlit subsurface translucency,
+ *      coherent 2D traveling wind waves, per-tier springs & cursor repulsion (0.65x–1.0x)
  */
 
 export type PaletteId = 'nile-silt' | 'deep-moss' | 'basalt' | 'nocturne';
@@ -32,7 +34,6 @@ interface WorldPalette {
   grassMid: RGB;
   grassFront: RGB;
   grassTip: RGB;
-  wildlife: RGB;
 }
 
 const hex = (h: string): RGB => {
@@ -59,8 +60,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#6e5839'),
       grassMid: hex('#30281c'),
       grassFront: hex('#090808'),
-      grassTip: hex('#c4985a'),
-      wildlife: hex('#ebd09b')
+      grassTip: hex('#c4985a')
     },
     day: {
       skyTop: hex('#96abbc'),
@@ -78,8 +78,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#8c7a52'),
       grassMid: hex('#52482f'),
       grassFront: hex('#211e15'),
-      grassTip: hex('#e0b363'),
-      wildlife: hex('#2b241c')
+      grassTip: hex('#e0b363')
     }
   },
   'deep-moss': {
@@ -99,8 +98,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#5d6e56'),
       grassMid: hex('#26362b'),
       grassFront: hex('#09100c'),
-      grassTip: hex('#cbb894'),
-      wildlife: hex('#e4d6b5')
+      grassTip: hex('#cbb894')
     },
     day: {
       skyTop: hex('#80a69d'),
@@ -118,8 +116,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#5e7a5d'),
       grassMid: hex('#334d39'),
       grassFront: hex('#15241a'),
-      grassTip: hex('#cfb882'),
-      wildlife: hex('#1e3026')
+      grassTip: hex('#cfb882')
     }
   },
   basalt: {
@@ -139,8 +136,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#7d5e48'),
       grassMid: hex('#382822'),
       grassFront: hex('#0b0909'),
-      grassTip: hex('#e08a6c'),
-      wildlife: hex('#f5b99f')
+      grassTip: hex('#e08a6c')
     },
     day: {
       skyTop: hex('#9e8e94'),
@@ -158,8 +154,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#82634f'),
       grassMid: hex('#4c382d'),
       grassFront: hex('#211714'),
-      grassTip: hex('#e08666'),
-      wildlife: hex('#33201b')
+      grassTip: hex('#e08666')
     }
   },
   nocturne: {
@@ -179,8 +174,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#536b64'),
       grassMid: hex('#233333'),
       grassFront: hex('#080d12'),
-      grassTip: hex('#96c2a8'),
-      wildlife: hex('#c4e6d2')
+      grassTip: hex('#96c2a8')
     },
     day: {
       skyTop: hex('#749bc4'),
@@ -198,8 +192,7 @@ const PALETTES: Record<PaletteId, { night: WorldPalette; day: WorldPalette }> = 
       grassBack: hex('#56786b'),
       grassMid: hex('#2f4a41'),
       grassFront: hex('#142420'),
-      grassTip: hex('#96c2a8'),
-      wildlife: hex('#1b2b3d')
+      grassTip: hex('#96c2a8')
     }
   }
 };
@@ -229,6 +222,11 @@ uniform float uDayProgress;
 uniform float uWindGust;
 uniform float uMicroRipple;
 uniform float uReducedMotion;
+uniform float uIntroProgress;
+uniform vec3 uIntroDrop;
+uniform float uCloudOffset;
+uniform vec4 uWavePhases;
+uniform float uGrassBend[3];
 
 // Pre-blended palette uniforms
 uniform vec3 uSkyTop;
@@ -247,7 +245,6 @@ uniform vec3 uGrassBack;
 uniform vec3 uGrassMid;
 uniform vec3 uGrassFront;
 uniform vec3 uGrassTip;
-uniform vec3 uWildlifeCol;
 
 // Celestial coordinates (GL UV space, matched 1:1 with CPU hitboxes)
 uniform vec2 uMoonPos;
@@ -256,14 +253,8 @@ uniform vec2 uSunPos;
 // Up to 3 water splashes: (x_uv, y_uv, age_sec, strength)
 uniform vec4 uSplashes[3];
 
-// 5 Pixel birds: (x_uv, y_uv, flap_phase, size)
-uniform vec4 uBirds[5];
-
-// Jumping fish: (x_uv, y_uv, angle_rad, active)
-uniform vec4 uFish;
-
-// 6 splash droplets: (x_uv, y_uv, alpha, 0)
-uniform vec4 uDrops[6];
+// 8 splash droplets: (x_uv, y_uv, alpha, 0)
+uniform vec4 uDrops[8];
 
 // 4x4 Ordered Bayer matrix normalized to (0, 1)
 float bayer4(vec2 p) {
@@ -342,16 +333,15 @@ float puff(vec2 p, vec2 c, vec2 r) {
 
 // Evaluates sculpted framing cumulus banks (left & right corners, open starry center)
 // Returns vec3(density, heightInCloud, innerLight)
-vec3 evalCumulus(vec2 p, float t) {
-  // Subtle breathing drift so clouds feel alive while keeping the iconic corner framing
-  float driftL = sin(t * 0.075) * 0.012;
-  float driftR = cos(t * 0.068 + 0.8) * 0.012;
-  vec2 pl = p - vec2(driftL, 0.0);
-  vec2 pr = p - vec2(driftR, 0.0);
+vec3 evalCumulus(vec2 p) {
+  // Subtle bounded sway keeps the iconic corner framing intact while internal
+  // cloud wisps and ridges advect smoothly with uCloudOffset.
+  float gentleSway = sin(uCloudOffset * 2.1) * 0.012;
+  vec2 pl = p - vec2(gentleSway, 0.0);
+  vec2 pr = p - vec2(gentleSway * 0.85, 0.0);
 
-  // Fine cumulus contour ruffling (scalloped painterly ridges)
-  float nFine = fbm(vec2(p.x * 14.5 - t * 0.014, p.y * 16.5)) - 0.5;
-  float nMed  = fbm(vec2(p.x * 6.5 - t * 0.009, p.y * 8.2)) - 0.5;
+  float nFine = fbm(vec2(p.x * 14.5 - uCloudOffset * 2.15, p.y * 16.5)) - 0.5;
+  float nMed  = fbm(vec2(p.x * 6.5 - uCloudOffset * 0.96, p.y * 8.2)) - 0.5;
   float ruffle = nFine * 0.30 + nMed * 0.24;
 
   // --- LEFT DRAMATIC CUMULUS BANK (upper-left cascade sloping down toward center) ---
@@ -396,16 +386,254 @@ vec3 evalCumulus(vec2 p, float t) {
 
   float density = max(max(leftMain, rightMain), max(leftWisp, rightWisp));
 
-  // Moody painterly lighting: deep shadow belly + warm midtone + narrow glowing inner wisps
   float isLeft = step(p.x, 0.5);
   float baseY = mix(0.70, 0.73, isLeft);
   float hNorm = clamp((p.y - baseY) / 0.21, 0.0, 1.0);
-  float ridgeNoise = fbm(vec2(p.x * 18.0 - t * 0.016, p.y * 22.0 + 3.1));
+  float ridgeNoise = fbm(vec2(p.x * 18.0 - uCloudOffset * 2.55, p.y * 22.0 + 3.1));
   float wispRidge = smoothstep(0.46, 0.78, ridgeNoise);
-  // Rim/inner luminous creases concentrated along turbulent mid-upper ridges
   float lit = clamp(hNorm * 0.32 + wispRidge * 0.62 + (1.0 - smoothstep(0.04, 0.42, density)) * 0.10 - (1.0 - hNorm) * 0.22, 0.0, 1.0);
 
   return vec3(density, hNorm, lit);
+}
+
+// Delicate traveling cumulus formations advected smoothly across the mid-sky
+vec2 evalTravelingClouds(vec2 p) {
+  float bestDensity = -1.0;
+  float bestLight = 0.0;
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float x = fract(0.14 + fi * 0.37 + uCloudOffset * (0.92 + fi * 0.12)) * 1.38 - 0.19;
+    float y = 0.57 + fi * 0.073;
+    if (abs(p.x - x) > 0.14 || abs(p.y - y) > 0.075) continue;
+    float density = -1.0;
+    density = max(density, puff(p, vec2(x - 0.035, y - 0.003), vec2(0.052, 0.014)));
+    density = max(density, puff(p, vec2(x, y + 0.010), vec2(0.044, 0.025)));
+    density = max(density, puff(p, vec2(x + 0.035, y), vec2(0.048, 0.018)));
+    density = max(density, puff(p, vec2(x + 0.010, y - 0.008), vec2(0.074, 0.012)));
+    density += (fbm(vec2((p.x - x) * 19.0, (p.y - y) * 27.0 + fi * 3.7)) - 0.5) * 0.16;
+    if (density > bestDensity) {
+      bestDensity = density;
+      bestLight = clamp(0.48 + (p.y - y) * 13.0 + fi * 0.06, 0.0, 1.0);
+    }
+  }
+  return vec2(bestDensity, bestLight);
+}
+
+// Bayer-stepped twilight sky gradient (shared by Sky and Water Reflection)
+vec3 evalSkyGradient(vec2 uv, float horizonY, float thresh) {
+  float skyH = clamp((uv.y - horizonY) / max(0.01, 1.0 - horizonY), 0.0, 1.0);
+  float centerGlow = exp(-pow((uv.x - 0.5) * 1.45, 2.0)) * 0.14;
+  float lowCurve = pow(max(0.0, 1.0 - skyH), 1.65) + centerGlow * (1.0 - skyH);
+
+  vec3 col;
+  if (skyH < 0.44) {
+    float m = clamp(skyH / 0.44, 0.0, 1.0);
+    col = ditherMix(uSkyLow, uSkyMid, m, thresh, 7.0);
+  } else {
+    float m = clamp((skyH - 0.44) / 0.56, 0.0, 1.0);
+    col = ditherMix(uSkyMid, uSkyTop, m, thresh, 6.0);
+  }
+
+  if (lowCurve * 0.32 > thresh && skyH < 0.35) {
+    col = mix(col, uSkyLow, 0.22);
+  }
+
+  float horizonHaze = exp(-skyH * 13.0) * (0.055 + centerGlow * 0.12);
+  return mix(col, mix(uSkyLow, uCloudLit, 0.24), horizonHaze);
+}
+
+// Celestial Moon (night) & Sun (day) shared by Sky and Water Reflection
+vec3 applyCelestials(
+  vec3 col,
+  vec2 uv,
+  vec2 celOff,
+  float horizonY,
+  float aspect,
+  float t,
+  float thresh,
+  bool isReflection
+) {
+  vec2 mPos = uMoonPos - celOff;
+  if (mPos.y > horizonY - 0.06) {
+    vec2 md = (uv - mPos) * vec2(aspect, 1.0);
+    float mDist = length(md);
+    float mRad = 0.027;
+    float mVis = smoothstep(horizonY - 0.04, horizonY + 0.04, mPos.y)
+               * (1.0 - smoothstep(0.52, 0.92, uDayProgress));
+    float halo = (exp(-mDist * 19.0) * 0.19 + exp(-mDist * 6.5) * 0.022) * mVis;
+    col = mix(col, uMoonCol, halo * (0.82 + thresh * 0.18));
+    if (mDist < mRad && mVis > 0.05) {
+      vec2 cut = md - vec2(0.011, 0.007);
+      float discAlpha = isReflection ? 0.58 : 0.96;
+      if (length(cut) > mRad * 0.84) {
+        col = mix(col, uMoonCol, clamp(mVis * discAlpha, 0.0, 1.0));
+      } else if (0.16 * mVis > thresh) {
+        col = mix(col, uMoonCol, isReflection ? 0.09 : 0.14);
+      }
+    }
+  }
+
+  vec2 sPos = uSunPos - celOff;
+  if (sPos.y > horizonY - 0.06) {
+    vec2 sd = (uv - sPos) * vec2(aspect, 1.0);
+    float sDist = length(sd);
+    float sRad = 0.036;
+    float sVis = smoothstep(horizonY - 0.04, horizonY + 0.04, sPos.y)
+               * smoothstep(0.08, 0.48, uDayProgress);
+    float ang = (abs(sd.x) + abs(sd.y) > 0.0001) ? atan(sd.y, sd.x) : 0.0;
+    float rays = 0.5 + 0.5 * sin(ang * 8.0 + t * 0.3);
+    float sunHalo = (exp(-sDist * 15.0) * (0.25 + 0.035 * rays) + exp(-sDist * 5.5) * 0.03) * sVis;
+    col = mix(col, uSunCol, sunHalo * (0.80 + thresh * 0.20));
+    if (sDist < sRad && sVis > 0.05) {
+      vec3 core = mix(uSunCol, vec3(1.0, 0.98, 0.92), smoothstep(sRad, 0.0, sDist) * 0.55);
+      col = mix(col, core, clamp(sVis * (isReflection ? 0.65 : 1.0), 0.0, 1.0));
+    }
+  }
+  return col;
+}
+
+// Volumetric 2-tap Beer-Lambert self-shadowed cumulus + traveling clouds
+vec3 applyCloudLayers(
+  vec3 col,
+  vec2 uv,
+  vec2 par,
+  vec2 activeCelPos,
+  float thresh,
+  float opacityScale
+) {
+  // 1. Framing cumulus cloud banks (upper-left & upper-right)
+  vec2 cloudUv = uv + par * 0.12;
+  vec3 cl = evalCumulus(cloudUv);
+  float cDens = cl.x;
+  if (cDens > 0.02) {
+    float edgeSoft = smoothstep(0.02, 0.22, cDens);
+    if (edgeSoft > thresh * 0.82) {
+      vec2 toLight = activeCelPos - cloudUv;
+      vec2 lightDir = toLight / max(0.001, length(toLight));
+
+      // Directional 2-tap optical thickness toward active Moon/Sun
+      float tap1 = max(0.0, evalCumulus(cloudUv + lightDir * 0.018).x);
+      float tap2 = max(0.0, evalCumulus(cloudUv + lightDir * 0.044).x);
+      float opticalDepth = tap1 * 0.65 + tap2 * 0.95;
+      float beer = exp(-opticalDepth * 2.4);
+
+      float edgeBand = 1.0 - smoothstep(0.02, 0.24, cDens);
+      float rimSilver = edgeBand * smoothstep(0.30, 0.84, beer);
+      float lit = clamp(beer * 0.54 + cl.z * 0.44 + rimSilver * 0.22 - (1.0 - cl.y) * 0.14, 0.0, 1.0);
+
+      vec3 cCol;
+      if (lit < 0.56) {
+        cCol = ditherMix(uCloudShad, uCloudLit, lit / 0.56, thresh, 4.0);
+      } else {
+        cCol = ditherMix(uCloudLit, uCloudHi, (lit - 0.56) / 0.44, thresh, 3.0);
+      }
+      if (rimSilver > 0.34 && edgeSoft > 0.26) {
+        cCol = mix(cCol, uCloudHi, clamp(rimSilver * 0.68, 0.0, 0.76));
+      }
+      col = mix(col, cCol, 0.96 * opacityScale);
+    }
+  }
+
+  // 2. Traveling mid-sky cumulus formations
+  vec2 travelUv = uv + par * 0.18;
+  vec2 driftingCloud = evalTravelingClouds(travelUv);
+  if (driftingCloud.x > -0.02) {
+    float cloudEdge = smoothstep(-0.02, 0.20, driftingCloud.x);
+    if (cloudEdge > thresh * 0.72) {
+      vec2 tToLight = activeCelPos - travelUv;
+      vec2 tLightDir = tToLight / max(0.001, length(tToLight));
+      float tTap1 = max(0.0, evalTravelingClouds(travelUv + tLightDir * 0.014).x);
+      float tTap2 = max(0.0, evalTravelingClouds(travelUv + tLightDir * 0.032).x);
+      float tOpt = tTap1 * 0.65 + tTap2 * 0.95;
+      float tBeer = exp(-tOpt * 2.4);
+      float tRim = (1.0 - smoothstep(-0.02, 0.18, driftingCloud.x)) * smoothstep(0.32, 0.85, tBeer);
+      float tLit = clamp(tBeer * 0.50 + driftingCloud.y * 0.48 + tRim * 0.20, 0.0, 1.0);
+
+      vec3 driftingCol = tLit < 0.58
+        ? ditherMix(uCloudShad, uCloudLit, tLit / 0.58, thresh, 4.0)
+        : ditherMix(uCloudLit, uCloudHi, (tLit - 0.58) / 0.42, thresh, 3.0);
+      driftingCol = mix(driftingCol, uCloudHi, tRim * 0.45);
+      col = mix(col, driftingCol, cloudEdge * 0.62 * opacityScale);
+    }
+  }
+
+  return col;
+}
+
+// Cinematic outer-world water-drop reveal intro (replaces slanted rain)
+vec3 applyWorldEntrance(
+  vec3 col,
+  vec2 uv,
+  float horizonY,
+  float aspect,
+  float thresh
+) {
+  float p = clamp(uIntroProgress, 0.0, 1.0);
+  if (p >= 0.999 && uIntroDrop.z <= 0.001) return col;
+
+  // Phase 0.00..0.24: Gentle horizon emergence from deep sea below and twilight sky above
+  float baseEmerge = smoothstep(0.0, 0.24, p);
+  vec3 dormantSky = mix(uSkyTop * 0.35, mix(uSkyMid, uSkyLow, exp(-max(0.0, uv.y - horizonY) * 5.0)), 0.35 + 0.45 * baseEmerge);
+  vec3 dormantSea = mix(uSeaDeep * 0.42, mix(uSeaDeep, uSeaMid, 0.55), 0.30 + 0.50 * baseEmerge);
+  float skyBlend = smoothstep(horizonY - 0.045, horizonY + 0.045, uv.y);
+  vec3 dormant = mix(dormantSea, dormantSky, skyBlend);
+  float horGlow = exp(-abs(uv.y - horizonY) * 14.0) * baseEmerge * 0.28;
+  dormant = mix(dormant, uSkyLow, horGlow);
+
+  if (p >= 0.24) {
+    // Phase 0.24..1.00: Organic expanding liquid reveal wave from impact point (0.48, 0.27)
+    float q = clamp((p - 0.24) / 0.76, 0.0, 1.0);
+    float qEased = 1.0 - pow(max(0.0, 1.0 - q), 2.35);
+    vec2 origin = vec2(0.48, 0.27);
+    vec2 diff = (uv - origin) * vec2(aspect * 0.85, 1.0);
+    float dist = length(diff);
+    float maxDist = length(vec2(aspect * 0.85 * 0.62, 0.80)) + 0.14;
+    float angle = (abs(diff.x) + abs(diff.y) > 0.0001) ? atan(diff.y, diff.x) : 0.0;
+    float organic = sin(angle * 5.0 + q * 3.5) * 0.018
+                  + sin(angle * 11.0 - q * 6.0) * 0.009
+                  + (valueNoise(uv * 16.0) - 0.5) * 0.042
+                  + (thresh - 0.5) * 0.024;
+    float waveFront = 0.035 + qEased * maxDist;
+    float edgeDist = dist + organic;
+    float revealBand = 1.0 - smoothstep(waveFront - 0.045, waveFront + 0.025, edgeDist);
+    float reveal = mix(revealBand > thresh * 0.85 ? 1.0 : 0.0, 1.0, smoothstep(0.88, 1.0, q));
+
+    col = mix(dormant, col, reveal);
+
+    // Crisp Bayer-dithered liquid ripple crest & trailing inner wave
+    float crestBand = exp(-pow((edgeDist - waveFront) * 34.0, 2.0)) * (1.0 - smoothstep(0.68, 1.0, q));
+    if (crestBand > thresh * 0.72) {
+      col = mix(col, uSeaGlint, 0.56);
+    }
+  } else {
+    col = dormant;
+  }
+
+  // Luminous falling pixel water drop with delicate tapering tail
+  if (uIntroDrop.z > 0.01) {
+    vec2 dPx = (uv - uIntroDrop.xy) * uResolution;
+    float headDist = length(vec2(dPx.x / 2.2, dPx.y / 2.6));
+    float headMask = 1.0 - smoothstep(0.65, 1.15, headDist);
+    float tailMask = 0.0;
+    if (dPx.y > 0.0 && dPx.y < 18.0) {
+      float tTail = dPx.y / 18.0;
+      float tailHalfW = mix(1.75, 0.22, pow(max(0.0, tTail), 0.72));
+      if (abs(dPx.x) <= tailHalfW) {
+        tailMask = (1.0 - tTail) * 0.85;
+      }
+    }
+    float dropGlow = exp(-length(dPx) * 0.20) * 0.48;
+    if (dropGlow > thresh * 0.18) {
+      col = mix(col, mix(uSeaTop, uSeaGlint, 0.65), dropGlow * uIntroDrop.z);
+    }
+    float dropVis = max(headMask, tailMask) * uIntroDrop.z;
+    if (dropVis > thresh * 0.22) {
+      vec3 dropCol = mix(uSeaGlint, vec3(1.0, 0.98, 0.94), headMask * 0.68);
+      col = mix(col, dropCol, clamp(dropVis, 0.0, 1.0));
+    }
+  }
+
+  return col;
 }
 
 void main() {
@@ -418,33 +646,24 @@ void main() {
   // Subtle smoothed mouse parallax
   vec2 par = (uReducedMotion > 0.5) ? vec2(0.0) : (uMouse - 0.5) * vec2(0.018, 0.011);
 
-  // Horizon sits at ~36.5% from bottom (63.5% from top), matching the cinematic reference
+  // Horizon sits at ~36.5% from bottom
   float horizonY = 0.365 + par.y * 0.22;
+  vec2 celOff = par * 0.22;
+  vec2 activeCelPos = mix(uMoonPos, uSunPos, uDayProgress) - celOff;
 
   vec3 col = uSkyTop;
 
   // =========================================================================
-  // LAYER 1 — BAYER TWILIGHT SKY, '+' CROSS STARS & FRAMING CUMULUS CLOUDS
+  // LAYER 1 & 2 — BAYER TWILIGHT SKY, STARS, MOON/SUN & VOLUMETRIC CLOUDS
   // =========================================================================
   if (uv.y >= horizonY) {
     float skyH = clamp((uv.y - horizonY) / max(0.01, 1.0 - horizonY), 0.0, 1.0);
+    col = evalSkyGradient(uv, horizonY, thresh);
 
-    // Warm horizon twilight glow with subtle center radiance
-    float centerGlow = exp(-pow((uv.x - 0.5) * 1.45, 2.0)) * 0.14;
-    float lowCurve = pow(max(0.0, 1.0 - skyH), 1.65) + centerGlow * (1.0 - skyH);
-    if (skyH < 0.44) {
-      float m = clamp(skyH / 0.44, 0.0, 1.0);
-      col = ditherMix(uSkyLow, uSkyMid, m, thresh, 7.0);
-    } else {
-      float m = clamp((skyH - 0.44) / 0.56, 0.0, 1.0);
-      col = ditherMix(uSkyMid, uSkyTop, m, thresh, 6.0);
-    }
-    // Subtle extra warmth right along the central horizon
-    if (lowCurve * 0.32 > thresh && skyH < 0.35) {
-      col = mix(col, uSkyLow, 0.22);
-    }
+    float skyGrain = (hash12(px + vec2(17.0, 41.0)) - 0.5) * 0.012;
+    col += skyGrain * mix(vec3(0.35), uCloudLit, 0.28);
 
-    // Sparse crisp stars + delicate 3x3 '+' cross sparkles in open night sky
+    // Sparse crisp 1px stars + delicate 3x3 '+' cross sparkles in open night sky
     float nightVis = smoothstep(0.55, 0.05, uDayProgress);
     if (nightVis > 0.01 && skyH > 0.32) {
       vec2 starGrid = floor((uv + par * 0.08) * uResolution);
@@ -454,7 +673,6 @@ void main() {
         float tw = 0.5 + 0.5 * sin(t * (1.5 + fract(h * 73.0) * 2.5) + h * 110.0);
         col = mix(col, uMoonCol, clamp(tw * nightVis * fadeY * 0.92, 0.18, 0.92));
       } else {
-        // Check 4-neighbor '+' cross sparkle arms around extra-bright stars
         float hL = hash12(starGrid + vec2(-1.0, 0.0));
         float hR = hash12(starGrid + vec2( 1.0, 0.0));
         float hD = hash12(starGrid + vec2( 0.0,-1.0));
@@ -467,208 +685,135 @@ void main() {
       }
     }
 
-    // =======================================================================
-    // LAYER 2 — REFINED INTERACTIVE MOON (NIGHT) & SUN (DAY) (0.22x)
-    // =======================================================================
-    vec2 celOff = par * 0.22;
-
-    // Moon (refined crescent tucked in open starry upper sky)
-    vec2 mPos = uMoonPos - celOff;
-    if (mPos.y > horizonY - 0.06) {
-      vec2 md = (uv - mPos) * vec2(aspect, 1.0);
-      float mDist = length(md);
-      float mRad = 0.027;
-      float mVis = smoothstep(horizonY - 0.04, horizonY + 0.04, mPos.y) * (1.0 - smoothstep(0.52, 0.92, uDayProgress));
-
-      float halo = exp(-mDist * 14.5) * 0.52 * mVis;
-      if (halo > thresh * 0.88) {
-        col = mix(col, uMoonCol, 0.24);
-      }
-      if (mDist < mRad && mVis > 0.05) {
-        vec2 cut = md - vec2(0.011, 0.007);
-        if (length(cut) > mRad * 0.84) {
-          col = mix(col, uMoonCol, clamp(mVis * 0.96, 0.0, 1.0));
-        } else if (0.16 * mVis > thresh) {
-          col = mix(col, uMoonCol, 0.14);
-        }
-      }
-    }
-
-    // Sun (warm golden-hour disc in open upper-right sky in Light Mode)
-    vec2 sPos = uSunPos - celOff;
-    if (sPos.y > horizonY - 0.06) {
-      vec2 sd = (uv - sPos) * vec2(aspect, 1.0);
-      float sDist = length(sd);
-      float sRad = 0.036;
-      float sVis = smoothstep(horizonY - 0.04, horizonY + 0.04, sPos.y) * smoothstep(0.08, 0.48, uDayProgress);
-
-      float ang = atan(sd.y, sd.x);
-      float rays = 0.5 + 0.5 * sin(ang * 8.0 + t * 0.3);
-      float sunHalo = exp(-sDist * 9.5) * (0.65 + 0.2 * rays) * sVis;
-      if (sunHalo > thresh * 0.85) {
-        col = mix(col, uSunCol, 0.34);
-      }
-      if (sDist < sRad && sVis > 0.05) {
-        vec3 core = mix(uSunCol, vec3(1.0, 0.98, 0.92), smoothstep(sRad, 0.0, sDist) * 0.55);
-        col = mix(col, core, clamp(sVis, 0.0, 1.0));
-      }
-    }
-
-    // Sculpted 3-tone cumulus cloud banks framing upper-left & upper-right
-    vec2 cloudUv = uv + par * 0.12;
-    vec3 cl = evalCumulus(cloudUv, t);
-    float cDens = cl.x;
-    if (cDens > 0.02) {
-      float edgeSoft = smoothstep(0.02, 0.22, cDens);
-      // Crisp pixel-art cloud contour with slight Bayer feathering on outer edge
-      if (edgeSoft > thresh * 0.82) {
-        float lit = cl.z;
-        vec3 cCol;
-        if (lit < 0.60) {
-          cCol = ditherMix(uCloudShad, uCloudLit, lit / 0.60, thresh, 4.0);
-        } else {
-          cCol = ditherMix(uCloudLit, uCloudHi, (lit - 0.60) / 0.40, thresh, 3.0);
-        }
-        if (lit > 0.88 && edgeSoft > 0.38) {
-          cCol = mix(cCol, uCloudHi, 0.78);
-        }
-        col = mix(col, cCol, 0.96);
-      }
-    }
-
-    // Gliding Pixel Birds (delicate 2-frame wing-flap silhouettes)
-    for (int i = 0; i < 5; i++) {
-      vec4 b = uBirds[i];
-      if (b.w == 0.0) continue;
-      vec2 bPos = b.xy - par * 0.20;
-      vec2 dPx = floor((uv - bPos) * uResolution);
-      if (abs(dPx.x) <= 4.0 && abs(dPx.y) <= 2.0) {
-        float flap = sin(b.z);
-        bool hit = false;
-        int ix = int(dPx.x);
-        int iy = int(dPx.y);
-        if (abs(b.w) > 1.2) {
-          if (ix == 0 && iy == 0) hit = true;
-          if (flap > 0.0) {
-            if ((abs(ix) == 1 && iy == 1) || (abs(ix) == 2 && iy == 2) || (abs(ix) == 3 && iy == 1)) hit = true;
-          } else {
-            if ((abs(ix) == 1 && iy == 0) || (abs(ix) == 2 && iy == -1) || (abs(ix) == 3 && iy == -1)) hit = true;
-          }
-        } else {
-          if (ix == 0 && iy == 0) hit = true;
-          if (flap > 0.0) {
-            if ((abs(ix) == 1 && iy == 1) || (abs(ix) == 2 && iy == 1)) hit = true;
-          } else {
-            if ((abs(ix) == 1 && iy == 0) || (abs(ix) == 2 && iy == -1)) hit = true;
-          }
-        }
-        if (hit) {
-          col = mix(col, uWildlifeCol, 0.82);
-        }
-      }
-    }
+    col = applyCelestials(col, uv, celOff, horizonY, aspect, t, thresh, false);
+    col = applyCloudLayers(col, uv, par, activeCelPos, thresh, 1.0);
   } else {
     // =======================================================================
-    // LAYER 3 — DEEP CALM HORIZON SEA WITH RAZOR-THIN HORIZONTAL SHIMMER STREAKS
+    // LAYER 3 — REALISTIC PIXEL-ART WATER (SKY & CLOUD REFLECTION + FRESNEL)
     // =======================================================================
     float depth = clamp((horizonY - uv.y) / max(0.01, horizonY), 0.0, 1.0);
     vec2 seaUv = uv + par * 0.40;
-
-    // Base deep slate-indigo water gradient (Bayer-dithered smoothly)
-    if (depth < 0.42) {
-      col = ditherMix(uSeaTop, uSeaMid, depth / 0.42, thresh, 5.0);
-    } else {
-      col = ditherMix(uSeaMid, uSeaDeep, (depth - 0.42) / 0.58, thresh, 5.0);
-    }
-
-    // Subtle wide flat horizontal perspective wave troughs across the whole sea
     float rowY = px.y;
-    float perspScale = mix(38.0, 10.0, sqrt(depth));
-    float waveBand = sin(seaUv.y * 190.0 * (1.2 - depth * 0.55) - t * (1.1 + uWindGust * 1.8) + sin(seaUv.x * 16.0 + t * 0.6) * 1.3);
-    float horizStreak = valueNoise(vec2(seaUv.x * perspScale + t * 0.18 * (0.4 + depth), floor(rowY * 0.5)));
-    if (horizStreak > 0.66 && waveBand > 0.15) {
-      col = mix(col, uSeaTop, 0.38 * (1.0 - depth * 0.35));
-    } else if (horizStreak < 0.30) {
-      col = mix(col, uSeaDeep, 0.42);
+
+    // Base deep slate-indigo water body (Bayer-dithered smoothly)
+    vec3 waterBody;
+    if (depth < 0.42) {
+      waterBody = ditherMix(uSeaTop, uSeaMid, depth / 0.42, thresh, 5.0);
+    } else {
+      waterBody = ditherMix(uSeaMid, uSeaDeep, (depth - 0.42) / 0.58, thresh, 5.0);
     }
 
-    // Crisp subtle warm twilight horizon hairline
-    float fromHor = (horizonY - uv.y) * uResolution.y;
-    if (fromHor < 1.5) {
-      col = mix(col, mix(uSeaTop, uSeaGlint, 0.35), 0.65);
-    } else if (fromHor < 7.0) {
-      float hReflect = (1.0 - fromHor / 7.0) * 0.22;
-      if (hReflect > thresh * 0.85) {
-        col = mix(col, uSkyLow, 0.42);
+    // Dispersive 4-octave perspective wave slopes driven by uWavePhases
+    float perspY = 1.0 / (0.048 + depth);
+    float nearMask = smoothstep(0.0, 0.11, depth);
+    float chopBoost = 1.0 + uWindGust * 0.35 + uMicroRipple * 0.45;
+
+    float ph0 = seaUv.x * 8.5 + perspY * 1.45 - uWavePhases.x;
+    float ph1 = -seaUv.x * 16.0 + perspY * 2.95 - uWavePhases.y;
+    float ph2 = seaUv.x * 28.0 + perspY * 5.60 - uWavePhases.z;
+    float ph3 = -seaUv.x * 46.0 + perspY * 10.20 - uWavePhases.w;
+
+    float c0 = cos(ph0);
+    float c1 = cos(ph1);
+    float c2 = cos(ph2);
+    float c3 = cos(ph3);
+
+    float dWaveX = (c0 * 0.24 - c1 * 0.28 + c2 * 0.24 * chopBoost - c3 * 0.16 * chopBoost) * (0.35 + 0.65 * nearMask);
+    float dWaveY = (c0 * 0.34 + c1 * 0.36 + c2 * 0.28 * chopBoost + c3 * 0.18 * chopBoost) * (0.28 + 0.72 * nearMask);
+
+    // Analytical radial height gradients from active splashes
+    float splashRingVis = 0.0;
+    for (int i = 0; i < 3; i++) {
+      vec4 sp = uSplashes[i];
+      if (sp.w <= 0.001 || sp.z > 1.85) continue;
+      float age = sp.z;
+      float rad = age * 0.125;
+      vec2 scaled = (uv - sp.xy) * vec2(aspect * 0.48, 2.55);
+      float dist = length(scaled);
+      if (dist > 0.0005 && dist < rad + 0.065) {
+        vec2 dir = scaled / dist;
+        float decay = max(0.0, 1.0 - age / 1.85) * sp.w;
+        float d1 = dist - rad;
+        float d2 = dist - rad * 0.58;
+        float g1 = -d1 * exp(-(d1 * d1) / 0.00018) * 120.0;
+        float g2 = -d2 * exp(-(d2 * d2) / 0.00010) * 90.0 * 0.65;
+        float radialSlope = (g1 + g2) * decay;
+        dWaveX += dir.x * radialSlope * 0.42;
+        dWaveY += dir.y * radialSlope * 0.72;
+
+        float ring1 = smoothstep(0.015, 0.0, abs(d1)) * decay;
+        float ring2 = smoothstep(0.010, 0.0, abs(d2)) * decay * 0.65;
+        splashRingVis = max(splashRingVis, max(ring1, ring2));
       }
     }
 
-    // Delicate sparse 1px horizontal specular shimmer dashes (matching reference reflection path)
-    vec2 celOff = par * 0.22;
-    float activeRefX = mix(mix(0.45, uMoonPos.x - celOff.x, 0.42), uSunPos.x - celOff.x, uDayProgress);
-    float coneHalfW = 0.048 + depth * 0.095;
-    float wobble = sin(rowY * 0.42 - t * (1.7 + uWindGust * 2.4 + uMicroRipple * 3.8)) * (0.007 + depth * 0.015);
-    float distFromCenter = abs((uv.x + wobble) - activeRefX);
+    // Mirror-sample sky gradient, moon/sun glow column & volumetric clouds
+    vec2 reflUv = vec2(
+      seaUv.x + dWaveX * 0.032,
+      horizonY + (horizonY - uv.y) * 1.12 + dWaveY * 0.025
+    );
+    reflUv.y = clamp(reflUv.y, horizonY + 0.001, 0.999);
+
+    vec3 reflCol = evalSkyGradient(reflUv, horizonY, thresh);
+    reflCol = applyCelestials(reflCol, reflUv, celOff, horizonY, aspect, t, thresh, true);
+    reflCol = applyCloudLayers(reflCol, reflUv, par, activeCelPos, thresh, 0.92);
+
+    // Schlick Fresnel reflection blend
+    float fresnel = 0.06 + 0.84 * pow(max(0.0, 1.0 - clamp(depth * 1.35, 0.0, 1.0)), 3.6);
+    fresnel = clamp(fresnel + dWaveY * 0.045 * (1.0 - depth * 0.45), 0.04, 0.94);
+    col = mix(waterBody, reflCol, fresnel);
+
+    // Subtle horizon atmospheric haze + crisp twilight horizon hairline
+    float marineHaze = exp(-depth * 9.0) * 0.12;
+    col = mix(col, mix(uSkyLow, uSeaTop, 0.36), marineHaze);
+
+    float fromHor = (horizonY - uv.y) * uResolution.y;
+    if (fromHor < 1.35) {
+      col = mix(col, mix(uSeaTop, uSeaGlint, 0.35), 0.58);
+    } else if (fromHor < 6.0) {
+      float hReflect = (1.0 - fromHor / 6.0) * 0.18;
+      if (hReflect > thresh * 0.85) {
+        col = mix(col, uSkyLow, 0.36);
+      }
+    }
+
+    // Slope-aligned horizontal specular moonlight/sunlight glints
+    float activeRefX = mix(mix(0.45, activeCelPos.x, 0.42), activeCelPos.x, uDayProgress);
+    float coneHalfW = 0.046 + depth * 0.095;
+    float distFromCenter = abs((uv.x + dWaveX * 0.015) - activeRefX);
     float envelope = exp(-(distFromCenter * distFromCenter) / (2.0 * coneHalfW * coneHalfW));
 
-    // Sparse crisp 1px-tall pixel-row dashes (serene dark water stays dominant)
+    float slopeAlign = smoothstep(0.08, 0.74, dWaveY * 0.82 + 0.36 - abs(dWaveX) * 0.22);
     float rowHash = hash11(rowY * 1.37);
     float rowActive = step(0.56 - uMicroRipple * 0.16 - uWindGust * 0.12, rowHash);
     float dashFreq = mix(64.0, 28.0, depth);
-    float dashShift = t * (0.5 + rowHash * 0.55 + uWindGust * 1.2) * (rowHash > 0.5 ? 1.0 : -1.0);
+    float dashShift = t * (0.48 + rowHash * 0.55 + uWindGust * 1.15) * (rowHash > 0.5 ? 1.0 : -1.0);
     float dashVal = valueNoise(vec2(seaUv.x * dashFreq + dashShift, rowY * 0.92));
-    float shimmer = envelope * rowActive * smoothstep(0.60 - envelope * 0.14, 0.80, dashVal);
-    shimmer *= (1.0 - depth * 0.38) * (1.0 + uWindGust * 0.30 + uMicroRipple * 0.55);
+    float shimmer = envelope * rowActive * slopeAlign * smoothstep(0.52 - envelope * 0.14, 0.78, dashVal);
+    shimmer *= (1.0 - depth * 0.35) * (1.0 + uWindGust * 0.30 + uMicroRipple * 0.55);
 
-    if (shimmer > 0.28) {
-      float bright = smoothstep(0.28, 0.72, shimmer);
-      vec3 gCol = mix(uSeaGlint, vec3(1.0, 0.96, 0.86), bright * 0.42);
-      col = mix(col, gCol, clamp(0.42 + bright * 0.50, 0.0, 0.90));
+    if (shimmer > 0.24) {
+      float bright = smoothstep(0.24, 0.70, shimmer);
+      vec3 gCol = mix(uSeaGlint, vec3(1.0, 0.96, 0.86), bright * 0.44);
+      col = mix(col, gCol, clamp(0.44 + bright * 0.48, 0.0, 0.92));
     }
 
-    // Scattered micro ambient glints across the sea near horizon
+    // Scattered micro ambient glints on aligned wave crests near horizon
     float ambGlint = valueNoise(vec2(seaUv.x * 46.0 - t * 0.35, rowY * 0.9));
-    if (ambGlint > 0.87 && depth < 0.55 && rowHash > 0.62) {
+    if (ambGlint > 0.85 && slopeAlign > 0.52 && depth < 0.58 && rowHash > 0.60) {
       col = mix(col, uSeaGlint, 0.28 * (1.0 - depth));
     }
 
-    // Interactive horizontal expanding pixel ripple rings (clicks + fish splashes)
-    for (int i = 0; i < 3; i++) {
-      vec4 sp = uSplashes[i];
-      if (sp.w <= 0.001 || sp.z > 1.8) continue;
-      float age = sp.z;
-      float rad = age * 0.125;
-      vec2 d = (uv - sp.xy) * vec2(aspect * 0.48, 2.55);
-      float dist = length(d);
-      float ring1 = abs(dist - rad);
-      float ring2 = abs(dist - rad * 0.58);
-      float decay = max(0.0, 1.0 - age / 1.8) * sp.w;
-      float w = max(smoothstep(0.015, 0.0, ring1) * decay, smoothstep(0.010, 0.0, ring2) * decay * 0.65);
-      if (w > thresh * 0.62) {
-        col = mix(col, uSeaGlint, clamp(w * 0.85, 0.32, 0.88));
-      }
+    // Pixel ripple crest glints from active splashes
+    if (splashRingVis > thresh * 0.60) {
+      col = mix(col, uSeaGlint, clamp(splashRingVis * 0.85, 0.30, 0.88));
     }
   }
 
   // =========================================================================
-  // JUMPING PIXEL FISH & 1px WATER SPLASH DROPLETS (Sea-to-Sky breach)
+  // 8 GRAVITY WATER DROPLETS (Impact arcs from sea clicks & intro drop)
   // =========================================================================
-  if (uFish.w > 0.5) {
-    vec2 fPos = uFish.xy - par * 0.40;
-    vec2 diff = (uv - fPos) * uResolution;
-    float ca = cos(-uFish.z);
-    float sa = sin(-uFish.z);
-    vec2 rot = vec2(diff.x * ca - diff.y * sa, diff.x * sa + diff.y * ca);
-    if (abs(rot.x) < 7.0 && abs(rot.y) < 4.5) {
-      bool inBody = (rot.x * rot.x) / 14.0 + (rot.y * rot.y) / 3.8 <= 1.0;
-      bool inTail = (rot.x < -3.0 && rot.x > -6.2 && abs(rot.y) < (-rot.x - 2.4) * 0.88 && abs(rot.y) > (-rot.x - 5.0) * 0.34);
-      if (inBody || inTail) {
-        col = mix(uGrassBack, uSeaGlint, rot.y > 0.25 ? 0.85 : 0.32);
-      }
-    }
-  }
-
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 8; i++) {
     vec4 dr = uDrops[i];
     if (dr.z <= 0.01) continue;
     vec2 dPos = dr.xy - par * 0.40;
@@ -679,24 +824,28 @@ void main() {
   }
 
   // =========================================================================
-  // LAYER 4 — U-SHAPED FOREGROUND MEADOW OF ARCHING CURVED GRASS FRONDS
-  // Multi-cell sweep (-5..5) so long curved blades arch gracefully without clipping
+  // LAYER 4 — U-SHAPED FOREGROUND MEADOW OF WIND-DRIVEN ARCHING GRASS
   // =========================================================================
   if (uv.y < 0.37) {
-    // U-shaped meadow height envelope: lush tall framing hills on left/right, low dip in center
-    float edgeDist = abs(uv.x - 0.5) * 2.0; // 0 at center, 1 at screen edges
-    float uBowl = 0.46 + 0.54 * pow(edgeDist, 1.45);
+    float edgeDist = abs(uv.x - 0.5) * 2.0;
 
-    // Rich dark vegetated shoreline bank right along the bottom edge so roots blend organically
-    float bankH = (0.048 + 0.068 * pow(edgeDist, 1.4)) * (0.86 + 0.24 * sin(uv.x * 16.0) + 0.12 * sin(uv.x * 39.0));
+    // Rich dark vegetated shoreline bank right along bottom edge
+    float bankH = (0.048 + 0.068 * pow(max(0.0, edgeDist), 1.4))
+                * (0.86 + 0.24 * sin(uv.x * 16.0) + 0.12 * sin(uv.x * 39.0));
     if (uv.y < bankH) {
-      col = ditherMix(uGrassFront, uGrassMid, uv.y / max(0.001, bankH), thresh, 3.0);
+      float soilGrain = fbm(vec2(uv.x * 92.0, uv.y * 58.0));
+      float bankTone = clamp(uv.y / max(0.001, bankH) * 0.66 + soilGrain * 0.34, 0.0, 1.0);
+      col = ditherMix(uGrassFront, uGrassMid, bankTone, thresh, 5.0);
+      if (soilGrain > 0.79 && uv.y > bankH * 0.45 && thresh > 0.42) {
+        col = mix(col, uGrassBack, 0.24);
+      }
     }
 
-    // 3 overlapping lush tiers: 0 = tall backlit golden reeds, 1 = dense mid olive meadow, 2 = bold obsidian foreground fronds
+    // 3 overlapping lush tiers: 0 = tall backlit reeds, 1 = dense mid meadow, 2 = bold foreground fronds
     for (int layer = 0; layer < 3; layer++) {
       float lf = float(layer);
-      float layerParallax = 0.65 + lf * 0.175; // 0.65 -> 0.825 -> 1.0x
+      float layerParallax = 0.65 + lf * 0.175;
+      float layerBend = (layer == 0) ? uGrassBend[0] : (layer == 1) ? uGrassBend[1] : uGrassBend[2];
       float gxPx = px.x + par.x * uResolution.x * layerParallax;
 
       float spacing = (layer == 0) ? 3.2 : (layer == 1) ? 3.8 : 4.6;
@@ -707,6 +856,7 @@ void main() {
       bool hitSeedHead = false;
       float bestTY = 0.0;
       float bestSeed = 0.0;
+      float bestLightCatch = 0.5;
 
       for (int dc = -6; dc <= 6; dc++) {
         float cellId = baseCell + float(dc);
@@ -715,31 +865,33 @@ void main() {
         float seed3 = hash11(cellId * 4.13 + lf * 31.1);
         float cellCenter = (cellId + 0.12 + seed2 * 0.76) * spacing;
 
-        // Evaluate local U-bowl envelope at blade root X
         float rootU = clamp((cellCenter - par.x * uResolution.x * layerParallax) / max(1.0, uResolution.x), 0.0, 1.0);
         float rootEdge = abs(rootU - 0.5) * 2.0;
-        float rootBowl = 0.44 + 0.56 * pow(rootEdge, 1.42);
+        float rootBowl = 0.44 + 0.56 * pow(max(0.0, rootEdge), 1.42);
         float clump = 0.80 + 0.24 * sin(cellId * 0.27 + lf * 2.1) + 0.14 * sin(cellId * 0.71 - lf * 1.3);
 
-        // Tall sweeping meadow blades in pixels
         float maxFrac = (layer == 0) ? 0.265 : (layer == 1) ? 0.215 : 0.175;
         float bladeH = uResolution.y * (0.085 + seed * maxFrac) * rootBowl * clump;
 
         float tY = px.y / max(1.0, bladeH);
         if (tY < 0.0 || tY > 1.0) continue;
 
-        // Natural wild-grass arch in both directions (sweeping left & right clusters)
         float sideBias = (rootU < 0.5) ? 0.22 : -0.22;
         float dirSign = (seed3 + sideBias > 0.5) ? 1.0 : -1.0;
         float archStrength = (11.0 + seed2 * 22.0) * (0.68 + 0.42 * rootBowl);
         float baseArch = dirSign * archStrength;
 
-        // Continuous organic wind ripple + tab-switch gust sweep
-        float gustWave = uWindGust * sin(rootU * 7.5 - t * 5.8) * 1.5;
-        float windSway = sin(t * (1.35 + seed * 0.6) + cellId * 0.33 + lf * 1.9) * (3.2 + seed * 2.5)
-                       + gustWave * 11.0;
+        // Coherent 2D travelling wind field + per-tier spring uGrassBend + tab gust
+        float gustFront = pow(max(0.0, 0.5 + 0.5 * sin(rootU * 5.2 - t * 0.95)), 3.0);
+        float rollingWave = sin(rootU * 11.5 - t * 2.25 + lf * 0.45 + seed * 0.32) * (4.4 + seed * 3.2);
+        float crossRipple = sin(rootU * 19.0 - t * 3.6 + cellId * 0.11) * 1.85;
+        float tipFlutter = sin(t * (4.2 + seed * 1.8) + cellId * 0.83) * 1.2;
+        float springSway = layerBend * (26.0 + lf * 6.0);
+        float interactiveGust = uWindGust * (7.5 + 11.5 * sin(rootU * 8.2 - t * 5.9));
+        float windSway = (2.2 + gustFront * 8.5 + rollingWave + crossRipple + springSway + interactiveGust)
+                       * (0.76 + rootBowl * 0.30);
 
-        // Smooth cursor repulsion physics (parts arched blades cleanly away from mouse)
+        // Smooth cursor repulsion physics
         float cursorBend = 0.0;
         if (uMouseActive > 0.01 && uReducedMotion < 0.5) {
           float mousePxX = uMouse.x * uResolution.x + par.x * uResolution.x * layerParallax;
@@ -753,45 +905,60 @@ void main() {
         }
 
         float totalLean = baseArch + windSway + cursorBend;
-        float bladeX = cellCenter + totalLean * pow(tY, 1.78);
+        float bladeCurve = baseArch * pow(max(0.0, tY), 1.72)
+                         + windSway * pow(max(0.0, tY), 1.30)
+                         + tipFlutter * (tY * tY)
+                         + cursorBend * pow(max(0.0, tY), 1.42);
+        bladeCurve += sin(tY * 3.4 + seed * 6.2831) * 1.25 * tY;
+        float bladeX = cellCenter + bladeCurve;
 
         float baseW = (layer == 0) ? 1.45 : (layer == 1) ? 1.90 : 2.55;
-        float halfW = mix(baseW, 0.38, pow(tY, 0.72));
+        float halfW = mix(baseW, 0.38, pow(max(0.0, tY), 0.72));
 
         float dxBlade = gxPx - bladeX;
         if (abs(dxBlade) <= halfW) {
           hitBlade = true;
           bestTY = tY;
           bestSeed = seed;
-          float litSide = (totalLean >= 0.0) ? -1.0 : 1.0;
-          hitRim = (dxBlade * litSide > halfW - 1.1) && (tY > 0.30);
+          float toLight = (activeCelPos.x >= rootU) ? 1.0 : -1.0;
+          float leanDir = (totalLean >= 0.0) ? -1.0 : 1.0;
+          float litSide = mix(leanDir, toLight, 0.45) >= 0.0 ? 1.0 : -1.0;
+          hitRim = (dxBlade * litSide > halfW - 1.15) && (tY > 0.28);
           hitSeedHead = (layer == 0 && tY > 0.80 && seed2 > 0.56);
+          float towardLight = clamp((totalLean * toLight) / 26.0, -0.35, 1.0);
+          float sunProx = exp(-pow((rootU - activeCelPos.x) * 1.85, 2.0));
+          bestLightCatch = clamp(0.42 + towardLight * 0.42 + sunProx * 0.22, 0.18, 1.0);
         }
       }
 
       if (hitBlade) {
         vec3 gCol = (layer == 0) ? uGrassBack : (layer == 1) ? uGrassMid : uGrassFront;
 
+        // Root ambient occlusion near tY = 0 keeps all 3 meadow tiers grounded
+        float rootAO = smoothstep(0.0, 0.38, bestTY);
+        gCol = mix(uGrassFront * 0.65, gCol, 0.32 + 0.68 * rootAO);
+
+        // Warm backlit subsurface translucency & curved-tip highlights
+        float tipCurveGlow = smoothstep(0.26, 0.97, bestTY) * bestLightCatch;
+
         if (layer == 0) {
-          // Back sunlit/moonlit wheat-gold reeds catching twilight along upper half
-          float tipGlow = smoothstep(0.28, 0.95, bestTY);
-          gCol = mix(uGrassMid, uGrassBack, 0.45 + 0.55 * tipGlow);
-          if (hitRim || hitSeedHead || (tipGlow * (0.55 + 0.45 * bestSeed) > thresh)) {
-            gCol = mix(gCol, uGrassTip, hitSeedHead ? 0.92 : 0.78);
+          gCol = mix(uGrassMid, uGrassBack, 0.28 + 0.72 * tipCurveGlow);
+          gCol = mix(uGrassFront * 0.70, gCol, 0.34 + rootAO * 0.66);
+          if (hitRim || hitSeedHead || (tipCurveGlow * (0.48 + 0.52 * bestSeed) > thresh)) {
+            gCol = mix(gCol, uGrassTip, hitSeedHead ? 0.92 : clamp(0.55 + bestLightCatch * 0.32, 0.0, 0.90));
           }
         } else if (layer == 1) {
-          // Mid olive-umber tufts with selective warm rim highlights on arched backs
-          if (hitRim && bestTY > 0.42) {
-            gCol = mix(gCol, uGrassBack, 0.82);
-          } else if (bestTY > 0.72 && (bestTY - 0.55) > thresh) {
-            gCol = mix(gCol, uGrassTip, 0.42);
+          if (hitRim && bestTY > 0.32) {
+            gCol = mix(gCol, mix(uGrassBack, uGrassTip, bestLightCatch * 0.42), 0.74);
+          } else if (bestTY > 0.64 && (tipCurveGlow - 0.36) > thresh * 0.85) {
+            gCol = mix(gCol, uGrassTip, 0.38 * bestLightCatch);
           }
         } else {
-          // Front crisp obsidian silhouettes with delicate 1px golden edge glints on upper curves
-          if (hitRim && bestTY > 0.50 && bestSeed > 0.38) {
-            gCol = mix(gCol, uGrassBack, 0.76);
-          } else if (bestTY > 0.84 && bestSeed > 0.65) {
-            gCol = mix(gCol, uGrassTip, 0.45);
+          gCol = mix(gCol, uGrassMid, bestTY * 0.20 * bestLightCatch);
+          if (hitRim && bestTY > 0.42 && bestSeed > 0.30) {
+            gCol = mix(gCol, mix(uGrassBack, uGrassTip, bestLightCatch * 0.32), 0.68);
+          } else if (bestTY > 0.80 && bestSeed > 0.58) {
+            gCol = mix(gCol, uGrassTip, 0.42 * bestLightCatch);
           }
         }
         col = gCol;
@@ -799,7 +966,8 @@ void main() {
     }
   }
 
-  fragColor = vec4(col, 1.0);
+  col = applyWorldEntrance(col, uv, horizonY, aspect, thresh);
+  fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 `;
 
@@ -836,8 +1004,7 @@ const mixWorldPalette = (a: WorldPalette, b: WorldPalette, t: number): WorldPale
   grassBack: lerpRGB(a.grassBack, b.grassBack, t),
   grassMid: lerpRGB(a.grassMid, b.grassMid, t),
   grassFront: lerpRGB(a.grassFront, b.grassFront, t),
-  grassTip: lerpRGB(a.grassTip, b.grassTip, t),
-  wildlife: lerpRGB(a.wildlife, b.wildlife, t)
+  grassTip: lerpRGB(a.grassTip, b.grassTip, t)
 });
 
 function compileShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader | null {
@@ -897,6 +1064,11 @@ export function initPixelLandscape(
     uWindGust: U('uWindGust'),
     uMicroRipple: U('uMicroRipple'),
     uReducedMotion: U('uReducedMotion'),
+    uIntroProgress: U('uIntroProgress'),
+    uIntroDrop: U('uIntroDrop'),
+    uCloudOffset: U('uCloudOffset'),
+    uWavePhases: U('uWavePhases'),
+    uGrassBend: U('uGrassBend[0]'),
     uSkyTop: U('uSkyTop'),
     uSkyMid: U('uSkyMid'),
     uSkyLow: U('uSkyLow'),
@@ -913,12 +1085,9 @@ export function initPixelLandscape(
     uGrassMid: U('uGrassMid'),
     uGrassFront: U('uGrassFront'),
     uGrassTip: U('uGrassTip'),
-    uWildlifeCol: U('uWildlifeCol'),
     uMoonPos: U('uMoonPos'),
     uSunPos: U('uSunPos'),
     uSplashes: U('uSplashes[0]'),
-    uBirds: U('uBirds[0]'),
-    uFish: U('uFish'),
     uDrops: U('uDrops[0]')
   };
 
@@ -930,14 +1099,14 @@ export function initPixelLandscape(
   };
   mq.addEventListener?.('change', onMqChange);
 
-  // Fine painterly pixel-art virtual resolution (~640x400 at 1440x900)
+  // Crisp painterly virtual pixel resolution
   let vw = 640;
-  let vh = 400;
+  let vh = 360;
   const resize = () => {
     const cw = Math.max(1, window.innerWidth);
     const ch = Math.max(1, window.innerHeight);
-    vw = Math.max(360, Math.min(680, Math.round(cw / 2.25)));
-    vh = Math.max(200, Math.round(vw * (ch / cw)));
+    vw = Math.max(360, Math.min(720, Math.round(cw / 2.1)));
+    vh = Math.max(210, Math.round(vw * (ch / cw)));
     canvas.width = vw;
     canvas.height = vh;
     gl.viewport(0, 0, vw, vh);
@@ -961,10 +1130,33 @@ export function initPixelLandscape(
   let palLerp = 1;
   const PAL_DURATION = 400;
 
-  // Interactive pointer + gust + ripples
+  // Interactive pointer + gust + ripples + atmospheric phases
   const mouse = { tx: 0.5, ty: 0.5, x: 0.5, y: 0.5, active: 0, targetActive: 0 };
   let windGust = 0;
   let microRipple = 0;
+  let cloudOffset = 0;
+  let simulationTime = 0;
+  const wavePhases = new Float32Array(4);
+  const waveLengths = [6.0, 2.7, 1.1, 0.43];
+  const grassBendBuf = new Float32Array(3);
+  const grassMotion = [0.55, 0.8, 1.1].map((frequency, i) => ({
+    angle: 0.035,
+    velocity: 0,
+    omega: Math.PI * 2 * frequency,
+    damping: 0.42 + i * 0.04
+  }));
+  grassMotion.forEach((blade, i) => { grassBendBuf[i] = blade.angle; });
+
+  const scalarHash = (n: number) => {
+    const x = Math.sin(n * 127.1 + 31.7) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  const sampleGust = (x: number) => {
+    const i = Math.floor(x);
+    const f = x - i;
+    const s = f * f * (3 - 2 * f);
+    return lerp(scalarHash(i), scalarHash(i + 1), s);
+  };
 
   // Splashes (up to 3)
   interface Splash { x: number; y: number; born: number; strength: number; }
@@ -974,84 +1166,26 @@ export function initPixelLandscape(
     if (splashes.length > 3) splashes.shift();
   };
 
-  // Birds (4 gliding sky silhouettes cruising in the open upper sky)
-  interface Bird {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    baseVx: number;
-    homeY: number;
-    flap: number;
-    flapSpeed: number;
-    size: number;
-  }
-  const birds: Bird[] = [
-    { x: 0.34, y: 0.80, vx: 0.014, vy: 0, baseVx: 0.014, homeY: 0.80, flap: 0.0, flapSpeed: 4.2, size: 1.4 },
-    { x: 0.39, y: 0.77, vx: 0.013, vy: 0, baseVx: 0.013, homeY: 0.77, flap: 1.5, flapSpeed: 4.5, size: 1.0 },
-    { x: 0.58, y: 0.84, vx: -0.012, vy: 0, baseVx: -0.012, homeY: 0.84, flap: 2.4, flapSpeed: 4.0, size: 1.4 },
-    { x: 0.63, y: 0.81, vx: -0.011, vy: 0, baseVx: -0.011, homeY: 0.81, flap: 0.8, flapSpeed: 4.3, size: 1.0 }
-  ];
-
-  // Jumping fish + 6 gravity droplets
-  interface FishState {
-    active: boolean;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    angle: number;
-    waterY: number;
-    nextJumpAt: number;
-  }
-  const fish: FishState = {
-    active: false,
-    x: 0.5,
-    y: 0.28,
-    vx: 0,
-    vy: 0,
-    angle: 0,
-    waterY: 0.28,
-    nextJumpAt: performance.now() + 3400
-  };
-
+  // 8 gravity droplets
   interface Droplet { x: number; y: number; vx: number; vy: number; alpha: number; }
-  const drops: Droplet[] = Array.from({ length: 6 }, () => ({ x: -1, y: -1, vx: 0, vy: 0, alpha: 0 }));
+  const drops: Droplet[] = Array.from({ length: 8 }, () => ({ x: -1, y: -1, vx: 0, vy: 0, alpha: 0 }));
 
   const spawnDroplets = (x: number, y: number) => {
     for (let i = 0; i < drops.length; i++) {
-      const spread = (i / (drops.length - 1) - 0.5) * 0.08 + (Math.random() - 0.5) * 0.02;
+      const spread = (i / (drops.length - 1) - 0.5) * 0.11 + (Math.random() - 0.5) * 0.018;
       drops[i].x = x;
       drops[i].y = y + 0.005;
       drops[i].vx = spread;
-      drops[i].vy = 0.08 + Math.random() * 0.065;
+      drops[i].vy = 0.085 + Math.random() * 0.07;
       drops[i].alpha = 1.0;
     }
   };
 
-  const launchFish = (xUv?: number, yUv?: number) => {
-    const sx = xUv !== undefined ? Math.max(0.16, Math.min(0.84, xUv)) : 0.28 + Math.random() * 0.44;
-    const wy = yUv !== undefined ? Math.max(0.21, Math.min(0.35, yUv)) : 0.24 + Math.random() * 0.09;
-    const dir = sx > 0.5 ? -1 : 1;
-    fish.active = true;
-    fish.x = sx;
-    fish.y = wy;
-    fish.waterY = wy;
-    fish.vx = dir * (0.06 + Math.random() * 0.03);
-    fish.vy = 0.22 + Math.random() * 0.045;
-    fish.angle = Math.atan2(fish.vy, fish.vx);
-    pushSplash(sx, wy, 0.95);
-    spawnDroplets(sx, wy);
-  };
-
-  // Celestial parabolic arc coordinates in open starry sky pockets (clear of corner cumulus banks)
   const getCelestialCoords = (dp: number): { moon: [number, number]; sun: [number, number] } => {
-    // Moon: at dp=0 sits gracefully in open upper-left-center sky (0.37, 0.87)
     const mt = dp;
     const moonX = 0.37 - mt * 0.14;
     const moonY = 0.87 - mt * mt * 0.56 - mt * 0.05;
 
-    // Sun: at dp=1 sits gracefully in open upper-right-center sky (0.63, 0.86)
     const st = 1 - dp;
     const sunX = 0.63 + st * 0.14;
     const sunY = 0.86 - st * st * 0.56 - st * 0.05;
@@ -1073,17 +1207,19 @@ export function initPixelLandscape(
   window.addEventListener('resize', resize);
 
   const splashBuf = new Float32Array(3 * 4);
-  const birdBuf = new Float32Array(5 * 4);
-  const dropBuf = new Float32Array(6 * 4);
+  const dropBuf = new Float32Array(8 * 4);
 
-  let startTime = performance.now();
+  const startTime = performance.now();
   let lastTime = startTime;
   let rafId = 0;
+  const INTRO_DURATION = 1850;
+  let introImpactTriggered = reducedMotion;
 
   const renderSingleFrame = (now: number) => {
     const dt = Math.min(0.05, Math.max(0.001, (now - lastTime) * 0.001));
     lastTime = now;
-    const elapsed = (now - startTime) * 0.001;
+    if (!reducedMotion) simulationTime += dt;
+    const elapsed = simulationTime;
 
     // 1. Day/Night cubic ease-in-out arc (900ms)
     if (dayProgress !== dayTarget) {
@@ -1111,44 +1247,40 @@ export function initPixelLandscape(
     windGust = Math.max(0, windGust * Math.pow(0.18, dt));
     microRipple = Math.max(0, microRipple * Math.pow(0.08, dt));
 
-    // 4. Update Birds & Interactive Scatter
-    if (!reducedMotion) {
-      for (let i = 0; i < birds.length; i++) {
-        const b = birds[i];
-        if (mouse.active > 0.1) {
-          const dx = b.x - mouse.x;
-          const dy = b.y - mouse.y;
-          if (dx * dx + dy * dy < 0.085 * 0.085) {
-            b.vx = b.baseVx * 2.1;
-            b.vy = Math.min(0.045, b.vy + 0.09 * dt);
-            b.flapSpeed = 12.5;
-          }
-        }
-        b.vx += (b.baseVx - b.vx) * Math.min(1, dt * 2.2);
-        b.vy += ((b.homeY - b.y) * 0.45 - b.vy) * Math.min(1, dt * 2.5);
-        b.flapSpeed += (4.3 - b.flapSpeed) * Math.min(1, dt * 3.0);
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-        b.flap += b.flapSpeed * dt;
-        if (b.baseVx > 0 && b.x > 1.06) b.x = -0.06;
-        if (b.baseVx < 0 && b.x < -0.06) b.x = 1.06;
-      }
+    // 4. Intro drop + one-shot impact into open sea
+    const introProgress = reducedMotion ? 1.0 : Math.min(1, (now - startTime) / INTRO_DURATION);
+    const introDropX = 0.48;
+    let introDropY = 0.27;
+    let introDropVis = 0.0;
 
-      // 5. Update Jumping Fish & Droplets
-      if (!fish.active && now >= fish.nextJumpAt) {
-        launchFish();
+    if (!reducedMotion && introProgress < 0.24) {
+      const tDrop = introProgress / 0.24;
+      introDropY = 0.96 - (0.96 - 0.27) * (tDrop * tDrop);
+      introDropVis = Math.min(1.0, tDrop * 4.5);
+    } else if (!reducedMotion && !introImpactTriggered) {
+      introImpactTriggered = true;
+      pushSplash(0.48, 0.27, 1.45);
+      spawnDroplets(0.48, 0.27);
+      windGust = Math.max(windGust, 0.95);
+    }
+
+    // 5. Update atmospheric cloud drift, dispersive wave phases, grass springs & droplets
+    if (!reducedMotion) {
+      cloudOffset += dt * 0.0035 * (1 + windGust * 0.22);
+      for (let i = 0; i < waveLengths.length; i++) {
+        const k = (Math.PI * 2) / waveLengths[i];
+        const omega = Math.sqrt(9.81 * k * Math.tanh(k * 3.2));
+        wavePhases[i] += omega * dt;
       }
-      if (fish.active) {
-        fish.x += fish.vx * dt;
-        fish.y += fish.vy * dt;
-        fish.vy -= 0.56 * dt;
-        fish.angle = Math.atan2(fish.vy, fish.vx);
-        if (fish.vy < 0 && fish.y <= fish.waterY) {
-          fish.active = false;
-          pushSplash(fish.x, fish.waterY, 1.05);
-          spawnDroplets(fish.x, fish.waterY);
-          fish.nextJumpAt = now + 4500 + Math.random() * 4500;
-        }
+      for (let i = 0; i < grassMotion.length; i++) {
+        const blade = grassMotion[i];
+        const gust = sampleGust(elapsed * 0.48 - i * 0.41);
+        const target = 0.025 + gust * gust * 0.19 + windGust * 0.045;
+        const acceleration = blade.omega * blade.omega * (target - blade.angle)
+          - 2 * blade.damping * blade.omega * blade.velocity;
+        blade.velocity += acceleration * dt;
+        blade.angle += blade.velocity * dt;
+        grassBendBuf[i] = blade.angle;
       }
 
       for (let i = 0; i < drops.length; i++) {
@@ -1175,15 +1307,6 @@ export function initPixelLandscape(
       splashBuf[i * 4 + 3] = sp.strength;
     }
 
-    birdBuf.fill(0);
-    for (let i = 0; i < birds.length; i++) {
-      const b = birds[i];
-      birdBuf[i * 4] = b.x;
-      birdBuf[i * 4 + 1] = b.y;
-      birdBuf[i * 4 + 2] = b.flap;
-      birdBuf[i * 4 + 3] = b.size;
-    }
-
     dropBuf.fill(0);
     for (let i = 0; i < drops.length; i++) {
       const dr = drops[i];
@@ -1203,6 +1326,11 @@ export function initPixelLandscape(
     gl.uniform1f(loc.uWindGust, windGust);
     gl.uniform1f(loc.uMicroRipple, microRipple);
     gl.uniform1f(loc.uReducedMotion, reducedMotion ? 1.0 : 0.0);
+    gl.uniform1f(loc.uIntroProgress, introProgress);
+    gl.uniform3f(loc.uIntroDrop, introDropX, introDropY, introDropVis);
+    gl.uniform1f(loc.uCloudOffset, cloudOffset);
+    gl.uniform4fv(loc.uWavePhases, wavePhases);
+    gl.uniform1fv(loc.uGrassBend, grassBendBuf);
 
     gl.uniform3fv(loc.uSkyTop, activePal.skyTop);
     gl.uniform3fv(loc.uSkyMid, activePal.skyMid);
@@ -1220,13 +1348,10 @@ export function initPixelLandscape(
     gl.uniform3fv(loc.uGrassMid, activePal.grassMid);
     gl.uniform3fv(loc.uGrassFront, activePal.grassFront);
     gl.uniform3fv(loc.uGrassTip, activePal.grassTip);
-    gl.uniform3fv(loc.uWildlifeCol, activePal.wildlife);
 
     gl.uniform2f(loc.uMoonPos, cel.moon[0], cel.moon[1]);
     gl.uniform2f(loc.uSunPos, cel.sun[0], cel.sun[1]);
     gl.uniform4fv(loc.uSplashes, splashBuf);
-    gl.uniform4fv(loc.uBirds, birdBuf);
-    gl.uniform4f(loc.uFish, fish.x, fish.y, fish.angle, fish.active ? 1.0 : 0.0);
     gl.uniform4fv(loc.uDrops, dropBuf);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -1317,8 +1442,12 @@ export function initPixelLandscape(
       const uy = 1.0 - clientY / Math.max(1, window.innerHeight);
       // Open sea region (between foreground grass and horizon at 0.365)
       if (uy >= 0.14 && uy <= 0.37) {
-        pushSplash(ux, Math.min(0.35, Math.max(0.18, uy)), 1.15);
-        if (!reducedMotion) launchFish(ux, Math.min(0.34, Math.max(0.21, uy)));
+        const wy = Math.min(0.35, Math.max(0.18, uy));
+        pushSplash(ux, wy, 1.25);
+        if (!reducedMotion) {
+          spawnDroplets(ux, wy);
+          microRipple = Math.min(1.4, microRipple + 0.5);
+        }
         return 'sea-splash';
       }
       return 'none';

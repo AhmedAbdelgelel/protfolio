@@ -2,13 +2,15 @@
 /**
  * Interactive architecture map for a case study.
  *
- * The SVG is server rendered, so the map is there without JavaScript: frames, orthogonal routes,
- * labels, numbered stages. The script adds the step machine: click a node or use the controls, the
- * focused stage and its co-active stages light, their routes animate, and the matching step panel
+ * The SVG is server rendered, so the map is there without JavaScript: multi-zone swimlanes,
+ * semantic node shapes, orthogonal routes with explicit waypoints, labels, and numbered stages.
+ * The script adds the step machine: click a node, scenario chip, or use the controls, the focused
+ * stage and its co-active stages light, their routes animate, and the matching step panel, trace,
  * and pill are selected.
  */
+import type { Lang } from '../i18n/ui';
 import type { Flow } from '../data/flows';
-import type { ArchGraph } from '../data/arch';
+import { NODE_HEIGHT, type ArchEdge, type ArchGraph, type EdgeSide, type NodeKind } from '../data/arch';
 
 interface Props {
   id: string;
@@ -16,54 +18,84 @@ interface Props {
   graph: ArchGraph;
   playLabel: string;
   pauseLabel: string;
+  lang?: Lang;
 }
 
-const { id, flow, graph, playLabel, pauseLabel } = Astro.props;
+const { id, flow, graph, playLabel, pauseLabel, lang } = Astro.props;
+const activeLang: Lang = lang ?? (id.startsWith('arch-ar-') ? 'ar' : 'en');
 const titleId = id + '-title';
 const markerId = id + '-arrow';
 
-const H = 60;
-const nodes = new Map(graph.nodes.map((node) => [node.id, { ...node, w: node.w ?? 140, h: H }]));
+const H = NODE_HEIGHT;
+const nodes = new Map(
+  graph.nodes.map((node) => [node.id, { ...node, w: node.w ?? 140, h: node.h ?? H }])
+);
 
-interface P { x: number; y: number }
-type Side = 'l' | 'r' | 't' | 'b';
+interface P {
+  x: number;
+  y: number;
+}
 
-const at = (node: { x: number; y: number; w: number; h: number }, side: Side): P => {
+type ResolvedNode = NonNullable<ReturnType<typeof nodes.get>>;
+
+const at = (node: ResolvedNode, side: EdgeSide): P => {
   if (side === 'l') return { x: node.x - node.w / 2, y: node.y };
   if (side === 'r') return { x: node.x + node.w / 2, y: node.y };
   if (side === 't') return { x: node.x, y: node.y - node.h / 2 };
   return { x: node.x, y: node.y + node.h / 2 };
 };
 
-/** A left-to-right, top-to-bottom orthogonal route between two boxes. */
-const route = (
-  a: NonNullable<ReturnType<typeof nodes.get>>,
-  b: NonNullable<ReturnType<typeof nodes.get>>,
-  fromDx = 0,
-  toDx = 0
-): P[] => {
-  const sameRow = Math.abs(a.y - b.y) < 1;
-  const sameCol = Math.abs(a.x + fromDx - (b.x + toDx)) < 1;
-
-  if (sameRow) {
-    return b.x > a.x ? [at(a, 'r'), at(b, 'l')] : [at(a, 'l'), at(b, 'r')];
+const defaultSides = (a: ResolvedNode, b: ResolvedNode): [EdgeSide, EdgeSide] => {
+  if (Math.abs(a.y - b.y) < 1) {
+    return b.x >= a.x ? ['r', 'l'] : ['l', 'r'];
   }
-  if (sameCol) {
-    const start = at(a, b.y > a.y ? 'b' : 't');
-    const end = at(b, b.y > a.y ? 't' : 'b');
-    return [{ x: start.x + fromDx, y: start.y }, { x: end.x + toDx, y: end.y }];
-  }
-
-  const down = b.y > a.y;
-  const rawStart = at(a, down ? 'b' : 't');
-  const rawEnd = at(b, down ? 't' : 'b');
-  const start = { x: rawStart.x + fromDx, y: rawStart.y };
-  const end = { x: rawEnd.x + toDx, y: rawEnd.y };
-  const mid = (start.y + end.y) / 2;
-  return [start, { x: start.x, y: mid }, { x: end.x, y: mid }, end];
+  return b.y >= a.y ? ['b', 't'] : ['t', 'b'];
 };
 
-/** Rounded polyline. */
+/** Orthogonal route between two boxes with optional port offsets and explicit waypoints. */
+const route = (a: ResolvedNode, b: ResolvedNode, edge: ArchEdge): P[] => {
+  const [autoFrom, autoTo] = defaultSides(a, b);
+  const fromSide = edge.fromSide ?? autoFrom;
+  const toSide = edge.toSide ?? autoTo;
+
+  const rawStart = at(a, fromSide);
+  const rawEnd = at(b, toSide);
+  const start: P = {
+    x: rawStart.x + (edge.fromDx ?? 0),
+    y: rawStart.y + (edge.fromDy ?? 0)
+  };
+  const end: P = {
+    x: rawEnd.x + (edge.toDx ?? 0),
+    y: rawEnd.y + (edge.toDy ?? 0)
+  };
+
+  if (edge.waypoints && edge.waypoints.length > 0) {
+    return [start, ...edge.waypoints, end];
+  }
+
+  const fromHoriz = fromSide === 'l' || fromSide === 'r';
+  const toHoriz = toSide === 'l' || toSide === 'r';
+
+  if (fromHoriz && toHoriz) {
+    if (Math.abs(start.y - end.y) < 1) return [start, end];
+    const midX = (start.x + end.x) / 2;
+    return [start, { x: midX, y: start.y }, { x: midX, y: end.y }, end];
+  }
+
+  if (!fromHoriz && !toHoriz) {
+    if (Math.abs(start.x - end.x) < 1) return [start, end];
+    const midY = (start.y + end.y) / 2;
+    return [start, { x: start.x, y: midY }, { x: end.x, y: midY }, end];
+  }
+
+  if (fromHoriz && !toHoriz) {
+    return [start, { x: end.x, y: start.y }, end];
+  }
+
+  return [start, { x: start.x, y: end.y }, end];
+};
+
+/** Rounded orthogonal polyline. */
 const rounded = (points: P[], radius = 10): string => {
   if (points.length === 0) return '';
   if (points.length === 1) return 'M ' + points[0].x + ' ' + points[0].y;
@@ -75,35 +107,73 @@ const rounded = (points: P[], radius = 10): string => {
     const next = points[i + 1];
     const inLength = Math.hypot(corner.x - prev.x, corner.y - prev.y);
     const outLength = Math.hypot(next.x - corner.x, next.y - corner.y);
+    if (!inLength || !outLength) {
+      d += ' L ' + corner.x + ' ' + corner.y;
+      continue;
+    }
     const r = Math.min(radius, inLength / 2, outLength / 2);
-    const before = { x: corner.x - ((corner.x - prev.x) / inLength || 0) * r, y: corner.y - ((corner.y - prev.y) / inLength || 0) * r };
-    const after = { x: corner.x + ((next.x - corner.x) / outLength || 0) * r, y: corner.y + ((next.y - corner.y) / outLength || 0) * r };
-    d += ' L ' + before.x + ' ' + before.y + ' Q ' + corner.x + ' ' + corner.y + ' ' + after.x + ' ' + after.y;
+    const before = {
+      x: corner.x - ((corner.x - prev.x) / inLength) * r,
+      y: corner.y - ((corner.y - prev.y) / inLength) * r
+    };
+    const after = {
+      x: corner.x + ((next.x - corner.x) / outLength) * r,
+      y: corner.y + ((next.y - corner.y) / outLength) * r
+    };
+    d +=
+      ' L ' +
+      before.x +
+      ' ' +
+      before.y +
+      ' Q ' +
+      corner.x +
+      ' ' +
+      corner.y +
+      ' ' +
+      after.x +
+      ' ' +
+      after.y;
   }
   const last = points[points.length - 1];
   d += ' L ' + last.x + ' ' + last.y;
   return d;
 };
 
+const octPoints = (w: number, h: number, c = 10): string =>
+  [
+    `${c},0`,
+    `${w - c},0`,
+    `${w},${c}`,
+    `${w},${h - c}`,
+    `${w - c},${h}`,
+    `${c},${h}`,
+    `0,${h - c}`,
+    `0,${c}`
+  ].join(' ');
+
 const edges = graph.edges.flatMap((edge) => {
   const from = nodes.get(edge.from);
   const to = nodes.get(edge.to);
   if (!from || !to) return [];
-  const points = route(from, to, edge.fromDx ?? 0, edge.toDx ?? 0);
+  const points = route(from, to, edge);
   const midIndex = Math.floor((points.length - 1) / 2);
   const a = points[midIndex];
   const b = points[midIndex + 1] ?? points[midIndex];
   const isVertical = Math.abs(a.x - b.x) < 1;
   const midX = (a.x + b.x) / 2;
   const midY = (a.y + b.y) / 2;
-  const tagW = edge.label ? edge.label.length * 5.6 + 12 : 0;
-  return [{
-    ...edge,
-    d: rounded(points),
-    tagX: midX,
-    tagY: isVertical ? midY : midY - 10,
-    tagW
-  }];
+  const tagW = edge.label ? edge.label.length * 5.6 + 14 : 0;
+  const tagX = edge.labelPos?.x ?? midX;
+  const tagY = edge.labelPos?.y ?? (isVertical ? midY : midY - 10);
+  return [
+    {
+      ...edge,
+      d: rounded(points),
+      tagX,
+      tagY,
+      tagW
+    }
+  ];
 });
 
 // a node can belong to more than one step; the badge lists every step it takes part in
@@ -135,32 +205,71 @@ graph.steps.forEach((step, index) => {
   <div class="arch__stage" dir="ltr">
     <svg viewBox={'0 0 ' + graph.width + ' ' + graph.height} role="img" aria-label={flow.title}>
       <defs>
-        <marker id={markerId} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <marker
+          id={markerId}
+          viewBox="0 0 10 10"
+          refX="8.5"
+          refY="5"
+          markerWidth="5.5"
+          markerHeight="5.5"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow" />
         </marker>
-        <marker id={markerId + '-active'} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <marker
+          id={markerId + '-active'}
+          viewBox="0 0 10 10"
+          refX="8.5"
+          refY="5"
+          markerWidth="5.5"
+          markerHeight="5.5"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow arch__arrow--active" />
         </marker>
-        <marker id={markerId + '-touch'} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <marker
+          id={markerId + '-touch'}
+          viewBox="0 0 10 10"
+          refX="8.5"
+          refY="5"
+          markerWidth="5.5"
+          markerHeight="5.5"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" class="arch__arrow arch__arrow--touch" />
         </marker>
       </defs>
 
-      {(graph.frames ?? []).map((frame) => (
-        <g class="arch__frame">
-          <rect x={frame.x} y={frame.y} width={frame.w} height={frame.h} rx="18" />
-          <g class="arch__frame-tag" transform={'translate(' + (frame.x + 16) + ' ' + frame.y + ')'}>
-            <rect x="0" y="-9" width={frame.label.length * 6.4 + 16} height="18" rx="9" />
-            <text x="8" y="0" dominant-baseline="central">{frame.label}</text>
+      {(graph.frames ?? []).map((frame) => {
+        const frameTagW = Math.max(60, frame.label.length * 6.8 + 20);
+        return (
+          <g class:list={{ 'arch__frame': true, 'is-accent': frame.tone === 'accent' }}>
+            <rect x={frame.x} y={frame.y} width={frame.w} height={frame.h} rx="18" />
+            <g class="arch__frame-tag" transform={'translate(' + (frame.x + 16) + ' ' + frame.y + ')'}>
+              <rect x="0" y="-9" width={frameTagW} height="18" rx="9" />
+              <text x="10" y="0" dominant-baseline="central">{frame.label}</text>
+            </g>
           </g>
-        </g>
-      ))}
+        );
+      })}
 
       <g class="arch__edges">
         {edges.map((edge) => (
-          <g class="arch__edge" data-from={edge.from} data-to={edge.to}>
+          <g
+            class:list={{
+              'arch__edge': true,
+              'is-branch': edge.variant === 'branch',
+              'is-feedback': edge.variant === 'feedback'
+            }}
+            data-from={edge.from}
+            data-to={edge.to}
+          >
             <path d={edge.d} class="arch__edge-glow" aria-hidden="true" />
-            <path d={edge.d} class:list={{ 'arch__edge-path': true, 'is-dashed': edge.dashed }} marker-end={'url(#' + markerId + ')'} />
+            <path
+              d={edge.d}
+              class:list={{ 'arch__edge-path': true, 'is-dashed': edge.dashed }}
+              marker-end={'url(#' + markerId + ')'}
+            />
             <path d={edge.d} class="arch__edge-flow" pathLength="100" aria-hidden="true" />
             {edge.label && (
               <g class="arch__edge-tag" transform={'translate(' + edge.tagX + ' ' + edge.tagY + ')'}>
@@ -175,29 +284,98 @@ graph.steps.forEach((step, index) => {
       <g class="arch__nodes">
         {graph.nodes.map((node) => {
           const width = node.w ?? 140;
+          const height = node.h ?? H;
+          const kind: NodeKind = node.kind ?? 'service';
           const nums = nodeSteps.get(node.id) ?? [];
           const badgeText = nums.join('·');
           const badgeW = Math.max(15, badgeText.length * 5.2 + 9);
+          const tagW = node.tag ? node.tag.length * 5.2 + 12 : 0;
           const stepLabel = badgeText ? ' — step ' + badgeText + ' of ' + graph.steps.length : '';
           const ariaLabel = node.label + (node.sub ? ' — ' + node.sub : '') + stepLabel;
           return (
             <g
-              class="arch__node"
+              class={`arch__node arch__node--${kind}`}
               data-node={node.id}
-              transform={'translate(' + (node.x - width / 2) + ' ' + (node.y - H / 2) + ')'}
+              transform={'translate(' + (node.x - width / 2) + ' ' + (node.y - height / 2) + ')'}
               role="button"
               tabindex="0"
               aria-label={ariaLabel}
             >
-              <rect class:list={{ 'arch__node-box': true, 'is-store': node.kind === 'store', 'is-external': node.kind === 'external' }} width={width} height={H} rx="13" />
+              {(kind === 'queue' || kind === 'worker') && (
+                <rect
+                  class="arch__node-stack"
+                  x="3.5"
+                  y="3.5"
+                  width={width}
+                  height={height}
+                  rx="13"
+                  aria-hidden="true"
+                />
+              )}
+
+              {kind === 'gate' ? (
+                <polygon class="arch__node-box" points={octPoints(width, height, 10)} />
+              ) : (
+                <rect
+                  class:list={{
+                    'arch__node-box': true,
+                    'is-store': kind === 'store',
+                    'is-external': kind === 'external'
+                  }}
+                  width={width}
+                  height={height}
+                  rx={kind === 'client' ? 18 : 13}
+                />
+              )}
+
+              {kind === 'store' && (
+                <path
+                  class="arch__node-cap"
+                  d={`M 8 10 Q ${width / 2} 15 ${width - 8} 10`}
+                  aria-hidden="true"
+                />
+              )}
+
+              {kind === 'gate' && (
+                <polygon
+                  class="arch__node-glyph"
+                  points={`12,${height - 13} 15.5,${height - 16.5} 19,${height - 13} 15.5,${height - 9.5}`}
+                  aria-hidden="true"
+                />
+              )}
+
+              {kind === 'worker' && (
+                <circle class="arch__node-glyph" cx="13" cy={height - 12} r="2.2" aria-hidden="true" />
+              )}
+
+              {kind === 'stream' && (
+                <path
+                  class="arch__node-glyph is-stroke"
+                  d={`M ${width - 18} ${height - 15} l 3.5 3 l -3.5 3 m 4.5 -6 l 3.5 3 l -3.5 3`}
+                  aria-hidden="true"
+                />
+              )}
+
               {badgeText && (
                 <g class="arch__badge" transform="translate(10 0)">
                   <rect x="0" y="-7.5" width={badgeW} height="15" rx="7.5" />
                   <text x={badgeW / 2} y="0" dominant-baseline="central">{badgeText}</text>
                 </g>
               )}
-              <text class="arch__node-label" x={width / 2} y={node.sub ? 29 : 35}>{node.label}</text>
-              {node.sub && <text class="arch__node-sub" x={width / 2} y={45}>{node.sub}</text>}
+
+              {node.tag && (
+                <g
+                  class="arch__node-tag"
+                  transform={'translate(' + (width - tagW - 10) + ' 0)'}
+                  aria-hidden="true"
+                >
+                  <rect x="0" y="-7.5" width={tagW} height="15" rx="5" />
+                  <text x={tagW / 2} y="0" dominant-baseline="central">{node.tag}</text>
+                </g>
+              )}
+
+              <text class="arch__node-label" x={width / 2} y={node.sub ? 29 : 36}>{node.label}</text>
+              {node.sub && <text class="arch__node-sub" x={width / 2} y={46}>{node.sub}</text>}
             </g>
           );
         })}
@@ -206,6 +384,21 @@ graph.steps.forEach((step, index) => {
   </div>
 
   <div class="arch__controls">
+    {graph.scenarios && graph.scenarios.length > 0 && (
+      <div class="arch__scenarios" role="group" aria-label={activeLang === 'ar' ? 'مسارات سريعة' : 'Scenarios'}>
+        {graph.scenarios.map((scenario) => (
+          <button
+            type="button"
+            class:list={{ 'arch__scenario': true, 'is-active': scenario.stepIndex === 0 }}
+            data-arch-scenario={scenario.stepIndex}
+          >
+            <span>{activeLang === 'ar' ? scenario.labelAr : scenario.labelEn}</span>
+            {scenario.badge && <span class="arch__scenario-badge" dir="ltr">{scenario.badge}</span>}
+          </button>
+        ))}
+      </div>
+    )}
+
     <div class="arch__bar" dir="ltr">
       <button type="button" class="arch__btn" data-arch-prev aria-label="Previous step">←</button>
       <button type="button" class="arch__play" data-arch-play>
@@ -251,6 +444,12 @@ graph.steps.forEach((step, index) => {
           <span class="arch__title-text">{step.title}</span>
           {step.metric && <span class="arch__metric" dir="ltr">{step.metric}</span>}
         </h3>
+        {step.trace && (
+          <div class="arch__trace" dir="ltr">
+            <span class="arch__trace-dot" aria-hidden="true"></span>
+            <code>{step.trace}</code>
+          </div>
+        )}
         <p>{step.body}</p>
         {step.notes && (
           <ul class="arch__notes">
@@ -263,6 +462,198 @@ graph.steps.forEach((step, index) => {
 
   <script type="application/json" data-arch-data set:html={JSON.stringify({ steps: graph.steps })} />
 </section>
+
+<style>
+  /* Multi-zone swimlanes */
+  .arch__frame.is-accent rect {
+    fill: color-mix(in srgb, var(--arch-accent-soft) 36%, transparent);
+    stroke: color-mix(in srgb, var(--arch-accent) 42%, var(--rule));
+    stroke-dasharray: none;
+  }
+  .arch__frame.is-accent .arch__frame-tag rect {
+    fill: var(--bg);
+    stroke: color-mix(in srgb, var(--arch-accent) 55%, var(--rule));
+  }
+
+  /* Semantic node geometries */
+  .arch__node-stack {
+    fill: var(--pill);
+    stroke: var(--rule);
+    stroke-width: 1;
+    transition: stroke 180ms ease, fill 180ms ease;
+  }
+  .arch__node.is-active .arch__node-stack {
+    stroke: var(--arch-accent);
+    fill: var(--arch-accent-soft);
+  }
+
+  .arch__node-cap {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+    pointer-events: none;
+    transition: stroke 180ms ease;
+  }
+  .arch__node.is-active .arch__node-cap {
+    stroke: color-mix(in srgb, var(--arch-accent-on) 45%, transparent);
+  }
+  .arch__node.is-active:not(.is-primary) .arch__node-cap {
+    stroke: color-mix(in srgb, var(--arch-accent) 45%, var(--rule));
+  }
+
+  .arch__node-glyph {
+    fill: var(--muted-3);
+    pointer-events: none;
+    transition: fill 180ms ease, stroke 180ms ease;
+  }
+  .arch__node-glyph.is-stroke {
+    fill: none;
+    stroke: var(--muted-3);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .arch__node.is-active .arch__node-glyph {
+    fill: color-mix(in srgb, var(--arch-accent-on) 70%, transparent);
+  }
+  .arch__node.is-active .arch__node-glyph.is-stroke {
+    fill: none;
+    stroke: color-mix(in srgb, var(--arch-accent-on) 70%, transparent);
+  }
+  .arch__node.is-active:not(.is-primary) .arch__node-glyph {
+    fill: var(--arch-accent);
+  }
+  .arch__node.is-active:not(.is-primary) .arch__node-glyph.is-stroke {
+    fill: none;
+    stroke: var(--arch-accent);
+  }
+
+  /* Node mono tag on top-right edge */
+  .arch__node-tag rect {
+    fill: var(--pill);
+    stroke: var(--rule);
+    stroke-width: 1;
+    transition: stroke 180ms ease, fill 180ms ease;
+  }
+  .arch__node-tag text {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 7.5px;
+    fill: var(--muted-2);
+    text-anchor: middle;
+    transition: fill 180ms ease;
+  }
+  .arch__node.is-active .arch__node-tag rect {
+    fill: var(--bg);
+    stroke: var(--arch-accent);
+  }
+  .arch__node.is-active .arch__node-tag text {
+    fill: var(--arch-accent);
+    font-weight: 600;
+  }
+
+  /* Edge variants */
+  .arch__edge.is-branch .arch__edge-path {
+    stroke: var(--muted-2);
+  }
+  .arch__edge.is-feedback .arch__edge-path {
+    stroke: color-mix(in srgb, var(--arch-accent) 45%, var(--muted-3));
+  }
+  .arch__edge.is-feedback .arch__edge-tag rect {
+    border-style: dashed;
+    stroke-dasharray: 2 2;
+  }
+
+  /* Scenario jump chips */
+  .arch__scenarios {
+    flex: 1 0 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.15rem;
+  }
+  .arch:not(.is-interactive) .arch__scenarios {
+    display: none;
+  }
+  .arch__scenario {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.22rem 0.62rem;
+    border: 1px dashed var(--rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--muted-2);
+    font-family: inherit;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+  }
+  .arch__scenario:hover {
+    color: var(--ink);
+    border-color: var(--muted-3);
+    background: var(--pill);
+  }
+  .arch__scenario.is-active {
+    color: var(--arch-accent);
+    border-style: solid;
+    border-color: var(--arch-accent);
+    background: var(--arch-accent-soft);
+    font-weight: 500;
+  }
+  .arch__scenario-badge {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 0.625rem;
+    color: var(--muted);
+    padding: 0.02rem 0.32rem;
+    border-radius: 4px;
+    background: var(--pill);
+  }
+  .arch__scenario.is-active .arch__scenario-badge {
+    color: var(--arch-accent);
+    background: color-mix(in srgb, var(--bg) 75%, transparent);
+  }
+
+  /* Live mono step trace */
+  .arch__trace {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 0.2rem 0 0.5rem;
+    padding: 0.34rem 0.68rem;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--pill);
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .arch__trace code {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    padding: 0;
+    white-space: nowrap;
+  }
+  .arch__trace-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--arch-accent);
+    box-shadow: 0 0 0 3px var(--arch-accent-soft);
+  }
+
+  @media print {
+    .arch__scenarios {
+      display: none !important;
+    }
+  }
+</style>
 
 <script>
   import { animate } from 'motion/mini';
@@ -285,6 +676,7 @@ graph.steps.forEach((step, index) => {
     const edges = Array.from(section.querySelectorAll<SVGGElement>('.arch__edge'));
     const panels = Array.from(section.querySelectorAll<HTMLElement>('[data-panel]'));
     const tabs = Array.from(section.querySelectorAll<HTMLButtonElement>('[data-arch-step]'));
+    const scenarios = Array.from(section.querySelectorAll<HTMLButtonElement>('[data-arch-scenario]'));
     const track = section.querySelector<HTMLElement>('.arch__track');
     const count = section.querySelector<HTMLElement>('[data-arch-count]');
     const progress = section.querySelector<HTMLElement>('[data-arch-progress]');
@@ -407,6 +799,11 @@ graph.steps.forEach((step, index) => {
         tab.setAttribute('aria-selected', active ? 'true' : 'false');
       });
 
+      scenarios.forEach((btn) => {
+        const active = Number(btn.dataset.archScenario) === index;
+        btn.classList.toggle('is-active', active);
+      });
+
       panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
       if (count) count.textContent = pad(index + 1) + ' / ' + pad(panels.length);
       if (progress) progress.style.width = ((index + 1) / panels.length) * 100 + '%';
@@ -474,6 +871,12 @@ graph.steps.forEach((step, index) => {
     section.querySelector('[data-arch-next]')?.addEventListener('click', () => select(current + 1));
     playButton?.addEventListener('click', play);
     tabs.forEach((tab, index) => tab.addEventListener('click', () => select(index)));
+    scenarios.forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const target = Number(btn.dataset.archScenario);
+        if (!Number.isNaN(target)) select(target);
+      })
+    );
 
     nodes.forEach((node) => {
       const nodeId = node.dataset.node ?? '';
@@ -507,23 +910,26 @@ graph.steps.forEach((step, index) => {
       }
     });
 
-      if (section.classList.contains('is-revealed')) {
-        show(0, true);
-      } else if ('IntersectionObserver' in window) {
-        show(0, false);
-      }
+    if (section.classList.contains('is-revealed')) {
+      show(0, true);
+    } else if ('IntersectionObserver' in window) {
+      show(0, false);
+    }
 
     // fade the stages in the first time the map scrolls into view
     if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            section.classList.add('is-revealed');
-            drawRoutes();
-            observer.disconnect();
-          }
-        });
-      }, { threshold: 0.2 });
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              section.classList.add('is-revealed');
+              drawRoutes();
+              observer.disconnect();
+            }
+          });
+        },
+        { threshold: 0.01 }
+      );
       observer.observe(section);
     } else {
       section.classList.add('is-revealed');

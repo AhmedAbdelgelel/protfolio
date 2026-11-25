@@ -1,15 +1,15 @@
 ---
-import Base from '../../layouts/Base.astro';
+import BlogLayout from '../../layouts/BlogLayout.astro';
 import ArchDiagram from '../ArchDiagram.astro';
 import CacheLab from '../CacheLab.astro';
 import BenchChart from '../BenchChart.astro';
 import CacheStructure from '../CacheStructure.astro';
 import { marked } from 'marked';
-import { render } from 'astro:content';
-import { dict, type Lang } from '../../i18n/ui';
-import { workSlug, type WorkEntry } from '../../i18n/content';
+import { dict, localePath, type Lang } from '../../i18n/ui';
+import { workEntries, workSlug, type WorkEntry } from '../../i18n/content';
 import { getFlow } from '../../data/flows';
 import { getGraph } from '../../data/arch';
+import { contactInfo, getPortfolio } from '../../data/portfolio';
 
 interface Props {
   lang: Lang;
@@ -18,12 +18,61 @@ interface Props {
 
 const { lang, entry } = Astro.props;
 const t = dict(lang);
-const { Content } = await render(entry);
 const slug = workSlug(entry.id);
 const flow = getFlow(lang, slug);
 const graph = getGraph(slug);
 
-// markers let a case study place a component mid-article
+const portfolio = getPortfolio(lang);
+const project = portfolio.projects.find((p) => p.slug === slug);
+const repoUrl = project?.repoUrl;
+const stack = project?.stack ?? [];
+
+const allEntries = (await workEntries(lang)).sort(
+  (a, b) => (a.data.order ?? 99) - (b.data.order ?? 99)
+);
+const moreEntries = allEntries.filter((item) => workSlug(item.id) !== slug);
+
+const MONTHS_EN = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const MONTHS_AR = [
+  'يناير',
+  'فبراير',
+  'مارس',
+  'أبريل',
+  'مايو',
+  'يونيو',
+  'يوليو',
+  'أغسطس',
+  'سبتمبر',
+  'أكتوبر',
+  'نوفمبر',
+  'ديسمبر'
+];
+
+const formatDate = (iso: string): string => {
+  const [y, m] = iso.split('-');
+  const year = y ?? '';
+  const monthIdx = Math.max(0, Math.min(11, Number(m ?? '1') - 1));
+  return lang === 'ar' ? `${MONTHS_AR[monthIdx]} ${year}` : `${MONTHS_EN[monthIdx]} ${year}`;
+};
+
+const plainText = (entry.body ?? '')
+  .replace(/<!--[\s\S]*?-->/g, ' ')
+  .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  .replace(/[`*_#|>-]/g, ' ');
+const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
+const readMins = Math.max(2, Math.round(wordCount / 200));
+const readTimeLabel = lang === 'ar' ? `${readMins} د قراءة` : `${readMins} min read`;
+const authorLabel = lang === 'ar' ? 'أحمد عبد الجليل' : 'ahmed abdelgelel';
+
+// Strip redundant standalone repository lines when repoUrl is already in header,
+// while preserving collaborator context (e.g. epub-to-pdf).
+let cleanBody = entry.body ?? '';
+if (repoUrl) {
+  cleanBody = cleanBody
+    .replace(/^\s*\[(?:Repository|المستودع)\]\([^)]+\)\s*$/gm, '')
+    .replace(/^\s*\*\*(?:Repository|المستودع):\*\*\s*\[[^\]]+\]\([^)]+\)[.،]?\s*/gm, '');
+}
+
 const MARKS: Record<string, string> = { '<!-- chart -->': 'chart', '<!-- structure -->': 'structure' };
 const slugify = (value: string): string =>
   value
@@ -33,32 +82,111 @@ const slugify = (value: string): string =>
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
 
-const markedHtml = entry.body
-  ? (marked.parse(entry.body, { gfm: true }) as string)
+const decodeHtml = (value: string): string =>
+  value
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"');
+
+const markedHtml = cleanBody
+  ? (marked.parse(cleanBody, { gfm: true }) as string)
       .replace(/<h2>([\s\S]*?)<\/h2>/g, (_m, text: string) => '<h2 id="' + slugify(text) + '">' + text + '</h2>')
       .replace(/<h3>([\s\S]*?)<\/h3>/g, (_m, text: string) => '<h3 id="' + slugify(text) + '">' + text + '</h3>')
   : '';
+
+const toc = [...markedHtml.matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)]
+  .map((match) => ({
+    id: match[1],
+    label: decodeHtml(match[2].replace(/<[^>]+>/g, '')).trim()
+  }))
+  .filter((item) => item.id.length > 0 && item.label.length > 0);
 
 const pieces = markedHtml.split(/(<!-- (?:chart|structure) -->)/g).map((piece) => ({
   kind: MARKS[piece] ?? 'html',
   html: piece
 }));
-const hasMarkers = pieces.some((piece) => piece.kind !== 'html');
 
+const copy =
+  lang === 'ar'
+    ? {
+        inThisPost: 'في هذا المقال',
+        github: 'github',
+        authorNote:
+          'مهندس باك إند في القاهرة. أكتب ملاحظات هندسية عن البوابات، الكاش، والأنظمة التي تصمد بعد الإطلاق.',
+        moreAboutMe: 'المزيد عني ←',
+        backPortfolio: '→ العودة إلى البورتفوليو',
+        moreNotes: 'ملاحظات هندسية أخرى'
+      }
+    : {
+        inThisPost: 'in this post',
+        github: 'github',
+        authorNote:
+          'backend engineer in cairo. writing down how i build gateways, caches, and systems that hold up after launch.',
+        moreAboutMe: 'more about me →',
+        backPortfolio: '← portfolio',
+        moreNotes: 'more engineering notes'
+      };
 ---
 
-<Base
+<BlogLayout
   lang={lang}
+  section="blog"
   title={entry.data.title + ' — ' + t.personName}
   description={entry.data.summary}
 >
   <article class="article">
-    <p class="post-meta">
-      <span>{t.personName} | {entry.data.summary}</span>
-    </p>
+    <header class="post-header">
+      <div class="post-byline">
+        <img
+          src={contactInfo.avatarUrl}
+          alt={t.personName}
+          class="post-avatar"
+          width="34"
+          height="34"
+          decoding="async"
+        />
+        <div class="post-byline-text">
+          <span class="post-author-name">{authorLabel}</span>
+          <span class="post-dot" aria-hidden="true">·</span>
+          <span class="post-pill">{formatDate(entry.data.date)}</span>
+          <span class="post-pill">{readTimeLabel}</span>
+          <span class="post-pill post-pill--metric ltr">{entry.data.metric}</span>
+          {repoUrl && (
+            <a
+              href={repoUrl}
+              target="_blank"
+              rel="noopener"
+              class="post-pill post-pill--repo ltr"
+            >
+              <span>{copy.github}</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          )}
+        </div>
+      </div>
 
-    <h1>{entry.data.title}</h1>
-    <p class="post-lead">{entry.data.lead}</p>
+      <h1>{entry.data.title}</h1>
+      <p class="post-lead">{entry.data.lead}</p>
+
+      {stack.length > 0 && (
+        <ul class="post-stack" aria-label={portfolio.tabs.stack}>
+          {stack.map((tech) => (
+            <li class="ltr">{tech}</li>
+          ))}
+        </ul>
+      )}
+
+      {toc.length > 0 && (
+        <nav class="post-toc" aria-label={copy.inThisPost}>
+          <span class="post-toc__label">{copy.inThisPost}</span>
+          {toc.map((item) => (
+            <a href={'#' + item.id} class="post-toc__pill">{item.label}</a>
+          ))}
+        </nav>
+      )}
+    </header>
 
     {flow && graph && (
       <ArchDiagram
@@ -67,17 +195,67 @@ const hasMarkers = pieces.some((piece) => piece.kind !== 'html');
         graph={graph}
         playLabel={t.playFlow}
         pauseLabel={t.pauseFlow}
+        {...({ lang } as Record<string, unknown>)}
       />
     )}
 
-    {hasMarkers
-      ? pieces.map((piece) =>
-          piece.kind === 'chart' ? <BenchChart lang={lang} /> :
-          piece.kind === 'structure' ? <CacheStructure lang={lang} /> :
-          <div set:html={piece.html} />
-        )
-      : <Content />}
+    {pieces.map((piece) =>
+      piece.kind === 'chart' ? (
+        <BenchChart lang={lang} />
+      ) : piece.kind === 'structure' ? (
+        <CacheStructure lang={lang} />
+      ) : (
+        <div set:html={piece.html} />
+      )
+    )}
 
     {slug === 'smart-cache-engine' && <CacheLab lang={lang} />}
+
+    <aside class="post-author-card" aria-label={authorLabel}>
+      <img
+        src={contactInfo.avatarUrl}
+        alt={t.personName}
+        class="post-author-card__avatar"
+        width="48"
+        height="48"
+        decoding="async"
+      />
+      <div class="post-author-card__body">
+        <p class="post-author-card__name">{authorLabel}</p>
+        <p class="post-author-card__note">{copy.authorNote}</p>
+        <div class="post-author-card__actions">
+          <a href={localePath(lang, '/about/')} class="blog-btn blog-btn--accent">
+            {copy.moreAboutMe}
+          </a>
+          <a href={localePath(lang, '/')} class="blog-btn">
+            {copy.backPortfolio}
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    {moreEntries.length > 0 && (
+      <section class="more-notes" aria-labelledby="more-notes-heading">
+        <div class="more-notes__head">
+          <h2 id="more-notes-heading" class="more-notes__title">{copy.moreNotes}</h2>
+        </div>
+        <ul class="more-notes__list">
+          {moreEntries.map((item) => {
+            const otherSlug = workSlug(item.id);
+            return (
+              <li>
+                <a href={localePath(lang, '/work/' + otherSlug + '/')} class="more-notes__item">
+                  <span class="more-notes__item-title">{item.data.title}</span>
+                  <span class="more-notes__item-meta ltr">
+                    <span>{item.data.year}</span>
+                    <span class="more-notes__chip">{item.data.metric}</span>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    )}
   </article>
-</Base>
+</BlogLayout>
