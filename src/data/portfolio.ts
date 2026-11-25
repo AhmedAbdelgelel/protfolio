@@ -12,7 +12,6 @@ export interface ExperienceItem {
   role: string;
   period: string;
   shortPeriod: string;
-  stats: [MetaStat, MetaStat, MetaStat];
   bullets: string[];
   stack: string[];
 }
@@ -159,15 +158,10 @@ const en: PortfolioContent = {
       role: 'software engineer',
       period: 'dec 2025 — now',
       shortPeriod: '2025 – now',
-      stats: [
-        { label: 'scope', value: '0 → prod' },
-        { label: 'focus', value: 'ai & backend' },
-        { label: 'systems', value: 'multi-tenant' }
-      ],
       bullets: [
-        'architected and shipped multi-tenant node.js & typescript backends for client products, owning database schemas, api contracts, and rollout.',
-        'built production llm infrastructure: policy-gated semantic caching, mcp tool servers, async job queues, and automated provider failover.',
-        'enforced latency budgets, structured telemetry, and zero-downtime release pipelines to keep live client systems predictable under load.'
+        'owned the backend across multiple client products at once — turning shifting requirements into postgresql schemas, apis, and production releases.',
+        'built llm gateways and agent backends with semantic caching, mcp tool integrations, background queues, and provider fallback.',
+        'handled post-launch operations directly with client teams: debugging edge-case data, tuning slow queries, and shipping zero-downtime fixes.'
       ],
       stack: ['node.js', 'typescript', 'nestjs', 'postgresql', 'redis', 'queues']
     },
@@ -178,15 +172,10 @@ const en: PortfolioContent = {
       role: 'backend engineer · remote',
       period: 'feb 2025 — oct 2026',
       shortPeriod: '2025 – 2026',
-      stats: [
-        { label: 'scope', value: '0 → full api' },
-        { label: 'focus', value: 'stripe webhooks' },
-        { label: 'systems', value: 'async epub' }
-      ],
       bullets: [
-        'built the entire backend from scratch for a personalized children’s bookstore—covering cart, order lifecycle, multilingual catalog, and media storage.',
-        'engineered idempotent stripe checkout with webhooks as the single source of truth, driving state transitions and artist assignment queues.',
-        'moved personalized epub compilation into background workers off the request path, backed by rbac for admins, illustrators, and customers.'
+        'built the entire backend from scratch for a personalized story bookstore — data models, apis, multilingual content, media uploads, and admin tooling.',
+        'wired stripe checkout with webhooks as the single source of truth so order state, retries, and artist assignment queues stayed consistent.',
+        'moved personalized epub generation into background workers off the request path, with role-based access for admins, artists, and customers.'
       ],
       stack: ['node.js', 'typescript', 'stripe', 'epub', 'workers', 'rbac']
     },
@@ -197,15 +186,10 @@ const en: PortfolioContent = {
       role: 'sole backend engineer · saudi arabia',
       period: 'apr — aug 2025',
       shortPeriod: 'apr – aug 25',
-      stats: [
-        { label: 'scope', value: 'sole backend' },
-        { label: 'focus', value: 'azure ocr' },
-        { label: 'systems', value: 'workshop erp' }
-      ],
       bullets: [
-        'designed and delivered end-to-end rest apis for a saudi workshop’s daily operations: service orders, invoicing, and payment reconciliation.',
-        'implemented role-based access control separating workshop staff, administrators, and customers across distinct operational workflows.',
-        'integrated azure document ocr into the billing pipeline to automatically parse vendor, date, and line totals from uploaded receipts.'
+        'worked as the sole backend engineer between cairo and a workshop in saudi arabia, shipping rest apis for orders, invoicing, and payment tracking.',
+        'implemented role-based workflows separating admins, workshop staff, and customers across daily operations.',
+        'integrated azure ocr into the invoicing flow to read vendor names, dates, and totals from uploaded receipt images.'
       ],
       stack: ['node.js', 'rest apis', 'azure ocr', 'rbac', 'postgresql']
     }
@@ -341,15 +325,10 @@ const ar: PortfolioContent = {
       role: 'مهندس برمجيات',
       period: 'ديسمبر 2025 — الآن',
       shortPeriod: '2025 – الآن',
-      stats: [
-        { label: 'النطاق', value: '0 → إنتاج' },
-        { label: 'التركيز', value: 'ذكاء وباك إند' },
-        { label: 'الأنظمة', value: 'متعددة العملاء' }
-      ],
       bullets: [
-        'صمّمت وأطلقت أنظمة باك إند متعددة العملاء بـ node.js وtypescript، متولّيًا مخططات قواعد البيانات وعقود الـ api والإطلاق.',
-        'بنيت بنية إنتاج لنماذج اللغة: كاش دلالي محكوم بالسياسات، خوادم أدوات mcp، طوابير مهام، وتحويل تلقائي عند تعطل المزوّد.',
-        'فرضت ميزانيات زمن الاستجابة والمراقبة المستمرة وخطوط نشر بدون توقف لإبقاء أنظمة العملاء مستقرة تحت الضغط.'
+        'تولّيت الباك إند لعدة منتجات عملاء في الوقت نفسه — بتحويل المتطلبات المتغيّرة إلى جداول postgresql وواجهات api وإطلاقات فعلية.',
+        'بنيت بوابات llm وأنظمة وكلاء تشمل الكاش الدلالي وتكاملات mcp وطوابير المهام الخلفية والتحويل التلقائي عند تعطل المزوّد.',
+        'تابعت التشغيل بعد الإطلاق مع فرق العملاء مباشرة: معالجة حالات البيانات غير المتوقعة، تسريع الاستعلامات، وإصلاح الأعطال دون توقف.'
       ],
       stack: ['node.js', 'typescript', 'nestjs', 'postgresql', 'redis', 'queues']
     },
@@ -360,15 +339,10 @@ const ar: PortfolioContent = {
       role: 'مهندس باك إند · عن بُعد',
       period: 'فبراير 2025 — أكتوبر 2026',
       shortPeriod: '2025 – 2026',
-      stats: [
-        { label: 'النطاق', value: '0 → api كامل' },
-        { label: 'التركيز', value: 'stripe webhooks' },
-        { label: 'الأنظمة', value: 'توليد epub' }
-      ],
       bullets: [
-        'بنيت الباك إند كاملًا من الصفر لمتجر كتب أطفال مخصّصة — شامل السلة ودورة حياة الطلب والكتالوج متعدد اللغات والوسائط.',
-        'طوّرت مسار دفع stripe آمن ضد التكرار باعتماد webhooks كمصدر حقيقة وحيد لإدارة حالات الطلب وطوابير إسناد الرسامين.',
-        'نقلت تجميع ملفات epub المخصّصة إلى عمليات خلفية خارج مسار الطلب مع صلاحيات rbac للإدارة والفنانين والعملاء.'
+        'بنيت الباك إند كاملًا من الصفر لمتجر قصص مخصّصة — نماذج البيانات، الـ apis، المحتوى متعدد اللغات، رفع الوسائط، وأدوات الإدارة اليومية.',
+        'ربطت الدفع عبر stripe باعتماد webhooks كمصدر حقيقة وحيد لضبط حالات الطلب وإعادة المحاولة وطوابير إسناد الفنانين.',
+        'نقلت توليد ملفات epub المخصّصة إلى عمليات خلفية خارج مسار الطلب مع صلاحيات rbac للإدارة والفنانين والعملاء.'
       ],
       stack: ['node.js', 'typescript', 'stripe', 'epub', 'workers', 'rbac']
     },
@@ -379,15 +353,10 @@ const ar: PortfolioContent = {
       role: 'مهندس باك إند وحيد · السعودية',
       period: 'أبريل — أغسطس 2025',
       shortPeriod: 'أبريل – أغسطس 25',
-      stats: [
-        { label: 'النطاق', value: 'مهندس وحيد' },
-        { label: 'التركيز', value: 'azure ocr' },
-        { label: 'الأنظمة', value: 'إدارة ورشة' }
-      ],
       bullets: [
-        'صمّمت وسلّمت واجهات rest كاملة للعمليات اليومية لورشة سعودية: أوامر الصيانة، الفواتير، ومطابقة المدفوعات.',
-        'نفّذت نظام صلاحيات حسب الدور يفصل بين فريق الورشة والإدارة والعملاء عبر مسارات تشغيل مستقلة.',
-        'دمجت azure document ocr داخل مسار الفوترة لاستخراج اسم المورّد والتاريخ والإجمالي تلقائيًا من صور الإيصالات.'
+        'عملت كمهندس الباك إند الوحيد بين القاهرة وورشة في السعودية، وبنيت واجهات rest للطلبات والفواتير ومتابعة المدفوعات.',
+        'نفّذت مسارات عمل بصلاحيات حسب الدور تفصل بين الإدارة وفريق الورشة والعملاء في التشغيل اليومي.',
+        'دمجت azure ocr في مسار الفوترة لقراءة اسم المورّد والتاريخ والإجمالي تلقائيًا من صور الإيصالات المرفوعة.'
       ],
       stack: ['node.js', 'rest apis', 'azure ocr', 'rbac', 'postgresql']
     }

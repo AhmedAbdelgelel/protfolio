@@ -396,15 +396,6 @@ const projCount = String(data.projects.length).padStart(2, '0');
                             <p class="inspector-sub">{job.role}</p>
                           </div>
 
-                          <div class="stat-strip">
-                            {job.stats.map((st) => (
-                              <div class="stat-cell">
-                                <span class="stat-label">{st.label}:</span>
-                                <span class="stat-val" dir="auto">{st.value}</span>
-                              </div>
-                            ))}
-                          </div>
-
                           <ul class="impact-list">
                             {job.bullets.map((b) => (
                               <li>{b}</li>
