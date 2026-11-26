@@ -19,17 +19,23 @@ const copy =
         title: 'الكمون المقاس',
         hint: 'ميكروثانية لكل عملية',
         legend: 'اضغط على نسبة لعزلها',
+        statMixed: 'عملية/ث · مزيج 9:1 قراءة/كتابة',
+        statP99: 'p99 · إصابة قراءة',
+        statZipf: 'عملية/ث · توزيع zipfian',
         throughput: 'معدل العمليات حسب حجم القيمة',
         throughputHint: 'عملية في الثانية، مقياس لوغاريتمي',
-        note: '60,000 عملية لكل صف، بقياس hrtime حول كل نداء.'
+        note: `Node ${environment.node} · ${environment.platform} · ${environment.opsPerRow.toLocaleString('en-US')} عملية لكل صف، بقياس hrtime حول كل نداء.`
       }
     : {
         title: 'Measured latency',
         hint: 'microseconds per operation',
         legend: 'click a percentile to isolate it',
+        statMixed: 'ops/sec · mixed 9:1 read/write',
+        statP99: 'p99 · get hit',
+        statZipf: 'ops/sec · zipfian hit pattern',
         throughput: 'Throughput by value size',
         throughputHint: 'operations per second, log scale',
-        note: '60,000 operations per row, timed with hrtime around each call.'
+        note: `Node ${environment.node} · ${environment.platform} · ${environment.opsPerRow.toLocaleString('en-US')} operations per row, timed with hrtime around each call.`
       };
 
 const percentiles = ['p50', 'p90', 'p95', 'p99'] as const;
@@ -62,15 +68,15 @@ const compact = (value: number): string => {
   <div class="bench__stats">
     <div class="bench__stat">
       <b>{compact(throughput.mixed)}</b>
-      <span>ops/sec · mixed 9:1 read/write</span>
+      <span>{copy.statMixed}</span>
     </div>
     <div class="bench__stat">
       <b>1.5<span class="bench__unit">µs</span></b>
-      <span>p99 · get hit</span>
+      <span>{copy.statP99}</span>
     </div>
     <div class="bench__stat">
       <b>3.0<span class="bench__unit">M</span></b>
-      <span>ops/sec · zipfian hit pattern</span>
+      <span>{copy.statZipf}</span>
     </div>
   </div>
 
@@ -123,10 +129,7 @@ const compact = (value: number): string => {
     ))}
   </div>
 
-  <p class="bench__note">
-    Node {environment.node} · {environment.platform} · {environment.opsPerRow.toLocaleString('en-US')}
-    operations per row, timed with hrtime around each call.
-  </p>
+  <p class="bench__note">{copy.note}</p>
 </section>
 
 <script>

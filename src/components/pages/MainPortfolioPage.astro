@@ -58,8 +58,9 @@ const projCount = String(data.projects.length).padStart(2, '0');
     <script is:inline>
       try {
         var root = document.documentElement;
+        var validPalettes = ['nile-silt', 'deep-moss', 'basalt', 'nocturne'];
         var savedPalette = localStorage.getItem('palette');
-        if (savedPalette) root.dataset.palette = savedPalette;
+        if (savedPalette && validPalettes.indexOf(savedPalette) !== -1) root.dataset.palette = savedPalette;
         var savedTheme = localStorage.getItem('main-theme');
         if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
       } catch (e) {}
@@ -337,21 +338,21 @@ const projCount = String(data.projects.length).padStart(2, '0');
             </svg>
 
             <div class="tabs-bar" role="tablist" data-tabs-bar>
-              <button type="button" role="tab" class="tab-btn" data-tab="experience" aria-selected="true">
+              <button type="button" role="tab" id="tab-experience" class="tab-btn" data-tab="experience" aria-selected="true" aria-controls="panel-experience">
                 <span>{data.tabs.experience}</span>
                 <span class="tab-count ltr">{expCount}</span>
               </button>
 
-              <button type="button" role="tab" class="tab-btn" data-tab="projects" aria-selected="false">
+              <button type="button" role="tab" id="tab-projects" class="tab-btn" data-tab="projects" aria-selected="false" aria-controls="panel-projects">
                 <span>{data.tabs.projects}</span>
                 <span class="tab-count ltr">{projCount}</span>
               </button>
 
-              <button type="button" role="tab" class="tab-btn" data-tab="stack" aria-selected="false">
+              <button type="button" role="tab" id="tab-stack" class="tab-btn" data-tab="stack" aria-selected="false" aria-controls="panel-stack">
                 <span>{data.tabs.stack}</span>
               </button>
 
-              <button type="button" role="tab" class="tab-btn" data-tab="education" aria-selected="false">
+              <button type="button" role="tab" id="tab-education" class="tab-btn" data-tab="education" aria-selected="false" aria-controls="panel-education">
                 <span>{data.tabs.education}</span>
               </button>
             </div>
@@ -359,7 +360,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
             <div class="panel-box" data-panel-box>
 
               <!-- TAB 1: EXPERIENCE -->
-              <div class="tab-panel" role="tabpanel" data-panel="experience" data-active="true">
+              <div class="tab-panel" role="tabpanel" id="panel-experience" aria-labelledby="tab-experience" data-panel="experience" data-active="true">
                 <div class="master-detail">
                   <div class="drum-rail" data-drum="experience" role="listbox" aria-label={data.tabs.experience}>
                     <div class="drum-stage">
@@ -418,7 +419,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
               </div>
 
               <!-- TAB 2: PROJECTS -->
-              <div class="tab-panel" role="tabpanel" data-panel="projects" data-active="false">
+              <div class="tab-panel" role="tabpanel" id="panel-projects" aria-labelledby="tab-projects" data-panel="projects" data-active="false">
                 <div class="master-detail">
                   <div class="drum-rail" data-drum="projects" role="listbox" aria-label={data.tabs.projects}>
                     <div class="drum-stage">
@@ -492,7 +493,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
               </div>
 
               <!-- TAB 3: STACK -->
-              <div class="tab-panel" role="tabpanel" data-panel="stack" data-active="false">
+              <div class="tab-panel" role="tabpanel" id="panel-stack" aria-labelledby="tab-stack" data-panel="stack" data-active="false">
                 <div class="stack-grid">
                   {data.skills.map((group) => (
                     <div class="stack-card">
@@ -511,7 +512,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
               </div>
 
               <!-- TAB 4: EDUCATION -->
-              <div class="tab-panel" role="tabpanel" data-panel="education" data-active="false">
+              <div class="tab-panel" role="tabpanel" id="panel-education" aria-labelledby="tab-education" data-panel="education" data-active="false">
                 <div class="edu-view">
                   <div class="inspector-heading">
                     <div class="inspector-head">
@@ -539,7 +540,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
                   </ul>
 
                   <div class="edu-course-box">
-                    <span class="edu-course-title">coursework</span>
+                    <span class="edu-course-title">{data.education.courseworkLabel}</span>
                     <ul class="chips">
                       {data.education.courses.map((course) => (
                         <li class="chip">{course}</li>
@@ -561,6 +562,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
       const root = document.documentElement;
       const isRTL = root.dir === 'rtl';
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const dockMedia = window.matchMedia('(max-width: 1324px)');
+      const isHorizontalDock = () => dockMedia.matches;
 
       // -----------------------------------------------------------------------
       // 1. Initialize WebGL2 Pixel-Art + Bayer Dither Landscape
@@ -589,7 +592,13 @@ const projCount = String(data.projects.length).padStart(2, '0');
           { selector: '.id-head[data-enter-sky]', delayMs: 0 }
         ];
 
-        const seaTargets: Array<{ selector: string; fromY: number; delayMs: number; baseTransform?: string }> = [
+        const seaTargets: Array<{
+          selector: string;
+          fromY: number;
+          delayMs: number;
+          baseTransform?: string;
+          clearTransformOnFinish?: boolean;
+        }> = [
           { selector: '.bio-primary[data-enter-sea]', fromY: 38, delayMs: 40 },
           { selector: '.bio-secondary[data-enter-sea]', fromY: 42, delayMs: 95 },
           { selector: '.cta-row[data-enter-sea]', fromY: 46, delayMs: 150 },
@@ -599,7 +608,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
             selector: '.utility-dock[data-enter-sea]',
             fromY: 44,
             delayMs: 240,
-            baseTransform: window.innerWidth >= 1325 ? 'translate3d(0, -50%, 0)' : ''
+            baseTransform: !isHorizontalDock() ? 'translate3d(0, -50%, 0)' : '',
+            clearTransformOnFinish: true
           }
         ];
 
@@ -615,7 +625,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
           }
         });
 
-        seaTargets.forEach(({ selector, fromY, delayMs, baseTransform }) => {
+        seaTargets.forEach(({ selector, fromY, delayMs, baseTransform, clearTransformOnFinish }) => {
           const el = document.querySelector<HTMLElement>(selector);
           if (el) {
             jellyEnter(el, {
@@ -623,7 +633,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
               delayMs,
               stiffness: 200,
               damping: 16,
-              baseTransform
+              baseTransform,
+              clearTransformOnFinish
             });
           }
         });
@@ -669,12 +680,13 @@ const projCount = String(data.projects.length).padStart(2, '0');
         const xMax = W - inset;
         const yTop = inset;
         const yBot = H - inset;
-        const R = 14;
+        const R = W < 380 ? 10 : 14;
         const r = Math.min(11, tabWidth * 0.22);
 
-        const maxL = Math.max(xMin + R + 4, xMax - R - 4 - tabWidth);
-        const L = clampNum(tabLeft, xMin + R + 4, maxL);
-        const Rt = Math.min(xMax - R - 4, L + tabWidth);
+        const minEdge = xMin + R + 2;
+        const maxL = Math.max(minEdge, xMax - R - 2 - tabWidth);
+        const L = clampNum(tabLeft, minEdge, maxL);
+        const Rt = Math.min(xMax - R - 2, L + tabWidth);
 
         const lean = clampNum(velocity * 0.004, -5, 5);
         const baseS = 14;
@@ -717,7 +729,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
         const vx = bridgeX.getVelocity();
         const tabWidth = Math.max(28, bridgeW.getValue());
-        const tabLeft = bridgeX.getValue() - (tabsBar.scrollLeft || 0);
+        const tabLeft = bridgeX.getValue();
 
         const fillPath = buildUnifiedPanelPath(W, H, y0, tabLeft, tabWidth, vx, 0);
         const strokePath = buildUnifiedPanelPath(W, H, y0, tabLeft, tabWidth, vx, 0.5);
@@ -747,11 +759,14 @@ const projCount = String(data.projects.length).padStart(2, '0');
       });
 
       const syncTabBridge = (instant = false) => {
-        if (!tabsBar) return;
+        if (!tabsBar || !panelCol) return;
         const activeBtn = tabBtns.find((b) => b.dataset.tab === activeTab) ?? tabBtns[0];
         if (!activeBtn) return;
-        const x = activeBtn.offsetLeft;
-        const w = activeBtn.offsetWidth;
+        const panelRect = panelCol.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        const scaleX = panelCol.clientWidth > 0 && panelRect.width > 0 ? panelCol.clientWidth / panelRect.width : 1;
+        const x = (btnRect.left - panelRect.left) * scaleX;
+        const w = btnRect.width * scaleX;
         if (instant) {
           bridgeX.snap(x);
           bridgeW.snap(w);
@@ -856,7 +871,7 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
       syncTabBridge(true);
       requestAnimationFrame(() => syncTabBridge(true));
-      tabsBar?.addEventListener('scroll', applyBridgeTransform, { passive: true });
+      tabsBar?.addEventListener('scroll', () => syncTabBridge(true), { passive: true });
       if (panelCol && typeof ResizeObserver !== 'undefined') {
         const panelRo = new ResizeObserver(() => syncTabBridge(true));
         panelRo.observe(panelCol);
@@ -958,37 +973,42 @@ const projCount = String(data.projects.length).padStart(2, '0');
       // -----------------------------------------------------------------------
       // 5. Fluid Concave-Fillet SVG Morph — Contact Icons & Vertical Dock
       // -----------------------------------------------------------------------
-      const buildDownMorph = (cx: number, tw: number, p: number): string => {
+      let dockMorphSuppressed = false;
+      const dockMorphCloseAll: Array<() => void> = [];
+
+      const buildDownMorph = (cx: number, tipL: number, tipR: number, p: number): string => {
         const t = Math.max(0, Math.min(1.06, p));
         const lerp = (a: number, b: number) => +(a + (b - a) * t).toFixed(2);
-        const bw = 20, r = 11, s = 1.65, rt = 9.5, st = 1.4, f = 8;
+        const bw = 20, r = 11, s = 1.65, rt = 9.5, st = 1.4;
         const yNeck = 36, yTop = 44, yBot = 70, ry0 = 29;
         const rx = cx + bw, lx = cx - bw;
+        const fR = clampNum(tipR - rx - rt, 0, 8);
+        const fL = clampNum(lx - tipL - rt, 0, 8);
 
         const rEdgeY = lerp(ry0, yNeck);
         const rFilletCp1Y = lerp(ry0, yNeck + 5);
-        const rFilletCp2X = lerp(rx, rx + f - 5);
-        const rFilletEndX = lerp(rx, rx + f);
+        const rFilletCp2X = lerp(rx, rx + fR * 0.375);
+        const rFilletEndX = lerp(rx, rx + fR);
         const rTipTopY = lerp(ry0, yTop);
-        const rTipRunX = lerp(rx, cx + tw - rt);
-        const rTipCornerCp1X = lerp(rx, cx + tw - st);
-        const rTipOuterX = lerp(rx, cx + tw);
+        const rTipRunX = lerp(rx, Math.max(rx + fR, tipR - rt));
+        const rTipCornerCp1X = lerp(rx, tipR - st);
+        const rTipOuterX = lerp(rx, tipR);
         const rTipCornerCp2Y = lerp(ry0, yTop + st);
         const rTipCornerEndY = lerp(ry0, yTop + rt);
         const rTipSideEndY = lerp(ry0, yBot - rt);
 
         const botCornerCp1Y = lerp(40 - s, yBot - st);
-        const botCornerCp2X = lerp(rx - s, cx + tw - st);
+        const botCornerCp2X = lerp(rx - s, tipR - st);
         const botY = lerp(40, yBot);
-        const botCornerEndX = lerp(rx - r, cx + tw - rt);
+        const botCornerEndX = lerp(rx - r, tipR - rt);
 
-        const lBotEdgeX = lerp(lx + r, cx - tw + rt);
-        const lBotCornerCp1X = lerp(lx + s, cx - tw + st);
-        const lTipOuterX = lerp(lx, cx - tw);
-        const lTipCornerCp2X = lerp(lx, cx - tw + st);
-        const lTipRunX = lerp(lx, cx - tw + rt);
-        const lFilletStartX = lerp(lx, lx - f);
-        const lFilletCp1X = lerp(lx, lx - f + 5);
+        const lBotEdgeX = lerp(lx + r, tipL + rt);
+        const lBotCornerCp1X = lerp(lx + s, tipL + st);
+        const lTipOuterX = lerp(lx, tipL);
+        const lTipCornerCp2X = lerp(lx, tipL + st);
+        const lTipRunX = lerp(lx, Math.min(lx - fL, tipL + rt));
+        const lFilletStartX = lerp(lx, lx - fL);
+        const lFilletCp1X = lerp(lx, lx - fL * 0.375);
 
         return [
           `M ${cx - bw + r} 0`,
@@ -1008,6 +1028,62 @@ const projCount = String(data.projects.length).padStart(2, '0');
           `C ${lFilletCp1X} ${rTipTopY} ${lx} ${rFilletCp1Y} ${lx} ${rEdgeY}`,
           `L ${lx} ${r}`,
           `C ${lx} ${s} ${lx + s} 0 ${cx - bw + r} 0`,
+          'Z'
+        ].join(' ');
+      };
+
+      const buildDockDownMorph = (cx: number, tipL: number, tipR: number, p: number): string => {
+        const t = Math.max(0, Math.min(1.06, p));
+        const lerp = (a: number, b: number) => +(a + (b - a) * t).toFixed(2);
+        const bw = 17, r = 10, s = 1.5, rt = 8.5, st = 1.3;
+        const yNeck = 30, yTop = 38, yBot = 62, ry0 = 24;
+        const rx = cx + bw, lx = cx - bw;
+        const fR = clampNum(tipR - rx - rt, 0, 6);
+        const fL = clampNum(lx - tipL - rt, 0, 6);
+
+        const rEdgeY = lerp(ry0, yNeck);
+        const rFilletCp1Y = lerp(ry0, yNeck + 4.5);
+        const rFilletCp2X = lerp(rx, rx + fR * 0.35);
+        const rFilletEndX = lerp(rx, rx + fR);
+        const rTipTopY = lerp(ry0, yTop);
+        const rTipRunX = lerp(rx, Math.max(rx + fR, tipR - rt));
+        const rTipCornerCp1X = lerp(rx, tipR - st);
+        const rTipOuterX = lerp(rx, tipR);
+        const rTipCornerCp2Y = lerp(ry0, yTop + st);
+        const rTipCornerEndY = lerp(ry0, yTop + rt);
+        const rTipSideEndY = lerp(ry0, yBot - rt);
+
+        const botCornerCp1Y = lerp(34 - s, yBot - st);
+        const botCornerCp2X = lerp(rx - s, tipR - st);
+        const botY = lerp(34, yBot);
+        const botCornerEndX = lerp(rx - r, tipR - rt);
+
+        const lBotEdgeX = lerp(lx + r, tipL + rt);
+        const lBotCornerCp1X = lerp(lx + s, tipL + st);
+        const lTipOuterX = lerp(lx, tipL);
+        const lTipCornerCp2X = lerp(lx, tipL + st);
+        const lTipRunX = lerp(lx, Math.min(lx - fL, tipL + rt));
+        const lFilletStartX = lerp(lx, lx - fL);
+        const lFilletCp1X = lerp(lx, lx - fL * 0.35);
+
+        return [
+          `M ${lx + r} 0`,
+          `L ${rx - r} 0`,
+          `C ${rx - s} 0 ${rx} ${s} ${rx} ${r}`,
+          `L ${rx} ${rEdgeY}`,
+          `C ${rx} ${rFilletCp1Y} ${rFilletCp2X} ${rTipTopY} ${rFilletEndX} ${rTipTopY}`,
+          `L ${rTipRunX} ${rTipTopY}`,
+          `C ${rTipCornerCp1X} ${rTipTopY} ${rTipOuterX} ${rTipCornerCp2Y} ${rTipOuterX} ${rTipCornerEndY}`,
+          `L ${rTipOuterX} ${rTipSideEndY}`,
+          `C ${rTipOuterX} ${botCornerCp1Y} ${botCornerCp2X} ${botY} ${botCornerEndX} ${botY}`,
+          `L ${lBotEdgeX} ${botY}`,
+          `C ${lBotCornerCp1X} ${botY} ${lTipOuterX} ${botCornerCp1Y} ${lTipOuterX} ${rTipSideEndY}`,
+          `L ${lTipOuterX} ${rTipCornerEndY}`,
+          `C ${lTipOuterX} ${rTipCornerCp2Y} ${lTipCornerCp2X} ${rTipTopY} ${lTipRunX} ${rTipTopY}`,
+          `L ${lFilletStartX} ${rTipTopY}`,
+          `C ${lFilletCp1X} ${rTipTopY} ${lx} ${rFilletCp1Y} ${lx} ${rEdgeY}`,
+          `L ${lx} ${r}`,
+          `C ${lx} ${s} ${lx + s} 0 ${lx + r} 0`,
           'Z'
         ].join(' ');
       };
@@ -1036,13 +1112,13 @@ const projCount = String(data.projects.length).padStart(2, '0');
           `L ${bx2} ${H - r}`,
           `C ${bx2} ${H - s} ${bx2 - s} ${H} ${bx2 - r} ${H}`,
           `L ${topFilletX} ${H}`,
-          `C ${lerp(bx1 + s, bx1 - 1)} ${H} ${lerp(bx1, bx1 - 1)} ${botTipY} ${topFilletEndX} ${botTipY}`,
+          `C ${lerp(bx1 + r, bx1 - 1)} ${H} ${lerp(bx1 + r, bx1 - 1)} ${botTipY} ${topFilletEndX} ${botTipY}`,
           `L ${tipRunX} ${botTipY}`,
           `C ${lerp(bx1 + s, leftX + st)} ${botTipY} ${tipLeftX} ${lerp(H - s, tipBot - st)} ${tipLeftX} ${tipCornerBotStartY}`,
           `L ${tipLeftX} ${tipCornerTopEndY}`,
           `C ${tipLeftX} ${lerp(s, tipTop + st)} ${lerp(bx1 + s, leftX + st)} ${topTipY} ${tipRunX} ${topTipY}`,
           `L ${topFilletEndX} ${topTipY}`,
-          `C ${lerp(bx1, bx1 - 1)} ${topTipY} ${lerp(bx1 + s, bx1 - 1)} 0 ${topFilletX} 0`,
+          `C ${lerp(bx1 + r, bx1 - 1)} ${topTipY} ${lerp(bx1 + r, bx1 - 1)} 0 ${topFilletX} 0`,
           'Z'
         ].join(' ');
       };
@@ -1053,11 +1129,17 @@ const projCount = String(data.projects.length).padStart(2, '0');
         const path = btn.querySelector<SVGPathElement>('.morph-path');
         const tip = btn.querySelector<HTMLElement>('[data-morph-tip]');
         if (!svg || !path || !tip) return;
-        let cx = 55, tw = 40;
+        let cx = 55, tipL = 15, tipR = 95;
+        let isHovered = false;
+        let isFocusVisible = false;
 
         const renderMorph = (val: number) => {
           const t = Math.max(0, Math.min(1.06, val));
-          path.setAttribute('d', buildDownMorph(cx, tw, t));
+          path.setAttribute('d', buildDownMorph(cx, tipL, tipR, t));
+          if (t > 0.03) btn.dataset.morphActive = 'true';
+          else delete btn.dataset.morphActive;
+          const tipAlpha = t <= 0.08 ? 0 : Math.min(1, (t - 0.08) / 0.55);
+          tip.style.opacity = tipAlpha.toFixed(3);
           tip.style.transform = `translateX(-50%) translateY(${((t - 1) * 4).toFixed(2)}px)`;
         };
 
@@ -1068,29 +1150,54 @@ const projCount = String(data.projects.length).padStart(2, '0');
           onUpdate: renderMorph
         });
 
+        const syncOpen = () => {
+          spring.setTarget(isHovered || isFocusVisible ? 1 : 0);
+        };
+
         const measure = () => {
           const w = tip.offsetWidth || tip.getBoundingClientRect().width;
-          tw = Math.max(38, Math.ceil(w / 2) + 2);
-          const sw = Math.max(106, Math.ceil(tw * 2) + 8);
-          cx = sw / 2;
+          const bulbW = Math.max(76, Math.ceil(w) + 4);
+          const btnRect = btn.getBoundingClientRect();
+          const btnCenterX = btnRect.left + btnRect.width / 2;
+          const vpW = window.innerWidth;
+          const vpLeft = clampNum(btnCenterX - bulbW / 2, 8, Math.max(8, vpW - 8 - bulbW));
+          const vpRight = vpLeft + bulbW;
+          const leftExtent = Math.max(24, btnCenterX - vpLeft + 4);
+          const rightExtent = Math.max(24, vpRight - btnCenterX + 4);
+          const sw = Math.ceil(leftExtent + rightExtent);
+          cx = leftExtent;
+          tipL = cx - (btnCenterX - vpLeft);
+          tipR = tipL + bulbW;
+          svg.style.left = `${(20 - cx).toFixed(2)}px`;
+          svg.style.transform = 'none';
           svg.setAttribute('width', String(sw));
           svg.setAttribute('viewBox', `0 0 ${sw} 70`);
+          tip.style.left = `${(20 + (tipL + tipR) / 2 - cx).toFixed(2)}px`;
           renderMorph(spring.getValue());
         };
 
         measure();
         morphRemeasure.push(measure);
-        btn.addEventListener('pointerenter', () => {
+        btn.addEventListener('pointerenter', (e) => {
+          if (e.pointerType === 'touch') return;
+          isHovered = true;
           measure();
-          spring.setTarget(1);
+          syncOpen();
           jellyPulse(btn, { vy: 22, intensity: 0.45 });
         });
-        btn.addEventListener('pointerleave', () => spring.setTarget(0));
-        btn.addEventListener('focus', () => {
-          measure();
-          spring.setTarget(1);
+        btn.addEventListener('pointerleave', () => {
+          isHovered = false;
+          syncOpen();
         });
-        btn.addEventListener('blur', () => spring.setTarget(0));
+        btn.addEventListener('focus', () => {
+          isFocusVisible = btn.matches(':focus-visible');
+          if (isFocusVisible) measure();
+          syncOpen();
+        });
+        btn.addEventListener('blur', () => {
+          isFocusVisible = false;
+          syncOpen();
+        });
         btn.addEventListener('click', () => {
           jellyPulse(btn, { vy: 26, intensity: 0.72 });
         });
@@ -1102,15 +1209,25 @@ const projCount = String(data.projects.length).padStart(2, '0');
         const path = btn.querySelector<SVGPathElement>('.dock-morph-path');
         const tip = btn.querySelector<HTMLElement>('[data-dock-tip]');
         if (!svg || !path || !tip) return;
-        let svgW = 120, labelW = 64;
+        let svgW = 120, labelW = 64, cx = 30, tipL = 4, tipR = 56;
+        let isHovered = false;
+        let isFocusVisible = false;
 
         const renderDockMorph = (val: number) => {
           const t = Math.max(0, Math.min(1.06, val));
-          path.setAttribute('d', buildSideMorph(svgW, labelW, t));
           if (t > 0.03) btn.dataset.morphActive = 'true';
           else delete btn.dataset.morphActive;
-          const tipOffset = isRTL ? (t - 1) * 5 : (1 - t) * 5;
-          tip.style.transform = `translateY(-50%) translateX(${tipOffset.toFixed(2)}px)`;
+          const tipAlpha = t <= 0.08 ? 0 : Math.min(1, (t - 0.08) / 0.55);
+          tip.style.opacity = tipAlpha.toFixed(3);
+
+          if (isHorizontalDock()) {
+            path.setAttribute('d', buildDockDownMorph(cx, tipL, tipR, t));
+            tip.style.transform = `translateX(-50%) translateY(${((t - 1) * 4).toFixed(2)}px)`;
+          } else {
+            path.setAttribute('d', buildSideMorph(svgW, labelW, t));
+            const tipOffset = isRTL ? (t - 1) * 5 : (1 - t) * 5;
+            tip.style.transform = `translateY(-50%) translateX(${tipOffset.toFixed(2)}px)`;
+          }
         };
 
         const spring = createSpringScalar({
@@ -1120,30 +1237,84 @@ const projCount = String(data.projects.length).padStart(2, '0');
           onUpdate: renderDockMorph
         });
 
+        const syncOpen = () => {
+          spring.setTarget((isHovered || isFocusVisible) && !dockMorphSuppressed ? 1 : 0);
+        };
+
+        dockMorphCloseAll.push(() => {
+          isHovered = false;
+          isFocusVisible = false;
+          spring.setTarget(0);
+        });
+
         const measure = () => {
           const w = tip.offsetWidth || tip.getBoundingClientRect().width;
-          labelW = Math.max(46, Math.ceil(w) + 2);
-          svgW = Math.max(108, 46 + labelW);
-          svg.setAttribute('width', String(svgW));
-          svg.setAttribute('viewBox', `0 0 ${svgW} 34`);
+          if (isHorizontalDock()) {
+            const bulbW = Math.max(52, Math.ceil(w) + 4);
+            const btnRect = btn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const vpW = window.innerWidth;
+            const vpLeft = clampNum(btnCenterX - bulbW / 2, 8, Math.max(8, vpW - 8 - bulbW));
+            const vpRight = vpLeft + bulbW;
+            const leftExtent = Math.max(20, btnCenterX - vpLeft + 4);
+            const rightExtent = Math.max(20, vpRight - btnCenterX + 4);
+            svgW = Math.ceil(leftExtent + rightExtent);
+            cx = leftExtent;
+            tipL = cx - (btnCenterX - vpLeft);
+            tipR = tipL + bulbW;
+            svg.style.left = `${(17 - cx).toFixed(2)}px`;
+            svg.style.transform = 'none';
+            svg.setAttribute('width', String(svgW));
+            svg.setAttribute('height', '64');
+            svg.setAttribute('viewBox', `0 0 ${svgW} 64`);
+            tip.style.left = `${(17 + (tipL + tipR) / 2 - cx).toFixed(2)}px`;
+          } else {
+            labelW = Math.max(46, Math.ceil(w) + 2);
+            svgW = Math.max(108, 46 + labelW);
+            svg.style.left = '';
+            svg.style.transform = '';
+            svg.setAttribute('width', String(svgW));
+            svg.setAttribute('height', '34');
+            svg.setAttribute('viewBox', `0 0 ${svgW} 34`);
+            tip.style.left = '';
+          }
           renderDockMorph(spring.getValue());
         };
 
         measure();
         dockMorphRemeasure.push(measure);
-        btn.addEventListener('pointerenter', () => {
+        btn.addEventListener('pointerenter', (e) => {
+          if (e.pointerType === 'touch') return;
+          isHovered = true;
           measure();
-          spring.setTarget(1);
-          jellyPulse(btn, { vx: isRTL ? 20 : -20, intensity: 0.45 });
+          syncOpen();
+          jellyPulse(
+            btn,
+            isHorizontalDock()
+              ? { vy: 18, intensity: 0.45 }
+              : { vx: isRTL ? 20 : -20, intensity: 0.45 }
+          );
         });
-        btn.addEventListener('pointerleave', () => spring.setTarget(0));
+        btn.addEventListener('pointerleave', () => {
+          isHovered = false;
+          syncOpen();
+        });
         btn.addEventListener('focus', () => {
-          measure();
-          spring.setTarget(1);
+          isFocusVisible = btn.matches(':focus-visible');
+          if (isFocusVisible) measure();
+          syncOpen();
         });
-        btn.addEventListener('blur', () => spring.setTarget(0));
+        btn.addEventListener('blur', () => {
+          isFocusVisible = false;
+          syncOpen();
+        });
         btn.addEventListener('click', () => {
-          jellyPulse(btn, { vx: isRTL ? 24 : -24, intensity: 0.72 });
+          jellyPulse(
+            btn,
+            isHorizontalDock()
+              ? { vy: 22, intensity: 0.72 }
+              : { vx: isRTL ? 24 : -24, intensity: 0.72 }
+          );
         });
       });
 
@@ -1155,13 +1326,19 @@ const projCount = String(data.projects.length).padStart(2, '0');
         });
       }
 
-      window.addEventListener('resize', () => {
+      const handleLayoutChange = () => {
         syncTabBridge(true);
         morphRemeasure.forEach((fn) => fn());
         dockMorphRemeasure.forEach((fn) => fn());
         if (utilityDock && !root.classList.contains('is-world-entering')) {
-          utilityDock.style.transform = window.innerWidth >= 1325 ? 'translate3d(0, -50%, 0)' : '';
+          utilityDock.style.transform = '';
         }
+      };
+
+      window.addEventListener('resize', handleLayoutChange);
+      dockMedia.addEventListener?.('change', () => {
+        handleLayoutChange();
+        popoverSpring.snap(paletteMenu?.dataset.open === 'true' ? 1 : 0);
       });
 
       // -----------------------------------------------------------------------
@@ -1174,14 +1351,14 @@ const projCount = String(data.projects.length).padStart(2, '0');
       const renderPopoverSpring = (val: number, vel: number) => {
         if (!paletteMenu) return;
         const opacity = Math.max(0, Math.min(1, val));
-        const isDesktop = window.innerWidth >= 1325;
+        const isDesktop = !isHorizontalDock();
         const baseScale = 0.9 + 0.1 * val;
         const stretch = Math.max(0.92, Math.min(1.08, 1 + vel * 0.006));
         const sy = Math.max(0.86, Math.min(1.08, baseScale * stretch));
         const sx = Math.max(0.86, Math.min(1.08, baseScale / Math.sqrt(stretch)));
         const yPrefix = isDesktop
           ? 'translateY(-50%)'
-          : `translateY(${((1 - val) * -8).toFixed(2)}px)`;
+          : `translate3d(0, ${((1 - val) * -10).toFixed(2)}px, 0)`;
 
         paletteMenu.style.opacity = opacity.toFixed(3);
         paletteMenu.style.transform = `${yPrefix} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
@@ -1195,11 +1372,11 @@ const projCount = String(data.projects.length).padStart(2, '0');
         onRest: () => {
           if (!paletteMenu) return;
           const open = paletteMenu.dataset.open === 'true';
-          const isDesktop = window.innerWidth >= 1325;
+          const isDesktop = !isHorizontalDock();
           paletteMenu.style.opacity = open ? '1' : '0';
           paletteMenu.style.transform = open
-            ? (isDesktop ? 'translateY(-50%)' : '')
-            : (isDesktop ? 'translateY(-50%) scale(0.9)' : 'translateY(-8px) scale(0.9)');
+            ? (isDesktop ? 'translateY(-50%)' : 'translate3d(0, 0, 0)')
+            : (isDesktop ? 'translateY(-50%) scale(0.9)' : 'translate3d(0, -10px, 0) scale(0.92)');
         }
       });
 
@@ -1209,6 +1386,8 @@ const projCount = String(data.projects.length).padStart(2, '0');
 
       const setPaletteMenu = (open: boolean) => {
         if (!paletteMenu || !paletteTrigger) return;
+        dockMorphSuppressed = open;
+        if (open) dockMorphCloseAll.forEach((fn) => fn());
         paletteMenu.dataset.open = open ? 'true' : 'false';
         paletteTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
         popoverSpring.setTarget(open ? 1 : 0);

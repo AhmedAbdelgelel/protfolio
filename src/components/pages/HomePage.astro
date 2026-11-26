@@ -28,10 +28,10 @@ entries.forEach((entry, index) => {
 ---
 
 <Base lang={lang} title={t.homeTitle} description={t.homeDescription}>
-  <main class="index">
-    <p class="index__intro">
+  <div class="index">
+    <h1 class="index__intro">
       {t.homeIntro} <a class="about-link" href={localePath(lang, '/about/')}>{t.homeMore}</a>.
-    </p>
+    </h1>
 
     <ul>
       {rows.map((row) => (
@@ -49,5 +49,5 @@ entries.forEach((entry, index) => {
         </li>
       ))}
     </ul>
-  </main>
+  </div>
 </Base>

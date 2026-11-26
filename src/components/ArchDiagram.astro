@@ -290,7 +290,11 @@ graph.steps.forEach((step, index) => {
           const badgeText = nums.join('·');
           const badgeW = Math.max(15, badgeText.length * 5.2 + 9);
           const tagW = node.tag ? node.tag.length * 5.2 + 12 : 0;
-          const stepLabel = badgeText ? ' — step ' + badgeText + ' of ' + graph.steps.length : '';
+          const stepLabel = badgeText
+            ? activeLang === 'ar'
+              ? ' — خطوة ' + badgeText + ' من ' + graph.steps.length
+              : ' — step ' + badgeText + ' of ' + graph.steps.length
+            : '';
           const ariaLabel = node.label + (node.sub ? ' — ' + node.sub : '') + stepLabel;
           return (
             <g
@@ -400,12 +404,12 @@ graph.steps.forEach((step, index) => {
     )}
 
     <div class="arch__bar" dir="ltr">
-      <button type="button" class="arch__btn" data-arch-prev aria-label="Previous step">←</button>
+      <button type="button" class="arch__btn" data-arch-prev aria-label={activeLang === 'ar' ? 'الخطوة السابقة' : 'Previous step'}>←</button>
       <button type="button" class="arch__play" data-arch-play>
         <span class="arch__play-icon" aria-hidden="true">▶</span>
         <span data-arch-play-label>{playLabel}</span>
       </button>
-      <button type="button" class="arch__btn" data-arch-next aria-label="Next step">→</button>
+      <button type="button" class="arch__btn" data-arch-next aria-label={activeLang === 'ar' ? 'الخطوة التالية' : 'Next step'}>→</button>
       <span class="arch__count" data-arch-count>01 / {String(flow.steps.length).padStart(2, '0')}</span>
     </div>
 
@@ -559,7 +563,6 @@ graph.steps.forEach((step, index) => {
     stroke: color-mix(in srgb, var(--arch-accent) 45%, var(--muted-3));
   }
   .arch__edge.is-feedback .arch__edge-tag rect {
-    border-style: dashed;
     stroke-dasharray: 2 2;
   }
 

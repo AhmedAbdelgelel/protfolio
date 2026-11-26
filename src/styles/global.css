@@ -25,8 +25,8 @@
   --article: light-dark(#1f2937, #d1d5db);
   --strong: light-dark(#111, #f3f4f6);
   --muted: light-dark(#6b7280, #9ca3af);
-  --muted-2: light-dark(#737373, #737373);
-  --muted-3: light-dark(#9ca3af, #6b7280);
+  --muted-2: light-dark(#525252, #a3a3a3);
+  --muted-3: light-dark(#595959, #9ca3af);
   --link: light-dark(#4b5563, #fff);
   --link-border: light-dark(#d1d5db, #57534e);
   --link-hover: light-dark(#4b5563, #fff);
@@ -86,10 +86,11 @@ img { display: block; max-width: 100%; }
 /* -------------------------------- header --------------------------------- */
 .site-header {
   display: flex;
+  padding: 0.75rem 1.5rem 0;
   margin-bottom: 1.25rem;          /* mb-5 */
   align-items: center;
 }
-@media (min-width: 768px) { .site-header { margin-bottom: 2.5rem; } }  /* md:mb-10 */
+@media (min-width: 768px) { .site-header { padding-top: 1.5rem; margin-bottom: 2.5rem; } }  /* md:mb-10 */
 
 .logo {
   font-size: 1rem;
@@ -304,12 +305,12 @@ img { display: block; max-width: 100%; }
 .index a:hover .index__meta small { color: var(--muted-2); }
 @media (max-width: 520px) {
   .index__meta { margin-inline-start: 0.5rem; }
-  .index__meta small { display: none; }
 }
 
 /* intro paragraph above the list (the one deviation from his home) */
 .index__intro {
   font-size: 1rem;
+  font-weight: 400;
   color: var(--article);
   margin: 0 0 1.75rem;
   line-height: 1.55;

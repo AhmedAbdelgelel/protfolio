@@ -366,9 +366,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .dock-morph-btn:hover,
-.dock-morph-btn:focus-visible {
-  z-index: 10;
+.dock-morph-btn:focus-visible,
+.dock-morph-btn[data-morph-active='true'] {
   color: var(--ink);
+}
+
+.dock-morph-btn[data-morph-active='true'] {
+  z-index: 10;
 }
 
 .dock-morph-btn:focus-visible {
@@ -397,9 +401,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   transition: fill 140ms ease, stroke 140ms ease;
 }
 
-.dock-morph-btn[data-morph-active='true'] .dock-morph-path,
-.dock-morph-btn:hover .dock-morph-path,
-.dock-morph-btn:focus-visible .dock-morph-path {
+.dock-morph-btn[data-morph-active='true'] .dock-morph-path {
   fill: var(--surface-active);
   stroke: var(--panel-border);
 }
@@ -449,11 +451,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   transform: translateY(-50%) translateX(-5px);
 }
 
-.dock-morph-btn:hover .dock-morph-tip,
-.dock-morph-btn:focus-visible .dock-morph-tip {
-  opacity: 1;
-}
-
 .theme-icon { display: none; }
 [data-theme-toggle][data-current='dark'] .theme-icon--sun,
 [data-theme-toggle][data-current='light'] .theme-icon--moon {
@@ -466,6 +463,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   inset-inline-end: 4.5rem;
   top: 50%;
   transform: translateY(-50%) scale(0.9);
+  transform-origin: right center;
   z-index: 45;
   min-width: 10.5rem;
   padding: 0.4rem;
@@ -473,6 +471,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   corner-shape: squircle;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -480,6 +479,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   gap: 0.2rem;
   opacity: 0;
   pointer-events: none;
+}
+
+[dir='rtl'] .palette-popover {
+  transform-origin: left center;
 }
 
 .palette-popover[data-open='true'] {
@@ -539,7 +542,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: flex;
   flex-direction: column;
   overflow: visible;
-  z-index: 1;
+  z-index: 6;
 }
 
 /* Seamless atmospheric vignette (zero box edges) keeping text razor-sharp over sky & sea */
@@ -697,9 +700,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .morph-btn:hover,
-.morph-btn:focus-visible {
-  z-index: 25;
+.morph-btn:focus-visible,
+.morph-btn[data-morph-active='true'] {
   color: var(--ink);
+}
+
+.morph-btn[data-morph-active='true'] {
+  z-index: 25;
 }
 
 .morph-btn:focus-visible {
@@ -782,11 +789,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .morph-btn--accent .morph-tip {
   color: var(--accent-ink);
-}
-
-.morph-btn:hover .morph-tip,
-.morph-btn:focus-visible .morph-tip {
-  opacity: 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -974,6 +976,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .drum-item:hover:not([aria-selected='true']) {
   color: var(--body);
+}
+
+.drum-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .drum-num {
@@ -1504,20 +1511,50 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
 }
 
-@media (min-width: 960px) and (max-width: 1324px) {
+@media (max-width: 1324px) {
   .utility-dock {
     top: 0.75rem;
-    transform: none !important;
+    transform: none;
     flex-direction: row;
     inset-inline-end: 0.75rem;
     padding: 0.45rem 0.65rem;
     gap: 0.5rem;
   }
 
+  .dock-morph-svg {
+    top: 0;
+    inset-inline-end: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28));
+  }
+
+  [dir='rtl'] .dock-morph-svg {
+    transform: translateX(-50%);
+  }
+
+  .dock-morph-tip {
+    top: 38px;
+    inset-inline-end: auto;
+    left: 50%;
+    height: 24px;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  [dir='rtl'] .dock-morph-tip {
+    transform: translateX(-50%) translateY(-4px);
+  }
+
   .palette-popover {
-    top: 4.25rem;
+    top: 4.35rem;
     inset-inline-end: 0.75rem;
-    transform: none;
+    transform: translate3d(0, -10px, 0) scale(0.92);
+    transform-origin: top right;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+  }
+
+  [dir='rtl'] .palette-popover {
+    transform-origin: top left;
   }
 }
 
@@ -1585,7 +1622,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
 
   .drum-rail {
-    height: 88px;
+    height: auto;
+    min-height: 88px;
     border-inline-end: 0;
     border-bottom: 1px solid var(--panel-border);
     cursor: default;
@@ -1633,21 +1671,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     min-height: 360px;
     overflow: visible;
   }
-
-  .utility-dock {
-    top: 0.75rem;
-    transform: none !important;
-    flex-direction: row;
-    inset-inline-end: 0.75rem;
-    padding: 0.45rem 0.65rem;
-    gap: 0.5rem;
-  }
-
-  .palette-popover {
-    top: 4.25rem;
-    inset-inline-end: 0.75rem;
-    transform: none;
-  }
 }
 
 @media (max-width: 600px) {
@@ -1680,9 +1703,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
 }
 
+@media (max-width: 480px) {
+  .tabs-bar {
+    padding-inline: 0.9rem;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.73rem;
+  }
+}
+
 @media (max-width: 379px) {
   .tabs-bar {
-    padding-inline: 0.15rem;
+    padding-inline: 0.75rem;
   }
 
   .tab-btn {
@@ -1698,6 +1732,74 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .avatar {
     width: 52px;
     height: 52px;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Print Styles — clean readable document with all tabs expanded
+   -------------------------------------------------------------------------- */
+
+@media print {
+  :root,
+  :root[data-theme='dark'],
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --bg: #ffffff;
+    --panel-bg: #ffffff;
+    --panel-solid: #ffffff;
+    --panel-border: #d4d4d8;
+    --surface: #f4f4f5;
+    --chip: #f4f4f5;
+    --ink: #111111;
+    --body: #27272a;
+    --muted: #52525b;
+    --accent: #111111;
+    --accent-soft: #f4f4f5;
+    --accent-border: #d4d4d8;
+  }
+
+  body {
+    background: #ffffff;
+    color: #111111;
+  }
+
+  .pixel-landscape-canvas,
+  .utility-dock,
+  .palette-popover,
+  .wheel-hint {
+    display: none !important;
+  }
+
+  .viewport-shell {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .two-zone {
+    display: block;
+  }
+
+  .identity-col::before,
+  .panel-unified-bg,
+  .panel-unified-outline {
+    display: none !important;
+  }
+
+  .panel-box {
+    height: auto;
+    overflow: visible;
+  }
+
+  .tab-panel {
+    display: block !important;
+    height: auto;
+    page-break-inside: avoid;
+  }
+
+  .inspector-entry {
+    display: flex !important;
   }
 }
 

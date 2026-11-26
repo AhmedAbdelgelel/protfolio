@@ -90,6 +90,7 @@ export interface PortfolioContent {
     location: string;
     stats: [MetaStat, MetaStat, MetaStat];
     highlights: string[];
+    courseworkLabel: string;
     courses: string[];
   };
 }
@@ -106,19 +107,19 @@ export const contactInfo = {
 
 const en: PortfolioContent = {
   meta: {
-    title: 'ahmed abdelgelel — software engineer, ai systems',
+    title: 'ahmed abdelgelel — forward-deployed & agentic systems engineer',
     description:
-      'software engineer in cairo building production ai and backend systems with client teams, from ambiguous workflows to reliable software in their environment.',
-    jobTitle: 'Software engineer — AI systems and client delivery'
+      'software engineer in cairo owning the whole problem from discovery through deployment — building production backends, mcp servers, tool-calling agents, evals, and policy-gated llm gateways.',
+    jobTitle: 'Forward-Deployed Software Engineer — Agentic AI & Backend Systems'
   },
   identity: {
     name: 'ahmed abdelgelel',
-    role: 'software engineer · backend & ai systems · cairo',
+    role: 'forward-deployed & agentic systems engineer · cairo',
     status: 'open to forward-deployed engineering roles',
     bioPrimary:
-      'i architect production backends and ai infrastructure — apis, semantic caches, payment pipelines, and fault-tolerant workers built for real traffic.',
+      'i own the whole problem, not just the ticket — entering a customer’s workflow, exposing the real constraint, and turning it into simple, reliable software they can keep running after i leave.',
     bioSecondary:
-      'from schema design and webhook idempotency to policy-gated llm gateways, i own the unglamorous reliability layer between prototypes and production.'
+      'i build production backends and agentic systems: mcp servers, tool loops, guardrails, evals, and policy-gated llm gateways. a model returning a good answer once is a demo; a system that explains and repeats it under real constraints is software.'
   },
   controls: {
     resume: 'resume',
@@ -155,13 +156,13 @@ const en: PortfolioContent = {
       num: '01',
       company: 'penta studio',
       shortRole: 'software engineer',
-      role: 'software engineer',
+      role: 'software engineer · remote',
       period: 'dec 2025 — now',
       shortPeriod: '2025 – now',
       bullets: [
-        'owned the backend across multiple client products at once — turning shifting requirements into postgresql schemas, apis, and production releases.',
-        'built llm gateways and agent backends with semantic caching, mcp tool integrations, background queues, and provider fallback.',
-        'handled post-launch operations directly with client teams: debugging edge-case data, tuning slow queries, and shipping zero-downtime fixes.'
+        'lead backend development and technical architecture across multiple client products at once — owning system design, apis, third-party integrations, and cloud delivery from concept to launch.',
+        'build production node.js backends (nestjs, express, postgresql, redis) and agentic ai systems — mcp servers, tool-calling workflows, semantic caches, and background queues.',
+        'work directly with frontend teams and client stakeholders from discovery through post-launch operations: exposing real constraints, debugging edge-case data, and shipping zero-downtime fixes.'
       ],
       stack: ['node.js', 'typescript', 'nestjs', 'postgresql', 'redis', 'queues']
     },
@@ -173,9 +174,9 @@ const en: PortfolioContent = {
       period: 'feb 2025 — oct 2026',
       shortPeriod: '2025 – 2026',
       bullets: [
-        'built the entire backend from scratch for a personalized story bookstore — data models, apis, multilingual content, media uploads, and admin tooling.',
-        'wired stripe checkout with webhooks as the single source of truth so order state, retries, and artist assignment queues stayed consistent.',
-        'moved personalized epub generation into background workers off the request path, with role-based access for admins, artists, and customers.'
+        'built the entire backend from scratch for a personalized story-commerce platform — cart, stripe checkout, multilingual story models, media upload pipelines, and admin tooling.',
+        'wired stripe webhooks as the single source of truth for order state, retries, and artist assignment queues so a refresh or double click never creates duplicate orders.',
+        'moved personalized epub generation and session maintenance into automated background workers off the request path, with role-based access for admins, artists, and customers.'
       ],
       stack: ['node.js', 'typescript', 'stripe', 'epub', 'workers', 'rbac']
     },
@@ -187,9 +188,9 @@ const en: PortfolioContent = {
       period: 'apr — aug 2025',
       shortPeriod: 'apr – aug 25',
       bullets: [
-        'worked as the sole backend engineer between cairo and a workshop in saudi arabia, shipping rest apis for orders, invoicing, and payment tracking.',
-        'implemented role-based workflows separating admins, workshop staff, and customers across daily operations.',
-        'integrated azure ocr into the invoicing flow to read vendor names, dates, and totals from uploaded receipt images.'
+        'owned the entire backend between cairo and a car-maintenance workshop in saudi arabia — shipping rest apis for orders, invoicing, and payment workflows.',
+        'built role-based authentication and authorization separating admins, workshop staff, and customers across daily operations.',
+        'integrated azure ocr into the invoicing pipeline to extract vendor, date, and amount data from uploaded receipts and tuned database workflows for production load.'
       ],
       stack: ['node.js', 'rest apis', 'azure ocr', 'rbac', 'postgresql']
     }
@@ -203,12 +204,12 @@ const en: PortfolioContent = {
       year: '2026',
       metric: '50 → 1 calls',
       repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
-      summary: 'multi-tenant llm gateway that governs semantic cache reuse with pure policy rules, in-process embeddings, and per-reply audit evidence.',
+      summary: 'openai-compatible two-layer cache gateway (exact + policy-gated semantic) in fastify/typescript with per-reply audit evidence and 522 automated tests.',
       pipeline: 'auth → redis exact → onnx + pgvector → policy gate → failover',
       bullets: [
-        'enforced strict 6-dimension reuse gating (tenant, provider, model, sampling, system-prompt hash, policy version) calibrated on labelled prompt pairs.',
-        'ran onnx embeddings in-process with pgvector + redis and single-flight coalescing to collapse 50 concurrent identical requests into 1 upstream call.',
-        'preserved sse streaming passthrough, circuit-broken provider fallback, safe cache-outage degradation, and a next.js evidence control plane.'
+        'built exact sha-256 caching (memory lru / redis) and a pure reuse-policy semantic gate (tenant, provider, model, temperature, max_tokens, system-prompt fingerprint, policy version) calibrated at 0.95 threshold.',
+        'ran in-process onnx embeddings with single-flight coalescing (50 concurrent → 1 provider call), keeping hit latency flat (~15 ms p50) across 8 kb to 256 kb prompts with zero provider calls on hits.',
+        'added multi-provider routing (openai, anthropic, gemini, opencode, ollama), sse streaming passthrough, circuit-broken fallback, safe cache-outage degradation, docker compose, a next.js evidence control plane, and 399 core + 123 ui tests.'
       ],
       stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
     },
@@ -220,12 +221,12 @@ const en: PortfolioContent = {
       year: '2025',
       metric: '3m+ ops/s',
       repoUrl: 'https://github.com/AhmedAbdelgelel/Cache-engine',
-      summary: 'zero-dependency redis-like in-memory cache engine written from scratch in node.js and benchmarked across 10 isolated pressure scenarios.',
+      summary: 'redis-inspired in-memory cache engine built from scratch in node.js (zero core deps + express rest api), hitting 3m+ ops/sec across 10 load scenarios.',
       pipeline: 'hash map o(1) → doubly linked lru → dual ttl → stampede guard',
       bullets: [
-        'implemented o(1) lru eviction via hash map + doubly linked list with strict byte-level memory accounting and redis-style sorted sets (zadd/zrange).',
-        'built dual-layer ttl expiration (lazy eviction on read + background active sweep) and a stampede guard eliminating 99.9% of duplicate misses.',
-        'wrote an isolated 10-scenario benchmark harness tracking p50/p95/p99 reservoir latencies and memory footprint across churn, sweep, and large values.'
+        'implemented o(1) lru eviction via map + doubly linked list with byte-level memory cap enforcement and redis-style sorted sets (zadd, zrank, zrange, zrangebyscore, zincrby).',
+        'built dual-layer ttl expiration (lazy check on get + unref’d background sweep), stampede guard promise deduplication (99.9% fewer backend calls), and reservoir-sampled p50/p95/p99 latency metrics.',
+        'validated with 79 unit tests across 5 modules using node’s built-in test runner and benchmarked across 10 scenarios (1m ops each: zipf hot keys, ttl storm, churn, memory pressure, and large values).'
       ],
       stack: ['node.js', 'lru', 'ttl', 'sorted sets', 'zero deps']
     },
@@ -237,12 +238,12 @@ const en: PortfolioContent = {
       year: '2025',
       metric: '1:1 viewport',
       repoUrl: 'https://github.com/Mo7ammedd/epub-to-pdf',
-      summary: 'fixed-layout epub renderer that prints every xhtml page at its declared viewport—preserving exact artwork, fonts, and geometry.',
+      summary: 'fixed-layout epub-to-pdf pipeline that renders each xhtml spine page in puppeteer at its exact declared viewport—never re-typesetting artwork, fonts, or layout.',
       pipeline: 'zip unpack → opf spine → puppeteer 1:1 → pdf-lib merge',
       bullets: [
-        'parsed container.xml and opf spine ordering to render each fixed-layout xhtml page in puppeteer at its exact declared dimensions without reflow.',
-        'injected @font-face font replacements and global css print overrides while handling non-ascii asset paths and malformed archive edges.',
-        'added batch shelf conversion, pdf-lib page merging, and fail-safe cross-platform temp directory cleanup for ci and container runs.'
+        'unpacked epub archives, parsed container.xml and opf spine ordering, and rendered every xhtml page in puppeteer at its exact declared viewport dimensions for 1:1 fixed-layout fidelity.',
+        'injected @font-face rules with configurable font replacement and global css print overrides while surviving real-library edge cases like non-ascii asset paths and broken windows zip paths.',
+        'added batch shelf conversion, pdf-lib page merging, and cross-platform extraction with guaranteed temp-directory cleanup on success or failure for ci and container runs.'
       ],
       stack: ['node.js', 'puppeteer', 'pdf-lib', 'xhtml']
     }
@@ -267,25 +268,26 @@ const en: PortfolioContent = {
       'focused on systems programming, database internals, algorithms, operating systems, and distributed backend architecture.',
       'worked as a software engineer at penta studio in cairo alongside the degree, designing and shipping production client backends.'
     ],
+    courseworkLabel: 'coursework',
     courses: ['data structures', 'algorithms', 'operating systems', 'databases', 'networks', 'software eng']
   }
 };
 
 const ar: PortfolioContent = {
   meta: {
-    title: 'أحمد عبد الجليل — مهندس برمجيات وأنظمة ذكاء اصطناعي',
+    title: 'أحمد عبد الجليل — مهندس أنظمة وكلاء ذكاء اصطناعي وهندسة ميدانية',
     description:
-      'مهندس برمجيات في القاهرة أبني أنظمة ذكاء اصطناعي وباك إند للإنتاج مع فرق العملاء، من سير العمل غير الواضح إلى برنامج موثوق داخل بيئتهم.',
-    jobTitle: 'مهندس برمجيات — أنظمة ذكاء اصطناعي وتسليم للعملاء'
+      'مهندس برمجيات في القاهرة أتولى المشكلة كاملة من الفهم حتى النشر — أبني أنظمة باك إند، وخوادم MCP، ووكلاء استدعاء الأدوات، والتقييمات، وبوابات النماذج المحكومة بالسياسات.',
+    jobTitle: 'مهندس برمجيات وهندسة ميدانية — أنظمة الوكلاء والباك إند'
   },
   identity: {
     name: 'أحمد عبد الجليل',
-    role: 'مهندس برمجيات · أنظمة الباك إند والذكاء · القاهرة',
+    role: 'مهندس أنظمة وكلاء وباك إند · هندسة ميدانية · القاهرة',
     status: 'متاح لأدوار الهندسة الميدانية مع العملاء',
     bioPrimary:
-      'أصمّم وأبني أنظمة باك إند وبنية ذكاء اصطناعي للإنتاج — واجهات، كاش دلالي، مسارات دفع، وعمليات خلفية تتحمّل ضغط التشغيل الفعلي.',
+      'أتولّى المشكلة كاملة لا المهمة المكتوبة في التذكرة فقط — أدخل سير عمل العميل، أكشف القيد الحقيقي، وأحوّله إلى نظام بسيط وموثوق يستطيع العميل الاستمرار في استخدامه بعد رحيلي.',
     bioSecondary:
-      'من تصميم الجداول وضمان عدم تكرار الـ webhooks إلى بوابات النماذج المحكومة بالسياسات، أتولّى طبقة الاعتمادية بين التجربة والإنتاج.'
+      'أبني أنظمة باك إند ووكلاء ذكاء اصطناعي للإنتاج: خوادم MCP، وحلقات استدعاء الأدوات، وحدود الحماية، والتقييمات، وبوابات النماذج المحكومة بالسياسات. ردّ جيد مرة واحدة عرض تجريبي؛ أما النظام الذي يفسّر النتيجة ويكرّرها داخل قيود العميل فهذا هو البرنامج.'
   },
   controls: {
     resume: 'السيرة',
@@ -322,13 +324,13 @@ const ar: PortfolioContent = {
       num: '01',
       company: 'penta studio',
       shortRole: 'مهندس برمجيات',
-      role: 'مهندس برمجيات',
+      role: 'مهندس برمجيات · عن بُعد',
       period: 'ديسمبر 2025 — الآن',
       shortPeriod: '2025 – الآن',
       bullets: [
-        'تولّيت الباك إند لعدة منتجات عملاء في الوقت نفسه — بتحويل المتطلبات المتغيّرة إلى جداول postgresql وواجهات api وإطلاقات فعلية.',
-        'بنيت بوابات llm وأنظمة وكلاء تشمل الكاش الدلالي وتكاملات mcp وطوابير المهام الخلفية والتحويل التلقائي عند تعطل المزوّد.',
-        'تابعت التشغيل بعد الإطلاق مع فرق العملاء مباشرة: معالجة حالات البيانات غير المتوقعة، تسريع الاستعلامات، وإصلاح الأعطال دون توقف.'
+        'أقود تطوير الباك إند والمعمارية التقنية لعدة منتجات عملاء في الوقت نفسه — مع مسؤولية تصميم الأنظمة والـ apis والتكاملات الخارجية والتسليم السحابي من الفكرة حتى الإطلاق.',
+        'أبني أنظمة باك إند بـ node.js (nestjs وexpress وpostgresql وredis) وأنظمة وكلاء ذكاء اصطناعي تشمل خوادم mcp وسير عمل استدعاء الأدوات والكاش الدلالي وطوابير المهام الخلفية.',
+        'أعمل مباشرةً مع فرق الواجهة والعملاء من الاكتشاف حتى التشغيل بعد الإطلاق: كشف القيود الحقيقية، معالجة حالات البيانات غير المتوقعة، وشحن إصلاحات دون توقف.'
       ],
       stack: ['node.js', 'typescript', 'nestjs', 'postgresql', 'redis', 'queues']
     },
@@ -340,9 +342,9 @@ const ar: PortfolioContent = {
       period: 'فبراير 2025 — أكتوبر 2026',
       shortPeriod: '2025 – 2026',
       bullets: [
-        'بنيت الباك إند كاملًا من الصفر لمتجر قصص مخصّصة — نماذج البيانات، الـ apis، المحتوى متعدد اللغات، رفع الوسائط، وأدوات الإدارة اليومية.',
-        'ربطت الدفع عبر stripe باعتماد webhooks كمصدر حقيقة وحيد لضبط حالات الطلب وإعادة المحاولة وطوابير إسناد الفنانين.',
-        'نقلت توليد ملفات epub المخصّصة إلى عمليات خلفية خارج مسار الطلب مع صلاحيات rbac للإدارة والفنانين والعملاء.'
+        'بنيت الباك إند كاملًا من الصفر لمنصة متجر قصص مخصّصة — السلة، الدفع عبر stripe، نماذج القصص متعددة اللغات، رفع الوسائط، وأدوات الإدارة اليومية.',
+        'اعتمدت stripe webhooks كمصدر حقيقة وحيد لحالات الطلب وإعادة المحاولة وطوابير إسناد الفنانين، بحيث لا يخلق التحديث أو الضغط المزدوج طلبًا مكررًا أبدًا.',
+        'نقلت توليد ملفات epub المخصّصة وصيانة الجلسات إلى عمليات خلفية خارج مسار الطلب، مع صلاحيات rbac للإدارة والفنانين والعملاء.'
       ],
       stack: ['node.js', 'typescript', 'stripe', 'epub', 'workers', 'rbac']
     },
@@ -354,9 +356,9 @@ const ar: PortfolioContent = {
       period: 'أبريل — أغسطس 2025',
       shortPeriod: 'أبريل – أغسطس 25',
       bullets: [
-        'عملت كمهندس الباك إند الوحيد بين القاهرة وورشة في السعودية، وبنيت واجهات rest للطلبات والفواتير ومتابعة المدفوعات.',
-        'نفّذت مسارات عمل بصلاحيات حسب الدور تفصل بين الإدارة وفريق الورشة والعملاء في التشغيل اليومي.',
-        'دمجت azure ocr في مسار الفوترة لقراءة اسم المورّد والتاريخ والإجمالي تلقائيًا من صور الإيصالات المرفوعة.'
+        'تولّيت الباك إند بالكامل بين القاهرة وورشة صيانة سيارات في السعودية — وبنيت واجهات rest للطلبات والفواتير ومتابعة المدفوعات.',
+        'بنيت نظام مصادقة وصلاحيات حسب الدور يفصل بين الإدارة وفريق الورشة والعملاء في التشغيل اليومي.',
+        'دمجت azure ocr في مسار الفوترة لاستخراج المورّد والتاريخ والإجمالي تلقائيًا من صور الإيصالات، وحسّنت أداء قواعد البيانات لضغط الإنتاج.'
       ],
       stack: ['node.js', 'rest apis', 'azure ocr', 'rbac', 'postgresql']
     }
@@ -370,12 +372,12 @@ const ar: PortfolioContent = {
       year: '2026',
       metric: '50 → 1 calls',
       repoUrl: 'https://github.com/AhmedAbdelgelel/Relay',
-      summary: 'بوابة llm متعددة العملاء تحكم إعادة استخدام الكاش الدلالي بقواعد سياسة بحتة وتضمينات محلية ودليل تدقيق لكل رد.',
+      summary: 'بوابة كاش من طبقتين متوافقة مع openai (كاش مطابق + كاش دلالي محكوم بالسياسات) بـ fastify/typescript مع دليل تدقيق لكل رد و522 اختبارًا آليًا.',
       pipeline: 'auth → redis exact → onnx + pgvector → policy gate → failover',
       bullets: [
-        'فرضت بوابة إعادة استخدام من 6 أبعاد (العميل، المزوّد، النموذج، معاملات التوليد، بصمة النظام، إصدار السياسة) بمعايرة مقاسة.',
-        'شغّلت تضمينات onnx داخل نفس العملية مع pgvector وredis وتجميع single-flight لتحويل 50 طلبًا متزامنًا إلى طلب واحد.',
-        'حافظت على بث sse المباشر مع تحويل تلقائي عند تعطل المزوّد وتدهور آمن عند توقف الكاش ولوحة أدلة بـ next.js.'
+        'بنيت كاشًا مطابقًا بـ sha-256 (ذاكرة lru / redis) وبوابة سياسة دلالية نقية (العميل، المزوّد، النموذج، temperature، max_tokens، بصمة النظام، إصدار السياسة) بمعايرة مقاسة عند 0.95.',
+        'شغّلت تضمينات onnx داخل العملية مع تجميع single-flight (50 طلبًا متزامنًا ← طلب مزوّد واحد)، ما حافظ على كمون ثابت (~15 مللي ثانية p50) عبر مطالبات من 8 إلى 256 كيلوبايت دون أي استدعاء للمزوّد عند الإصابة.',
+        'أضفت التوجيه متعدد المزوّدين (openai وanthropic وgemini وopencode وollama) وبث sse المباشر والتحويل التلقائي مع circuit breaker والتدهور الآمن عند تعطل الكاش وdocker compose ولوحة أدلة بـ next.js مع 399 اختبارًا أساسيًا + 123 اختبار واجهة.'
       ],
       stack: ['fastify', 'typescript', 'pgvector', 'redis', 'onnx', 'docker']
     },
@@ -387,12 +389,12 @@ const ar: PortfolioContent = {
       year: '2025',
       metric: '3m+ ops/s',
       repoUrl: 'https://github.com/AhmedAbdelgelel/Cache-engine',
-      summary: 'محرك كاش في الذاكرة شبيه بـ redis مكتوب من الصفر بـ node.js دون اعتماديات ومختبر عبر 10 سيناريوهات ضغط معزولة.',
+      summary: 'محرك كاش في الذاكرة مستوحى من redis مبني من الصفر بـ node.js (بلا اعتماديات في النواة + واجهة express rest)، يحقق أكثر من 3 ملايين عملية/ثانية عبر 10 سيناريوهات ضغط.',
       pipeline: 'hash map o(1) → doubly linked lru → dual ttl → stampede guard',
       bullets: [
-        'نفّذت استبعاد lru بزمن o(1) عبر جدول تجزئة وقائمة مترابطة مزدوجة مع محاسبة ذاكرة بالبايت ومجموعات مرتبة (zadd/zrange).',
-        'بنيت انتهاء صلاحية بطبقتين (كسول عند القراءة + مسح خلفي نشط) وحاجز اندفاع يمنع 99.9% من الإخفاقات المكررة.',
-        'كتبت بيئة قياس معزولة من 10 سيناريوهات تتبع كمون p50/p95/p99 عبر reservoir sampling واستهلاك الذاكرة.'
+        'نفّذت استبعاد lru بزمن o(1) عبر map وقائمة مترابطة مزدوجة مع فرض سقف ذاكرة بالبايت ومجموعات مرتبة شبيهة بـ redis (zadd وzrank وzrange وzrangebyscore وzincrby).',
+        'بنيت انتهاء صلاحية بطبقتين (فحص كسول عند القراءة + مسح خلفي لا يعطل خروج العملية) وحاجز اندفاع يمنع 99.9% من الاستدعاءات المكررة وقياسات كمون p50/p95/p99 عبر reservoir sampling.',
+        'تحقّقت من المحرك عبر 79 اختبار وحدة موزّعة على 5 وحدات باستخدام مشغّل اختبارات node المدمج، وقست الأداء عبر 10 سيناريوهات (مليون عملية لكل سيناريو: مفاتيح zipf وعاصفة ttl وضغط الذاكرة والقيم الكبيرة).'
       ],
       stack: ['node.js', 'lru', 'ttl', 'sorted sets', 'zero deps']
     },
@@ -404,12 +406,12 @@ const ar: PortfolioContent = {
       year: '2025',
       metric: '1:1 viewport',
       repoUrl: 'https://github.com/Mo7ammedd/epub-to-pdf',
-      summary: 'محوّل كتب epub ثابتة التخطيط يطبع كل صفحة xhtml بأبعادها المعلنة مع الحفاظ التام على الرسوم والخطوط والهندسة.',
+      summary: 'مسار تحويل كتب epub ثابتة التخطيط يطبع كل صفحة xhtml عبر puppeteer بأبعادها المعلنة بالضبط — دون إعادة تنسيق الرسوم أو الخطوط أو التخطيط.',
       pipeline: 'zip unpack → opf spine → puppeteer 1:1 → pdf-lib merge',
       bullets: [
-        'قرأت container.xml وترتيب opf spine لعرض كل صفحة xhtml عبر puppeteer بأبعادها الدقيقة دون إعادة تنسيق.',
-        'حقنت قواعد @font-face لاستبدال الخطوط وتجاوزات الطباعة بـ css مع معالجة مسارات الملفات غير اللاتينية.',
-        'أضفت التحويل الدفعي ودمج الصفحات بـ pdf-lib مع تنظيف آمن للمجلدات المؤقتة على مختلف أنظمة التشغيل.'
+        'فككت أرشيفات epub وقرأت container.xml وترتيب opf spine لعرض كل صفحة xhtml في puppeteer بأبعادها المعلنة بدقة 1:1 للكتب ثابتة التخطيط.',
+        'حقنت قواعد @font-face لاستبدال الخطوط وتجاوزات css للطباعة مع معالجة حالات المكتبات الحقيقية مثل المسارات غير اللاتينية ومسارات zip المعطوبة على ويندوز.',
+        'أضفت التحويل الدفعي للمكتبات ودمج الصفحات بـ pdf-lib واستخراجًا عابرًا للمنصات مع تنظيف مضمون للمجلدات المؤقتة عند النجاح أو الفشل لبيئات ci والحاويات.'
       ],
       stack: ['node.js', 'puppeteer', 'pdf-lib', 'xhtml']
     }
@@ -434,6 +436,7 @@ const ar: PortfolioContent = {
       'تركيز على برمجة الأنظمة وبنية قواعد البيانات والخوارزميات ونظم التشغيل ومعمارية الباك إند الموزّع.',
       'عملت كمهندس برمجيات في penta studio في القاهرة أثناء الدراسة، مع تصميم وتسليم أنظمة فعلية للعملاء.'
     ],
+    courseworkLabel: 'المقررات الدراسية',
     courses: ['هياكل البيانات', 'الخوارزميات', 'نظم التشغيل', 'قواعد البيانات', 'الشبكات', 'هندسة البرمجيات']
   }
 };

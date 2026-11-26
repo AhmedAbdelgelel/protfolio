@@ -16,7 +16,7 @@ export const localesInfo = {
 
 const en = {
   personName: 'Ahmed Abdelgelel',
-  jobTitle: 'Software engineer — AI systems and client delivery',
+  jobTitle: 'Forward-Deployed Software Engineer — Agentic AI & Backend Systems',
   navWork: 'Work',
   navAbout: 'About',
   navContact: 'Contact',
@@ -27,11 +27,11 @@ const en = {
   themeSystem: 'Follow the system',
   themeLight: 'Light',
   themeDark: 'Dark',
-  homeTitle: 'Ahmed Abdelgelel — Software engineer, AI systems',
+  homeTitle: 'Ahmed Abdelgelel — Forward-Deployed & Agentic Systems Engineer',
   homeDescription:
-    'Software engineer in Cairo building production AI and backend systems with client teams, from ambiguous workflows to reliable software in their environment.',
+    'Software engineer in Cairo owning the whole problem from discovery through deployment — building production backends, MCP servers, tool-calling agents, evals, and policy-gated LLM gateways.',
   homeIntro:
-    'Software engineer in Cairo. I work inside client teams, own the system from the first sketch to production, and stay until it runs without me.',
+    'Software engineer in Cairo who owns the whole problem, not just the ticket — entering client workflows, building production backends and agentic AI systems, and staying until they run without me.',
   homeMore: 'More about me',
   aboutHeading: 'About',
   aboutTitle: 'Ahmed Abdelgelel',
@@ -47,7 +47,7 @@ const en = {
 
 const ar = {
   personName: 'أحمد عبد الجليل',
-  jobTitle: 'مهندس برمجيات — أنظمة ذكاء اصطناعي وتسليم للعملاء',
+  jobTitle: 'مهندس برمجيات وهندسة ميدانية — أنظمة الوكلاء والباك إند',
   navWork: 'أعمالي',
   navAbout: 'عني',
   navContact: 'تواصل',
@@ -58,11 +58,11 @@ const ar = {
   themeSystem: 'حسب النظام',
   themeLight: 'فاتح',
   themeDark: 'غامق',
-  homeTitle: 'أحمد عبد الجليل — مهندس برمجيات وأنظمة ذكاء اصطناعي',
+  homeTitle: 'أحمد عبد الجليل — مهندس أنظمة وكلاء ذكاء اصطناعي وهندسة ميدانية',
   homeDescription:
-    'مهندس برمجيات في القاهرة أبني أنظمة ذكاء اصطناعي وباك إند للإنتاج مع فرق العملاء، من سير العمل غير الواضح إلى برنامج موثوق داخل بيئتهم.',
+    'مهندس برمجيات في القاهرة أتولى المشكلة كاملة من الفهم حتى النشر — أبني أنظمة باك إند، وخوادم MCP، ووكلاء استدعاء الأدوات، والتقييمات، وبوابات النماذج المحكومة بالسياسات.',
   homeIntro:
-    'مهندس برمجيات في القاهرة. أعمل داخل فريق العميل وأتولى النظام من أول رسمة على الورق حتى الإنتاج، وأبقى معه إلى أن يعمل من دوني.',
+    'مهندس برمجيات في القاهرة أتولى المشكلة كاملة لا المهمة المكتوبة في التذكرة فقط — أدخل سير عمل العميل، أبني أنظمة الباك إند ووكلاء الذكاء الاصطناعي للإنتاج، وأبقى معها إلى أن تعمل من دوني.',
   homeMore: 'المزيد عني',
   aboutHeading: 'نبذة عني',
   aboutTitle: 'أحمد عبد الجليل',

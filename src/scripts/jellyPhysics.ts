@@ -15,6 +15,7 @@ export interface JellyEnterOptions {
   mass?: number;
   stretchFactor?: number;
   baseTransform?: string;
+  clearTransformOnFinish?: boolean;
 }
 
 export interface JellySlideOptions {
@@ -187,9 +188,10 @@ export function jellyEnter(el: HTMLElement, opts: JellyEnterOptions): () => void
   cancelActive(el);
 
   const base = opts.baseTransform?.trim() ?? '';
+  const restingTransform = opts.clearTransformOnFinish ? '' : base;
   if (prefersReducedMotion() || opts.fromY === 0) {
     el.style.opacity = '';
-    el.style.transform = base;
+    el.style.transform = restingTransform;
     el.style.willChange = '';
     return () => {};
   }
@@ -218,7 +220,7 @@ export function jellyEnter(el: HTMLElement, opts: JellyEnterOptions): () => void
     if (cancelled) return;
     cancelled = true;
     activeCleanups.delete(el);
-    el.style.transform = base;
+    el.style.transform = restingTransform;
     el.style.opacity = '';
     el.style.willChange = '';
   };
@@ -230,7 +232,7 @@ export function jellyEnter(el: HTMLElement, opts: JellyEnterOptions): () => void
     cancelAnimationFrame(rafId);
     activeCleanups.delete(el);
     el.style.opacity = '';
-    el.style.transform = base;
+    el.style.transform = restingTransform;
     el.style.willChange = '';
   };
 

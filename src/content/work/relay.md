@@ -99,6 +99,6 @@ contract does not: explicit policy, safe degradation, measurable outcomes, and a
 customer can use after handoff.
 
 That is the work I want to do: close enough to the customer to understand what should change, and
-responsible for the unglamorous details after deployment.
+responsible for what happens after deployment.
 
 [Repository](https://github.com/AhmedAbdelgelel/Relay)

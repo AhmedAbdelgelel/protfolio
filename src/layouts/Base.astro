@@ -83,8 +83,8 @@ const alternates = locales.map((locale) => ({
     })} />
   </head>
   <body>
+    <Header lang={lang} switchPath={switchPath} />
     <main class="site">
-      <Header lang={lang} switchPath={switchPath} />
       <slot />
     </main>
     <Footer lang={lang} />
